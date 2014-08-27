@@ -214,15 +214,35 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			{
 				Color color;
 				if(_justDrawn)
-					color = Colors.Orange;
+					color = Colors.Yellow;
 				else if(InHandCount > 0 && Game.HighlightCardsInHand || IsStolen)
 					color = Colors.GreenYellow;
 				else if(Count == 0)
 					color = Colors.Gray;
-				else if(WasDiscarded && Game.HighlightDiscarded)
-					color = Colors.IndianRed;
-				else
-					color = Colors.White;
+                else if (WasDiscarded && Game.HighlightDiscarded)
+                    color = Colors.IndianRed;
+                else
+                {
+                    if (Rarity == "Legendary")
+                    {
+                        // light orange
+                        color = Color.FromRgb(255, 170, 43);
+                    }
+                    else if (Rarity == "Epic")
+                    {
+                        // light purple
+                        color = Color.FromRgb(196, 119, 221);
+                    }
+                    else if (Rarity == "Rare")
+                    {
+                        // light blue
+                        color = Color.FromRgb(160, 177, 245);                        
+                    }
+                    else
+                    {
+                        color = Colors.White;
+                    }
+                }
 				return
 					new SolidColorBrush(color);
 			}
@@ -368,4 +388,5 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		}
 	}
 }
+
 
