@@ -59,6 +59,8 @@ namespace Hearthstone_Deck_Tracker.Stats
 			_instance = XmlManager<DeckStatsList>.Load(file);
 
             analyzeAllGames();
+
+            printAllPredictionsToFile("c:\\temp\\allpredictions.txt");
 		}
 
 		public static void Save()
@@ -74,6 +76,107 @@ namespace Hearthstone_Deck_Tracker.Stats
             public string cardid;
             public float percent;
         };
+
+        
+        static public void printAllPredictionsToFile(string filename)
+        {
+            String []classes = new[] { "Druid", "Hunter", "Mage", "Priest", "Paladin", "Shaman", "Rogue", "Warlock", "Warrior" };
+            string currentprediction;
+            System.IO.StreamWriter file = new System.IO.StreamWriter(filename);
+
+
+            foreach(string classname in classes)
+            {
+                int i;
+                file.WriteLine("Class: " + classname + "\n");
+                for (i = 1; i < 13; i++)
+                {
+                    doPrediction(classname, i);
+                    currentprediction = predictionText;
+                    file.WriteLine(currentprediction);
+                }
+
+            }
+            file.Close();
+
+        }
+
+        static public void doPredictionLastCard(String enemy, int turnnumber, List<string> lastplays)
+        {
+            List< Dictionary<String, int>> possibledictionaries = new List< Dictionary<String, int>>();
+            Dictionary<String, int> newdictionary = new Dictionary<String, int>();
+            cardpercent newcardpercent;
+            List<cardpercent> cardpredictions = new List<cardpercent>();
+
+
+            foreach(String playstring in lastplays)
+            {
+                String hashstring = enemy + turnnumber + playstring;
+                if(predictiondictionary_priorturn.ContainsKey(hashstring) )
+                {
+                    possibledictionaries.Add(predictiondictionary_priorturn[hashstring]);
+                }
+            }
+
+            foreach(Dictionary<String, int> currentdict in possibledictionaries)
+            {
+                foreach (String key in currentdict.Keys)
+                {
+                    if (newdictionary.ContainsKey(key))
+                    {
+                        newdictionary[key] += currentdict[key];
+                    }
+                    else
+                    {
+                        newdictionary.Add(key, currentdict[key]);
+                    }
+                }
+            }
+
+            Dictionary<String, int> innerhash = newdictionary;
+            ///////////
+
+            float numpossiblecards = 0;
+
+            foreach (String cardid in innerhash.Keys)
+            {
+                numpossiblecards += innerhash[cardid];
+            }
+
+            foreach (String cardid in innerhash.Keys)
+            {
+                float thiscardcount = (float)innerhash[cardid];
+                newcardpercent.cardid = cardid;
+                newcardpercent.percent = thiscardcount / numpossiblecards;
+                cardpredictions.Add(newcardpercent);
+            }
+            if (cardpredictions.Count == 0)
+            {
+                doPrediction(enemy, turnnumber);
+                return;
+            }
+
+            List<cardpercent> SortedList = cardpredictions.OrderBy(o => (1.0 - o.percent)).ToList();
+            String predictionstring = "\nPrediction for Turn " + turnnumber + "\nbased on last card\n\n";
+            int i;
+            for (i = 0; i < 7 && i < SortedList.Count; i++)
+            {
+                Hearthstone.Card card = Hearthstone.Game.GetCardFromId(SortedList[i].cardid);
+                string percentstring = (SortedList[i].percent * 100.0).ToString("0.0");
+                predictionstring += card.Name + " " + percentstring + "%" + "\n";
+            }
+
+            // lastcards
+
+            predictionstring += "\nLast cards played were\n\n";
+            foreach (string lastcard in lastplays)
+            {
+                predictionstring += Hearthstone.Game.GetCardFromId(lastcard) + "\n";
+            }
+            doPrediction(enemy, turnnumber);
+            predictionText = predictionText + predictionstring;
+
+        }
 
         static public void doPrediction(String enemy, int turnnumber)
         {
@@ -123,13 +226,84 @@ namespace Hearthstone_Deck_Tracker.Stats
             Hearthstone.Card card = Hearthstone.Game.GetCardFromId(play.CardId);
             return play.Type == PlayType.OpponentHandDiscard && (card != null && card.Type == "Spell");
         }
+
+        public static Dictionary<String, Dictionary<String, int>> predictiondictionary_priorturn;
+
+        public static void analyzeAllGamesPriorTurn()
+        {
+            predictiondictionary_priorturn = new Dictionary<String, Dictionary<String, int>>();
+
+            List<DeckStats> mydeckstats = DeckStatsList.Instance.DeckStats;
+            List<string> cards_played_last_turn = new List<string>();
+
+            foreach (DeckStats deckstats in mydeckstats)
+            {
+                foreach (GameStats game in deckstats.Games)
+                {
+                    string enemyname = game.OpponentHero;
+                    foreach (TurnStats turn in game.TurnStats)
+                    {
+                        int turnnumbner = turn.Turn;
+                        string enemy_turn_hashid = enemyname + turnnumbner;
+                        foreach (String priorplayedcard in cards_played_last_turn)
+                        {
+                            string enemy_turn_hashid_priorcard = enemy_turn_hashid + priorplayedcard;
+
+                            Dictionary<String, int> innerdictionary;
+                            if (predictiondictionary_priorturn.ContainsKey(enemy_turn_hashid_priorcard))
+                            {
+                                innerdictionary = predictiondictionary_priorturn[enemy_turn_hashid_priorcard];
+                            }
+                            else
+                            {
+                                innerdictionary = new Dictionary<String, int>();
+                                predictiondictionary_priorturn.Add(enemy_turn_hashid_priorcard, innerdictionary);
+                            }
+
+                            foreach (TurnStats.Play play in turn.Plays)
+                            {
+                                if (play.Type == PlayType.OpponentPlay || isSpell(play))
+                                {
+                                    string cardid = play.CardId;
+
+                                    /// first create/get the inner hash
+                                    /// 
+                                    if (innerdictionary.ContainsKey(cardid))
+                                    {
+                                        int count = innerdictionary[cardid];
+                                        count++;
+                                        innerdictionary[cardid] = count;
+                                    }
+                                    else
+                                    {
+                                        innerdictionary.Add(cardid, 1);
+                                    }
+                                }
+                            } //foreach turnstats in play
+                        }/// for each prior played card
+                        //
+                        cards_played_last_turn.Clear();
+                        foreach (TurnStats.Play play in turn.Plays)
+                        {
+                            if (play.Type == PlayType.OpponentPlay || isSpell(play))
+                            {
+                                cards_played_last_turn.Add(play.CardId);
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+
         public static void analyzeAllGames()
         {
-            
+            analyzeAllGamesPriorTurn();
 
             predictiondictionary = new Dictionary<String, Dictionary<String, int>>();
 
             List<DeckStats> mydeckstats = DeckStatsList.Instance.DeckStats;
+
             foreach (DeckStats deckstats in mydeckstats)
             {
                 foreach (GameStats game in deckstats.Games)

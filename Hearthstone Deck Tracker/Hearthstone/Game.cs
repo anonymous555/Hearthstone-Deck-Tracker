@@ -106,6 +106,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			Logger.WriteLine(">>>>>>>>>>> Reset <<<<<<<<<<<");
 
 			PlayerDrawn.Clear();
+            last_turn_num = 0;
+            lastOpponentPlays.Clear();
 			PlayerHandCount = 0;
 			OpponentSecretCount = 0;
 			OpponentCards.Clear();
@@ -373,6 +375,9 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			}
 		}
 
+        public static List<string> lastOpponentPlays = new List<string>();
+        private static int last_turn_num = 0;
+
 		public static void OpponentPlay(string id, int from, int turn)
 		{
 			OpponentHandCount--;
@@ -409,6 +414,12 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			OpponentHandMarks[MaxHandSize - 1] = CardMark.None;
 
 			LogOpponentHand();
+            if(turn != last_turn_num)
+            {
+                lastOpponentPlays.Clear();
+            }
+            lastOpponentPlays.Add(id);
+            last_turn_num = turn;
 		}
 
 		public static void OpponentMulligan(int pos)

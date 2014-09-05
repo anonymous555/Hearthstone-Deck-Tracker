@@ -201,12 +201,26 @@ namespace Hearthstone_Deck_Tracker
             DeckStatsList.doPrediction(Game.PlayingAgainst, 1);
 		}
 
+        static int last_opponent_turn = 0;
 		public static void TurnStart(Turn player, int turnNumber)
 		{
 
             if (player != Turn.Player)
             {
-                DeckStatsList.doPrediction(Game.PlayingAgainst, turnNumber + 1);
+                // DeckStatsList.doPrediction(Game.PlayingAgainst, turnNumber + 1);
+                last_opponent_turn = turnNumber + 1;
+                ///
+            }
+            else
+            {
+                if (last_opponent_turn == 0)
+                {
+                    DeckStatsList.doPredictionLastCard(Game.PlayingAgainst, 1, Game.lastOpponentPlays);
+                }
+                else
+                {
+                    DeckStatsList.doPredictionLastCard(Game.PlayingAgainst, last_opponent_turn, Game.lastOpponentPlays);
+                }
             }
 
 			Logger.WriteLine(string.Format("{0}-turn ({1})", player, turnNumber + 1), "LogReader");
@@ -231,6 +245,7 @@ namespace Hearthstone_Deck_Tracker
 
 
 			Game.PlayingAs = playerHero;
+            last_opponent_turn = 0;
 
 			Logger.WriteLine("Game start");
 
