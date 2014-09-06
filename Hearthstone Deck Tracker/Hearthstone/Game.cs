@@ -612,6 +612,17 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		{
 			if(CurrentGameStats == null) return;
 			CurrentGameStats.AddPlay(play, turn, cardId);
+
+            if (play == PlayType.OpponentHeroPower)
+            {
+                if (turn != last_turn_num)
+                {
+                    lastOpponentPlays.Clear();
+                }
+                lastOpponentPlays.Add(cardId);
+                last_turn_num = turn;
+            }
+
 		}
 
 		public static bool IsActualCard(Card card)

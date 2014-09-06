@@ -109,8 +109,10 @@ namespace Hearthstone_Deck_Tracker.Stats
 		private List<TurnStats> LoadTurnStats()
 		{
 			Directory.CreateDirectory(_gamesDir);
-			if(GameId != Guid.Empty && File.Exists(_gameFile))
-				return XmlManager<List<TurnStats>>.Load(_gameFile);
+            if (GameId != Guid.Empty && File.Exists(_gameFile))
+            {
+                return XmlManager<List<TurnStats>>.Load(_gameFile);;
+            }
 			return new List<TurnStats>();
 		}
 

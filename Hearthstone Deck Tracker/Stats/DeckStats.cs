@@ -262,7 +262,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 
                             foreach (TurnStats.Play play in turn.Plays)
                             {
-                                if (play.Type == PlayType.OpponentPlay || isSpell(play))
+                                if (play.Type == PlayType.OpponentPlay || isSpell(play) || play.Type == PlayType.OpponentHeroPower)
                                 {
                                     string cardid = play.CardId;
 
@@ -326,7 +326,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 
                         foreach (TurnStats.Play play in turn.Plays)
                         {
-                            if (play.Type == PlayType.OpponentPlay || isSpell(play))
+                            if (play.Type == PlayType.OpponentPlay || isSpell(play) || play.Type == PlayType.OpponentHeroPower)
                             {
                                 string cardid = play.CardId; 
 
