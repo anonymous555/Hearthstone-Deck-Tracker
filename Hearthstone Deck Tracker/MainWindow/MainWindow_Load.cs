@@ -68,11 +68,13 @@ namespace Hearthstone_Deck_Tracker
 
 		private void SetupDeckStatsFile()
 		{
-			var appDataPath = Config.Instance.AppDataPath + @"\DeckStats.xml";
+			if(Config.Instance.SaveDataInAppData == null)
+				return;
+            var appDataPath = Config.Instance.AppDataPath + @"\DeckStats.xml";
 			var appDataGamesDirPath = Config.Instance.AppDataPath + @"\Games";
 			const string localPath = "DeckStats.xml";
 			const string localGamesDirPath = "Games";
-			if(Config.Instance.SaveInAppData)
+			if(Config.Instance.SaveDataInAppData.Value)
 			{
 				if(File.Exists(localPath))
 				{
@@ -122,7 +124,7 @@ namespace Hearthstone_Deck_Tracker
 				Logger.WriteLine("Moved Games to appdata");
 			}
 
-			var filePath = Config.Instance.HomeDir + "DeckStats.xml";
+			var filePath = Config.Instance.DataDir + "DeckStats.xml";
 			//load saved decks
 			if(!File.Exists(filePath))
 			{
@@ -132,11 +134,11 @@ namespace Hearthstone_Deck_Tracker
 			}
 		}
 
+		//TODO
 		// Logic for dealing with legacy config file semantics
 		// Use difference of versions to determine what should be done
 		private void ConvertLegacyConfig(Version currentVersion, Version configVersion)
 		{
-			var config = Config.Instance;
 			var converted = false;
 
 			var v0_3_21 = new Version(0, 3, 21, 0);
@@ -150,47 +152,48 @@ namespace Hearthstone_Deck_Tracker
 				// they are in fact a valid range of pixel positions, we now use nullable types instead. The default
 				// 'no specific position' is now expressed when the positions are null.
 				{
-					if(config.TrackerWindowLeft.HasValue && config.TrackerWindowLeft.Value < 0)
+					//Note: Upgraded .HasValue AND .Value into GetValueOrDefault()
+					if(Config.Instance.TrackerWindowLeft.GetValueOrDefault() < 0)
 					{
-						config.TrackerWindowLeft = Config.Defaults.TrackerWindowLeft;
+						Config.Instance.Reset("TrackerWindowLeft");
 						converted = true;
 					}
-					if(config.TrackerWindowTop.HasValue && config.TrackerWindowTop.Value < 0)
+					if(Config.Instance.TrackerWindowTop.GetValueOrDefault() < 0)
 					{
-						config.TrackerWindowTop = Config.Defaults.TrackerWindowTop;
-						converted = true;
-					}
-
-					if(config.PlayerWindowLeft.HasValue && config.PlayerWindowLeft.Value < 0)
-					{
-						config.PlayerWindowLeft = Config.Defaults.PlayerWindowLeft;
-						converted = true;
-					}
-					if(config.PlayerWindowTop.HasValue && config.PlayerWindowTop.Value < 0)
-					{
-						config.PlayerWindowTop = Config.Defaults.PlayerWindowTop;
+						Config.Instance.Reset("TrackerWindowTop");
 						converted = true;
 					}
 
-					if(config.OpponentWindowLeft.HasValue && config.OpponentWindowLeft.Value < 0)
+					if(Config.Instance.PlayerWindowLeft.GetValueOrDefault() < 0)
 					{
-						config.OpponentWindowLeft = Config.Defaults.OpponentWindowLeft;
+						Config.Instance.Reset("PlayerWindowLeft");
 						converted = true;
 					}
-					if(config.OpponentWindowTop.HasValue && config.OpponentWindowTop.Value < 0)
+					if(Config.Instance.PlayerWindowTop.GetValueOrDefault() < 0)
 					{
-						config.OpponentWindowTop = Config.Defaults.OpponentWindowTop;
+						Config.Instance.Reset("PlayerWindowTop");
 						converted = true;
 					}
 
-					if(config.TimerWindowLeft.HasValue && config.TimerWindowLeft.Value < 0)
+					if(Config.Instance.OpponentWindowLeft.GetValueOrDefault() < 0)
 					{
-						config.TimerWindowLeft = Config.Defaults.TimerWindowLeft;
+						Config.Instance.Reset("OpponentWindowLeft");
 						converted = true;
 					}
-					if(config.TimerWindowTop.HasValue && config.TimerWindowTop.Value < 0)
+					if(Config.Instance.OpponentWindowTop.GetValueOrDefault() < 0)
 					{
-						config.TimerWindowTop = Config.Defaults.TimerWindowTop;
+						Config.Instance.Reset("OpponentWindowTop");
+						converted = true;
+					}
+
+					if(Config.Instance.TimerWindowLeft.GetValueOrDefault() < 0)
+					{
+						Config.Instance.Reset("TimerWindowLeft");
+						converted = true;
+					}
+					if(Config.Instance.TimerWindowTop.GetValueOrDefault() < 0)
+					{
+						Config.Instance.Reset("TimerWindowTop");
 						converted = true;
 					}
 				}
@@ -201,79 +204,93 @@ namespace Hearthstone_Deck_Tracker
 				// dimensions were implemented. Unfortunately we cannot make this consistent without
 				// breaking legacy config files, where the height will still be stored as zero. So
 				// we handle the changed semantics here.
-				{
-					if(config.PlayerWindowHeight == 0)
-					{
-						config.PlayerWindowHeight = Config.Defaults.PlayerWindowHeight;
-						converted = true;
-					}
 
-					if(config.OpponentWindowHeight == 0)
-					{
-						config.OpponentWindowHeight = Config.Defaults.OpponentWindowHeight;
-						converted = true;
-					}
+				if(Config.Instance.PlayerWindowHeight == 0)
+				{
+					Config.Instance.Reset("PlayerWindowHeight");
+					converted = true;
 				}
+
+				if(Config.Instance.OpponentWindowHeight == 0)
+				{
+					Config.Instance.Reset("OpponentWindowHeight");
+					converted = true;
+				}
+
 			}
-			else if(configVersion <= v0_3_21) // Config must be between v0.3.20 and v0.3.21 inclusive
-				// It was still possible in 0.3.21 to see (-32000, -32000) window positions
-				// under certain circumstances (GitHub issue #135).
+			else
 			{
-				if(config.TrackerWindowLeft == -32000)
+				if(configVersion <= v0_3_21)
 				{
-					config.TrackerWindowLeft = Config.Defaults.TrackerWindowLeft;
-					converted = true;
-				}
-				if(config.TrackerWindowTop == -32000)
-				{
-					config.TrackerWindowTop = Config.Defaults.TrackerWindowTop;
-					converted = true;
+					// Config must be between v0.3.20 and v0.3.21 inclusive
+					// It was still possible in 0.3.21 to see (-32000, -32000) window positions
+					// under certain circumstances (GitHub issue #135).
+					if(Config.Instance.TrackerWindowLeft == -32000)
+					{
+						Config.Instance.Reset("TrackerWindowLeft");
+						converted = true;
+					}
+					if(Config.Instance.TrackerWindowTop == -32000)
+					{
+						Config.Instance.Reset("TrackerWindowTop");
+						converted = true;
+					}
+
+					if(Config.Instance.PlayerWindowLeft == -32000)
+					{
+						Config.Instance.Reset("PlayerWindowLeft");
+						converted = true;
+					}
+					if(Config.Instance.PlayerWindowTop == -32000)
+					{
+						Config.Instance.Reset("PlayerWindowTop");
+						converted = true;
+					}
+
+					if(Config.Instance.OpponentWindowLeft == -32000)
+					{
+						Config.Instance.Reset("OpponentWindowLeft");
+						converted = true;
+					}
+					if(Config.Instance.OpponentWindowTop == -32000)
+					{
+						Config.Instance.Reset("OpponentWindowTop");
+						converted = true;
+					}
+
+					if(Config.Instance.TimerWindowLeft == -32000)
+					{
+						Config.Instance.Reset("TimerWindowLeft");
+						converted = true;
+					}
+					if(Config.Instance.TimerWindowTop == -32000)
+					{
+						Config.Instance.Reset("TimerWindowTop");
+						converted = true;
+					}
+
+					//player scaling used to be increased by a very minimal about to circumvent some problem,
+					//should no longer be required. not sure is the increment is actually noticeable, but resetting can't hurt
+					if(Config.Instance.OverlayOpponentScaling > 100)
+					{
+						Config.Instance.OverlayOpponentScaling = 100;
+						converted = true;
+					}
+					if(Config.Instance.OverlayPlayerScaling > 100)
+					{
+						Config.Instance.OverlayPlayerScaling = 100;
+						converted = true;
+					}
 				}
 
-				if(config.PlayerWindowLeft == -32000)
-				{
-					config.PlayerWindowLeft = Config.Defaults.PlayerWindowLeft;
-					converted = true;
-				}
-				if(config.PlayerWindowTop == -32000)
-				{
-					config.PlayerWindowTop = Config.Defaults.PlayerWindowTop;
-					converted = true;
-				}
 
-				if(config.OpponentWindowLeft == -32000)
+				if(configVersion <= new Version(0, 5, 1, 0))
 				{
-					config.OpponentWindowLeft = Config.Defaults.OpponentWindowLeft;
+#pragma warning disable 612
+					Config.Instance.SaveConfigInAppData = Config.Instance.SaveInAppData;
+					Config.Instance.SaveDataInAppData = Config.Instance.SaveInAppData;
 					converted = true;
-				}
-				if(config.OpponentWindowTop == -32000)
-				{
-					config.OpponentWindowTop = Config.Defaults.OpponentWindowTop;
-					converted = true;
-				}
-
-				if(config.TimerWindowLeft == -32000)
-				{
-					config.TimerWindowLeft = Config.Defaults.TimerWindowLeft;
-					converted = true;
-				}
-				if(config.TimerWindowTop == -32000)
-				{
-					config.TimerWindowTop = Config.Defaults.TimerWindowTop;
-					converted = true;
-				}
-
-				//player scaling used to beincreased by a very minimal about to curcumvent some problem,
-				//should no longer be required. not sure is the increment is actually noticable, but resetting can't hurt
-				if(config.OverlayOpponentScaling > 100)
-				{
-					config.OverlayOpponentScaling = 100;
-					converted = true;
-				}
-				if(config.OverlayPlayerScaling > 100)
-				{
-					config.OverlayPlayerScaling = 100;
-					converted = true;
+#pragma warning restore 612
 				}
 			}
 
@@ -301,7 +318,7 @@ namespace Hearthstone_Deck_Tracker
 					{
 						var hsDir = (string)hsDirKey.GetValue("InstallLocation");
 
-						//verify the installlocation actually is correct (possibly moved?)
+						//verify the install location actually is correct (possibly moved?)
 						if(File.Exists(hsDir + @"\Hearthstone.exe"))
 						{
 							Config.Instance.HearthstoneDirectory = hsDir;
@@ -328,7 +345,7 @@ namespace Hearthstone_Deck_Tracker
 				{
 					updated = true;
 					File.Copy("Files/log.config", _logConfigPath, true);
-					Logger.WriteLine(string.Format("Copied log.config to {0} (did not exist)", _configPath));
+					Logger.WriteLine(string.Format("Copied log.config to {0} (did not exist)", Config.Instance.ConfigPath));
 				}
 				else
 				{
@@ -339,12 +356,12 @@ namespace Hearthstone_Deck_Tracker
 					{
 						updated = true;
 						File.Copy("Files/log.config", _logConfigPath, true);
-						Logger.WriteLine(string.Format("Copied log.config to {0} (file newer)", _configPath));
+						Logger.WriteLine(string.Format("Copied log.config to {0} (file newer)", Config.Instance.ConfigPath));
 					}
 					else if(Config.Instance.AlwaysOverwriteLogConfig)
 					{
 						File.Copy("Files/log.config", _logConfigPath, true);
-						Logger.WriteLine(string.Format("Copied log.config to {0} (AlwaysOverwriteLogConfig)", _configPath));
+						Logger.WriteLine(string.Format("Copied log.config to {0} (AlwaysOverwriteLogConfig)", Config.Instance.ConfigPath));
 					}
 				}
 			}
@@ -364,9 +381,11 @@ namespace Hearthstone_Deck_Tracker
 
 		private void SetupDeckListFile()
 		{
+			if(Config.Instance.SaveDataInAppData == null)
+				return;
 			var appDataPath = Config.Instance.AppDataPath + @"\PlayerDecks.xml";
 			const string localPath = "PlayerDecks.xml";
-			if(Config.Instance.SaveInAppData)
+			if(Config.Instance.SaveDataInAppData.Value)
 			{
 				if(File.Exists(localPath))
 				{
@@ -426,16 +445,15 @@ namespace Hearthstone_Deck_Tracker
 			}
 
 			var theme = string.IsNullOrEmpty(Config.Instance.ThemeName)
-				            ? ThemeManager.DetectAppStyle().Item1
-				            : ThemeManager.AppThemes.First(t => t.Name == Config.Instance.ThemeName);
+							? ThemeManager.DetectAppStyle().Item1
+							: ThemeManager.AppThemes.First(t => t.Name == Config.Instance.ThemeName);
 			var accent = string.IsNullOrEmpty(Config.Instance.AccentName)
-				             ? ThemeManager.DetectAppStyle().Item2
-				             : ThemeManager.Accents.First(a => a.Name == Config.Instance.AccentName);
+							 ? ThemeManager.DetectAppStyle().Item2
+							 : ThemeManager.Accents.First(a => a.Name == Config.Instance.AccentName);
 			ThemeManager.ChangeAppStyle(Application.Current, accent, theme);
 			Options.ComboboxTheme.SelectedItem = theme;
 			Options.ComboboxAccent.SelectedItem = accent;
-
-			Options.CheckboxSaveAppData.IsChecked = Config.Instance.SaveInAppData;
+			
 
 			Height = Config.Instance.WindowHeight;
 			Width = Config.Instance.WindowWidth;
@@ -443,6 +461,7 @@ namespace Hearthstone_Deck_Tracker
 			Game.HighlightDiscarded = Config.Instance.HighlightDiscarded;
 			Options.CheckboxHideOverlayInBackground.IsChecked = Config.Instance.HideInBackground;
 			Options.CheckboxHideOpponentCardAge.IsChecked = Config.Instance.HideOpponentCardAge;
+			Options.CheckboxHideOpponentCardMarks.IsChecked = Config.Instance.HideOpponentCardMarks;
 			Options.CheckboxHideOverlayInMenu.IsChecked = Config.Instance.HideInMenu;
 			Options.CheckboxHighlightCardsInHand.IsChecked = Config.Instance.HighlightCardsInHand;
 			Options.CheckboxHideOverlay.IsChecked = Config.Instance.HideOverlay;
@@ -489,8 +508,8 @@ namespace Hearthstone_Deck_Tracker
 			Options.CheckboxStatsInWindow.IsChecked = Config.Instance.StatsInWindow;
 			Options.CheckboxOverlaySecretToolTipsOnly.IsChecked = Config.Instance.OverlaySecretToolTipsOnly;
 			Options.CheckboxTagOnImport.IsChecked = Config.Instance.TagDecksOnImport;
-            Options.CheckboxPrediction.IsChecked = Config.Instance.PredictAllowed;
-
+			Options.CheckboxConfigSaveAppData.IsChecked = Config.Instance.SaveConfigInAppData;
+			Options.CheckboxDataSaveAppData.IsChecked = Config.Instance.SaveDataInAppData;
 			Options.SliderOverlayOpacity.Value = Config.Instance.OverlayOpacity;
 			Options.SliderOpponentOpacity.Value = Config.Instance.OpponentOpacity;
 			Options.SliderPlayerOpacity.Value = Config.Instance.PlayerOpacity;
@@ -521,8 +540,8 @@ namespace Hearthstone_Deck_Tracker
 			Options.ComboboxWindowBackground.SelectedItem = Config.Instance.SelectedWindowBackground;
 			Options.TextboxCustomBackground.IsEnabled = Config.Instance.SelectedWindowBackground == "Custom";
 			Options.TextboxCustomBackground.Text = string.IsNullOrEmpty(Config.Instance.WindowsBackgroundHex)
-				                                       ? "#696969"
-				                                       : Config.Instance.WindowsBackgroundHex;
+													   ? "#696969"
+													   : Config.Instance.WindowsBackgroundHex;
 			Options.UpdateAdditionalWindowsBackground();
 
 			if(Helper.LanguageDict.Values.Contains(Config.Instance.SelectedLanguage))
@@ -575,7 +594,7 @@ namespace Hearthstone_Deck_Tracker
 			if(_updatedLogConfig)
 			{
 				this.ShowMessage("Restart Hearthstone",
-				                 "This is either your first time starting the tracker or the log.config file has been updated. Please restart Heartstone once, for the tracker to work properly.");
+								 "This is either your first time starting the tracker or the log.config file has been updated. Please restart Heartstone once, for the tracker to work properly.");
 			}
 
 			ManaCurveMyDecks.UpdateValues();

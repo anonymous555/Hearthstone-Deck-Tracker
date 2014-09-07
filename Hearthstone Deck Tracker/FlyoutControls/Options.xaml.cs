@@ -31,20 +31,6 @@ namespace Hearthstone_Deck_Tracker
 			_initialized = true;
 		}
 
-   		private void CheckboxPredict_Checked(object sender, RoutedEventArgs e)
-		{
-			if(!_initialized) return;
-			Config.Instance.PredictAllowed = true;
-			SaveConfig(true);
-		}
-
-   		private void CheckboxPredict_Unchecked(object sender, RoutedEventArgs e)
-		{
-			if(!_initialized) return;
-            Config.Instance.PredictAllowed = false;
-			SaveConfig(true);
-		}
-
 		private void CheckboxHighlightCardsInHand_Checked(object sender, RoutedEventArgs e)
 		{
 			if(!_initialized) return;
@@ -714,9 +700,9 @@ namespace Hearthstone_Deck_Tracker
 		{
 			var result =
 				await
-				Helper.MainWindow.ShowMessageAsync("Resetting overlay to default",
-				                                   "Positions of: Player Deck, Opponent deck, Timers and Secrets will be reset to default. Are you sure?",
-				                                   MessageDialogStyle.AffirmativeAndNegative);
+					Helper.MainWindow.ShowMessageAsync("Resetting overlay to default",
+						"Positions of: Player Deck, Opponent deck, Timers and Secrets will be reset to default. Are you sure?",
+						MessageDialogStyle.AffirmativeAndNegative);
 			if(result != MessageDialogResult.Affirmative)
 				return;
 
@@ -726,23 +712,24 @@ namespace Hearthstone_Deck_Tracker
 				BtnUnlockOverlay.Content = "Unlock";
 			}
 
-			Config.Instance.PlayerDeckTop = Config.Defaults.PlayerDeckTop;
-			Config.Instance.PlayerDeckLeft = Config.Defaults.PlayerDeckLeft;
-			Config.Instance.PlayerDeckHeight = Config.Defaults.PlayerDeckHeight;
 
-			Config.Instance.OpponentDeckTop = Config.Defaults.OpponentDeckTop;
-			Config.Instance.OpponentDeckLeft = Config.Defaults.OpponentDeckLeft;
-			Config.Instance.OpponentDeckHeight = Config.Defaults.OpponentDeckHeight;
+			Config.Instance.Reset("PlayerDeckTop");
+			Config.Instance.Reset("PlayerDeckLeft");
+			Config.Instance.Reset("PlayerDeckHeight");
 
-			Config.Instance.TimersHorizontalPosition = Config.Defaults.TimersHorizontalPosition;
-			Config.Instance.TimersHorizontalSpacing = Config.Defaults.TimersHorizontalSpacing;
+			Config.Instance.Reset("PlayerDeckHeight");
+			Config.Instance.Reset("OpponentDeckLeft");
+			Config.Instance.Reset("OpponentDeckHeight");
 
-			Config.Instance.TimersHorizontalSpacing = Config.Defaults.TimersHorizontalSpacing;
-			Config.Instance.TimersVerticalSpacing = Config.Defaults.TimersVerticalSpacing;
+			Config.Instance.Reset("TimersHorizontalPosition");
+			Config.Instance.Reset("TimersHorizontalSpacing");
 
-			Config.Instance.SecretsTop = Config.Defaults.SecretsTop;
-			Config.Instance.SecretsLeft = Config.Defaults.SecretsLeft;
-			Config.Instance.SecretsHeight = Config.Defaults.SecretsHeight;
+			Config.Instance.Reset("TimersHorizontalSpacing");
+			Config.Instance.Reset("TimersVerticalSpacing");
+
+			Config.Instance.Reset("SecretsTop");
+			Config.Instance.Reset("SecretsLeft");
+			Config.Instance.Reset("SecretsHeight");
 
 			SaveConfig(true);
 		}
@@ -1116,6 +1103,40 @@ namespace Hearthstone_Deck_Tracker
 			if(!_initialized) return;
 			Config.Instance.OverlaySecretToolTipsOnly = false;
 			Config.Save();
+		}
+
+		private async void CheckboxConfigSaveAppData_Checked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized) return;
+			var path = Config.Instance.ConfigPath;
+			Config.Instance.SaveConfigInAppData = true;
+			XmlManager<Config>.Save(path, Config.Instance);
+			await Helper.MainWindow.Restart();
+		}
+
+		private async void CheckboxConfigSaveAppData_Unchecked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized) return;
+			var path = Config.Instance.ConfigPath;
+			Config.Instance.SaveConfigInAppData = false;
+			XmlManager<Config>.Save(path, Config.Instance);
+			await Helper.MainWindow.Restart();
+		}
+
+		private async void CheckboxDataSaveAppData_Checked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized) return;
+			Config.Instance.SaveDataInAppData = true;
+			Config.Save();
+			await Helper.MainWindow.Restart();
+		}
+
+		private async void CheckboxDataSaveAppData_Unchecked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized) return;
+			Config.Instance.SaveDataInAppData = false;
+			Config.Save();
+			await Helper.MainWindow.Restart();
 		}
 	}
 }

@@ -31,7 +31,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 
 		private string _gamesDir
 		{
-			get { return Config.Instance.HomeDir + "Games"; }
+			get { return Config.Instance.DataDir + "Games"; }
 		}
 
 		private string _gameFile
@@ -178,15 +178,17 @@ namespace Hearthstone_Deck_Tracker.Stats
 		PlayerHandDiscard,
 		PlayerDeckDiscard,
 		PlayerBackToHand,
+		PlayerSecretPlayed,
 		PlayerHeroPower,
-		OpponentPlay,
+        OpponentPlay,
 		OpponentDraw,
 		OpponentGet,
 		OpponentMulligan,
 		OpponentHandDiscard,
 		OpponentDeckDiscard,
 		OpponentBackToHand,
-		OpponentSecretTriggered,
-		OpponentHeroPower
+		OpponentSecretPlayed,
+        OpponentSecretTriggered,
+		OpponentHeroPower,
 	}
 }
