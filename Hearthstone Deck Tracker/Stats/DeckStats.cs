@@ -141,15 +141,21 @@ namespace Hearthstone_Deck_Tracker.Stats
 
             foreach (String cardid in innerhash.Keys)
             {
-                numpossiblecards += innerhash[cardid];
+                if (! Hearthstone.Game.OppopentPlayedMaxNumCards(cardid))
+                {
+                    numpossiblecards += innerhash[cardid];
+                }
             }
 
             foreach (String cardid in innerhash.Keys)
             {
-                float thiscardcount = (float)innerhash[cardid];
-                newcardpercent.cardid = cardid;
-                newcardpercent.percent = thiscardcount / numpossiblecards;
-                cardpredictions.Add(newcardpercent);
+                if (!Hearthstone.Game.OppopentPlayedMaxNumCards(cardid))
+                {
+                    float thiscardcount = (float)innerhash[cardid];
+                    newcardpercent.cardid = cardid;
+                    newcardpercent.percent = thiscardcount / numpossiblecards;
+                    cardpredictions.Add(newcardpercent);
+                }
             }
             if (cardpredictions.Count == 0)
             {
@@ -210,7 +216,7 @@ namespace Hearthstone_Deck_Tracker.Stats
             List<cardpercent> SortedList = cardpredictions.OrderBy(o => (1.0 -  o.percent) ).ToList();
             String predictionstring = "\nPrediction for Turn " + turnnumber + "\n\n";
             int i;
-            for (i = 0; i < 7 && i < SortedList.Count; i++)
+            for (i = 0; i < 8 && i < SortedList.Count; i++)
             {
                 Hearthstone.Card card = Hearthstone.Game.GetCardFromId(SortedList[i].cardid);
                 string percentstring = (SortedList[i].percent * 100.0).ToString("0.0");
@@ -278,7 +284,10 @@ namespace Hearthstone_Deck_Tracker.Stats
 
                                     if(  isSecret(play))
                                     {
-                                        cardid = "Secret Played";
+                                        if (cardid == "")
+                                        {
+                                            cardid = "Secret Played";
+                                        }
                                     }
 
 
@@ -351,7 +360,14 @@ namespace Hearthstone_Deck_Tracker.Stats
 
                                 if (isSecret(play)) 
                                 {
-                                    cardid = "Secret Played";
+                                    if (cardid == "")
+                                    {
+                                        cardid = "Secret Played";
+                                    }
+                                    else
+                                    {
+                                        int i = 5;
+                                    }
                                 }
 
                                 /// first create/get the inner hash

@@ -378,6 +378,25 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
         public static List<string> lastOpponentPlays = new List<string>();
         private static int last_turn_num = 0;
 
+        public static bool OppopentPlayedMaxNumCards(string cardid)
+        {
+                Card card = OpponentCards.FirstOrDefault(c => c.Id == cardid );
+
+
+                if (card == null)
+                {
+                    return false;
+                }
+                if (card.Rarity == "Legendary")
+                {
+                    return card.Count == 1;
+                }
+                else
+                {
+                    return card.Count == 2;
+                }                
+        }
+
 		public static void OpponentPlay(string id, int from, int turn)
 		{
 			OpponentHandCount--;
