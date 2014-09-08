@@ -228,6 +228,12 @@ namespace Hearthstone_Deck_Tracker.Stats
             return play.Type == PlayType.OpponentHandDiscard && (card != null && card.Type == "Spell");
         }
 
+        private static bool isSecret(TurnStats.Play play)
+        {
+            return (play.Type == PlayType.OpponentHandDiscard && play.CardId == "") ||
+                   play.Type == PlayType.OpponentSecretPlayed;
+        }
+
         public static Dictionary<String, Dictionary<String, int>> predictiondictionary_priorturn;
 
         public static void analyzeAllGamesPriorTurn()
@@ -263,9 +269,18 @@ namespace Hearthstone_Deck_Tracker.Stats
 
                             foreach (TurnStats.Play play in turn.Plays)
                             {
-                                if (play.Type == PlayType.OpponentPlay || isSpell(play) || play.Type == PlayType.OpponentHeroPower)
+                                if (play.Type == PlayType.OpponentPlay || isSpell(play) ||
+                                    play.Type == PlayType.OpponentHeroPower ||
+                                    isSecret(play)
+                                    )
                                 {
                                     string cardid = play.CardId;
+
+                                    if(  isSecret(play))
+                                    {
+                                        cardid = "Secret Played";
+                                    }
+
 
                                     /// first create/get the inner hash
                                     /// 
@@ -327,9 +342,17 @@ namespace Hearthstone_Deck_Tracker.Stats
 
                         foreach (TurnStats.Play play in turn.Plays)
                         {
-                            if (play.Type == PlayType.OpponentPlay || isSpell(play) || play.Type == PlayType.OpponentHeroPower)
+                            if (play.Type == PlayType.OpponentPlay || isSpell(play) ||
+                                play.Type == PlayType.OpponentHeroPower ||
+                                isSecret(play)
+                                )
                             {
-                                string cardid = play.CardId; 
+                                string cardid = play.CardId;
+
+                                if (isSecret(play)) 
+                                {
+                                    cardid = "Secret Played";
+                                }
 
                                 /// first create/get the inner hash
                                 /// 

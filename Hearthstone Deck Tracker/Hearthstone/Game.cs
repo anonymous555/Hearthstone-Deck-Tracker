@@ -574,6 +574,12 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		public static Card GetCardFromId(string cardId)
 		{
 			if(string.IsNullOrEmpty(cardId)) return null;
+            if (cardId == "Secret Played")
+            {
+                Card newcard = new Card();
+                newcard.Name = cardId;
+                return newcard;
+            }
 			Card card;
 			_cardDb.TryGetValue(cardId, out card);
 			if(card != null)
@@ -622,7 +628,16 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                 lastOpponentPlays.Add(cardId);
                 last_turn_num = turn;
             }
+            else if (play == PlayType.OpponentSecretPlayed)
+            {
+                if (turn != last_turn_num)
+                {
+                    lastOpponentPlays.Clear();
+                }
+                lastOpponentPlays.Add("Secret Played");
+                last_turn_num = turn;
 
+            }
 		}
 
 		public static bool IsActualCard(Card card)
