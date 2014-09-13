@@ -480,6 +480,7 @@ namespace Hearthstone_Deck_Tracker
 			Options.CheckboxTagOnImport.IsChecked = Config.Instance.TagDecksOnImport;
 			Options.CheckboxConfigSaveAppData.IsChecked = Config.Instance.SaveConfigInAppData;
 			Options.CheckboxDataSaveAppData.IsChecked = Config.Instance.SaveDataInAppData;
+			Options.CheckboxDeleteDeckKeepStats.IsChecked = Config.Instance.KeepStatsWhenDeletingDeck;
 
 			Options.SliderOverlayOpacity.Value = Config.Instance.OverlayOpacity;
 			Options.SliderOpponentOpacity.Value = Config.Instance.OpponentOpacity;
