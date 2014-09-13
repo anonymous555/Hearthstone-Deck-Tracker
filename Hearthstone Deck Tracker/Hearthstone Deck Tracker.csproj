@@ -158,6 +158,8 @@
     <Compile Include="Hearthstone\Deck.cs" />
     <Compile Include="DeckExporter.cs" />
     <Compile Include="DeckImporter.cs" />
+    <Compile Include="Stats\DeckStatsList.cs" />
+    <Compile Include="Stats\DefaultDeckStats.cs" />
     <Compile Include="Utility\Logger.cs" />
     <Compile Include="MainWindow\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
