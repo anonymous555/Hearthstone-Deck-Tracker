@@ -237,6 +237,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		{
 			get
 			{
+
 				if(Id == null || Name == null)
 					return new ImageBrush();
 				try
@@ -297,6 +298,41 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 				}
 			}
 		}
+
+
+        public ImageSource FullCardImage
+        {
+            get
+            {
+                if (Id == null || Name == null)
+                    return new DrawingImage();
+                try
+                {
+                    var cardFileName =
+                        Name.ToLowerInvariant().Replace(' ', '-').Replace(":", "").Replace("'", "-").Replace(".", "").Replace("!", "") +
+                        ".png";
+
+
+                    //card graphic
+                    var drawingGroup = new DrawingGroup();
+
+                    //string fullname = "C:\\Software Development\\gitbranches\\Hearthstone-Deck-Tracker\\Hearthstone Deck Tracker\\FullImages\\" + cardFileName;
+                    string fullname = "FullImages\\" + cardFileName;
+                    if (File.Exists(fullname ))
+                    {
+                        drawingGroup.Children.Add(
+                            new ImageDrawing(new BitmapImage(new Uri(fullname, UriKind.Relative)),
+                                             new Rect(0, 0, 307, 465)));
+                    }
+
+                    return new DrawingImage(drawingGroup) ;
+                }
+                catch (Exception)
+                {
+                    return new DrawingImage();
+                }
+            }
+        }
 
 		public object Clone()
 		{
