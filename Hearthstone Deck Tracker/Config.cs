@@ -106,7 +106,12 @@ namespace Hearthstone_Deck_Tracker
 		[DefaultValue(true)]
 		public bool FlashHsOnTurnStart = true;
 
-		public GameDetailsConfig GameDetails;
+		private GameDetailsConfig _gameDetails;
+		public GameDetailsConfig GameDetails
+		{
+			get { return _gameDetails ?? (_gameDetails = new GameDetailsConfig()); }
+			set { _gameDetails = value; }
+		}
 
 		[DefaultValue(false)]
 		public bool GenerateLog = false;
@@ -396,10 +401,16 @@ namespace Hearthstone_Deck_Tracker
 		public bool TimerWindowOnStartup = false;
 
 		[DefaultValue(null)]
-		public int? TimerWindowTop = null;
+        public int? TimerWindowTop = null;
 
-		[DefaultValue(false)]
-		public bool TimerWindowTopmost = false;
+        [DefaultValue(false)]
+        public bool TimerWindowTopmost = false;
+
+        [DefaultValue(false)]
+        public bool TimerAlert = false;
+
+        [DefaultValue(30)]
+        public int TimerAlertSeconds = 30;
 
 		[DefaultValue(false)]
 		public bool TimerWindowTopmostIfHsForeground = false;
@@ -606,7 +617,6 @@ namespace Hearthstone_Deck_Tracker
 					field.SetValue(this, attr.Value);
 			}
 			
-
 			/*
 			foreach(System.ComponentModel.PropertyDescriptor prop in System.ComponentModel.TypeDescriptor.GetProperties(this))
 			{
