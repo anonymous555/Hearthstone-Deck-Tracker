@@ -181,6 +181,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			return count;
 		}
 
+
+
 		public int getNumTaunt()
 		{
 			return getMechanicCount("Taunt");
@@ -245,6 +247,16 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		{
 			return getMechanicCount("Combo");
 		}
+
+        public int getNumSilence()
+        {
+            return getMechanicCount("Silence");
+        }
+
+        public int getNumEnrage()
+        {
+            return getMechanicCount("Enrage");
+        }
 
 		public override string ToString()
 		{

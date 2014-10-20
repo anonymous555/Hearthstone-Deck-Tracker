@@ -749,6 +749,10 @@ namespace Hearthstone_Deck_Tracker
             {
                 abilitylist.Add(new KeyValuePair<string, double>("Divine Shield", newdeck.getNumDivineShield()));
             }
+            if (newdeck.getNumEnrage() != 0)
+            {
+                abilitylist.Add(new KeyValuePair<string, double>("Enrage", newdeck.getNumEnrage()));
+            }
             if (newdeck.getNumFreeze() != 0)
             {
                 abilitylist.Add(new KeyValuePair<string, double>("Freeze", newdeck.getNumFreeze()));
@@ -764,6 +768,10 @@ namespace Hearthstone_Deck_Tracker
             if (newdeck.getNumSecret() != 0)
             {
                 abilitylist.Add(new KeyValuePair<string, double>("Secret", newdeck.getNumSecret()));
+            }
+            if (newdeck.getNumSilence() != 0)
+            {
+                abilitylist.Add(new KeyValuePair<string, double>("Silence", newdeck.getNumSilence()));
             }
             if (newdeck.getNumSpellpower() != 0)
             {
