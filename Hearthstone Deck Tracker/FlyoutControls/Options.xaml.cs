@@ -6,6 +6,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Hearthstone_Deck_Tracker.Hearthstone;
+using Hearthstone_Deck_Tracker.Utility;
+using Hearthstone_Deck_Tracker.Windows;
 using MahApps.Metro;
 using MahApps.Metro.Controls.Dialogs;
 using Brush = System.Windows.Media.Brush;
@@ -777,7 +779,6 @@ namespace Hearthstone_Deck_Tracker
 
 			Config.Instance.Reset("SecretsTop");
 			Config.Instance.Reset("SecretsLeft");
-			Config.Instance.Reset("SecretsHeight");
 
 			SaveConfig(true);
 		}
@@ -1185,6 +1186,77 @@ namespace Hearthstone_Deck_Tracker
 			Config.Instance.SaveDataInAppData = false;
 			Config.Save();
 			await Helper.MainWindow.Restart();
+		}
+
+		private void CheckboxAdvancedWindowSearch_Checked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized) return;
+			Config.Instance.AdvancedWindowSearch = true;
+			Config.Save();
+		}
+
+		private void CheckboxAdvancedWindowSearch_Unchecked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized) return;
+			Config.Instance.AdvancedWindowSearch = false;
+			Config.Save();
+		}
+
+		private void CheckboxNoteDialog_Checked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized) return;
+			Config.Instance.ShowNoteDialogAfterGame = true;
+			Config.Save();
+		}
+
+		private void CheckboxNoteDialog_Unchecked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized) return;
+			Config.Instance.ShowNoteDialogAfterGame = false;
+			Config.Save();
+		}
+
+		private void CheckboxAutoClear_Checked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized) return;
+			Config.Instance.AutoClearDeck = true;
+			Config.Save();
+		}
+
+		private void CheckboxAutoClear_Unchecked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized) return;
+			Config.Instance.AutoClearDeck = false;
+			Config.Save();
+		}
+
+		private void BtnSaveLog_OnClick(object sender, RoutedEventArgs e)
+		{
+			Directory.CreateDirectory("Logs");
+			using (var sr = new StreamWriter(Config.Instance.LogFilePath, false))
+				sr.Write(TextBoxLog.Text);
+			Helper.MainWindow.ShowMessage("", "Saved log to file: " + Config.Instance.LogFilePath);
+		}
+
+		private void BtnClear_OnClick(object sender, RoutedEventArgs e)
+		{
+			TextBoxLog.Text = "";
+		}
+
+		private void CheckboxLogTab_Checked(object sender, RoutedEventArgs e)
+		{
+			TabItemLog.Visibility = Visibility.Visible;
+			if(!_initialized) return;
+			Config.Instance.ShowLogTab = true;
+			Config.Save();
+		}
+
+		private void CheckboxLogTab_Unchecked(object sender, RoutedEventArgs e)
+		{
+			TabItemLog.Visibility = Visibility.Hidden;
+			if(!_initialized) return;
+			Config.Instance.ShowLogTab = false;
+			Config.Save();
 		}
 	}
 }

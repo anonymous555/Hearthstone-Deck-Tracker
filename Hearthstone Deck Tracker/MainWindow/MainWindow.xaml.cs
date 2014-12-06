@@ -11,6 +11,7 @@ using System.Windows.Controls.DataVisualization;
 using System.Windows.Forms;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.Stats;
+using Hearthstone_Deck_Tracker.Utility;
 using Hearthstone_Deck_Tracker.Windows;
 using MahApps.Metro;
 using MahApps.Metro.Controls.Dialogs;
@@ -73,10 +74,13 @@ namespace Hearthstone_Deck_Tracker
 
 		public MainWindow()
 		{
+
 			// Set working directory to path of executable
 			Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
 
 			InitializeComponent();
+
+			Trace.Listeners.Add(new TextBoxTraceListener(Options.TextBoxLog));
 
 			EnableMenuItems(false);
 
@@ -127,14 +131,6 @@ namespace Hearthstone_Deck_Tracker
 
 			if(Config.Instance.SelectedTags.Count == 0)
 				Config.Instance.SelectedTags.Add("All");
-
-			if(Config.Instance.GenerateLog)
-			{
-				Directory.CreateDirectory("Logs");
-				var listener = new TextWriterTraceListener(Config.Instance.LogFilePath);
-				Trace.Listeners.Add(listener);
-				Trace.AutoFlush = true;
-			}
 
 			_foundHsDirectory = FindHearthstoneDir();
 
@@ -456,6 +452,7 @@ namespace Hearthstone_Deck_Tracker
 					if(Game.IsRunning)
 					{
 						//game was closed
+						Logger.WriteLine("Exited game");
 						HsLogReader.Instance.ClearLog();
 						Game.Reset();
 						if(DeckPickerList.SelectedDeck != null)

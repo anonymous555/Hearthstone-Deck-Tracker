@@ -94,17 +94,18 @@ namespace Hearthstone_Deck_Tracker
 			if(_hsWindow != IntPtr.Zero)
 				return _hsWindow;
 
-
-			Parallel.ForEach(Process.GetProcesses(), (process, state) =>
-				{
-					var sb = new StringBuilder(200);
-					GetClassName(process.MainWindowHandle, sb, 200);
-					if(sb.ToString().Equals("UnityWndClass", StringComparison.InvariantCultureIgnoreCase))
-					{
-						_hsWindow = process.MainWindowHandle;
-						state.Break();
-					}
-				});
+			if(Config.Instance.AdvancedWindowSearch)
+				Parallel.ForEach(Process.GetProcesses(), (process, state) =>
+				                                         {
+					                                         var sb = new StringBuilder(200);
+					                                         GetClassName(process.MainWindowHandle, sb, 200);
+					                                         if(sb.ToString()
+					                                              .Equals("UnityWndClass", StringComparison.InvariantCultureIgnoreCase))
+					                                         {
+						                                         _hsWindow = process.MainWindowHandle;
+						                                         state.Break();
+					                                         }
+				                                         });
 			_lastCheck = DateTime.Now;
 			return _hsWindow;
 		}
@@ -143,6 +144,7 @@ namespace Hearthstone_Deck_Tracker
 		public static void BringHsToForeground()
 		{
 			var hsHandle = GetHearthstoneWindow();
+			ShowWindow(hsHandle, SwRestore);
 			SetForegroundWindow(hsHandle);
 		}
 

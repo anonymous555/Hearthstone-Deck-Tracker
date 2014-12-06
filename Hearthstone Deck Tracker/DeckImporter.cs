@@ -18,6 +18,7 @@ namespace Hearthstone_Deck_Tracker
 	{
 		public static async Task<Deck> Import(string url)
 		{
+			Logger.WriteLine("Importing deck from " + url, "DeckImporter");
 			if(url.Contains("hearthstats") || url.Contains("hss.io"))
 				return await ImportHearthStats(url);
 			if(url.Contains("hearthpwn"))
@@ -38,6 +39,7 @@ namespace Hearthstone_Deck_Tracker
 				return await ImportArenaValue(url);
 			if(url.Contains("hearthstone-decks"))
 				return await ImportHearthstoneDecks(url);
+			Logger.WriteLine("invalid url", "DeckImporter");
 			return null;
 		}
 
@@ -253,6 +255,9 @@ namespace Hearthstone_Deck_Tracker
 		{
 			try
 			{
+				if(!url.Contains("http://www."))
+					url = "http://www." + url.Split('.').Skip(1).Aggregate((c, n) => c + "." + n);
+
 				var doc = await GetHtmlDocJs(url);
 				var deck = new Deck();
 

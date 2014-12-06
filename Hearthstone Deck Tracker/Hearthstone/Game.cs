@@ -32,7 +32,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			None
 		}
 
-		public static readonly string[] Classes = new[] {"Druid", "Hunter", "Mage", "Priest", "Paladin", "Shaman", "Rogue", "Warlock", "Warrior"};
+		public static readonly string[] Classes = new[] { "Druid", "Hunter", "Mage", "Priest", "Paladin", "Shaman", "Rogue", "Warlock", "Warrior" };
 
 		#region Properties
 
@@ -69,7 +69,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 				"Reward",
 				"Expert",
 				"Promotion",
-				"Curse of Naxxramas"
+				"Curse of Naxxramas",
+				"Goblins vs Gnomes"
 			};
 
 		public static List<Card> DrawnLastGame;
@@ -97,8 +98,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			}
 
 			LoadCardDb(Helper.LanguageDict.ContainsValue(Config.Instance.SelectedLanguage)
-				           ? Config.Instance.SelectedLanguage
-				           : "enUS");
+						   ? Config.Instance.SelectedLanguage
+						   : "enUS");
 		}
 
 		public static void Reset(bool resetStats = true)
@@ -160,8 +161,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		private static void LogOpponentHand()
 		{
 			var zipped = OpponentHandAge.Zip(OpponentHandMarks.Select(mark => (char)mark),
-			                                 (age, mark) =>
-			                                 string.Format("{0}{1}", (age == -1 ? " " : age.ToString()), mark));
+											 (age, mark) =>
+											 string.Format("{0}{1}", (age == -1 ? " " : age.ToString()), mark));
 
 			Logger.WriteLine("Opponent Hand after draw: " + string.Join(",", zipped), "Hearthstone");
 		}
@@ -358,6 +359,9 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		public static void OpponentDraw(int turn)
 		{
 			OpponentHandCount++;
+			if(turn == 0 && OpponentHandCount == 5)
+				//coin draw
+				return;
 			OpponentDeckCount--;
 
 			if(!ValidateOpponentHandCount())
@@ -554,6 +558,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 							}
 						}
 					}
+					Logger.WriteLine("Done loading localized card database (" + languageTag + ")", "Hearthstone");
 				}
 
 
@@ -565,7 +570,9 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 					var obj = JObject.Parse(File.ReadAllText(fileEng));
 					foreach(var cardType in obj)
 					{
-						if(!ValidCardSets.Any(cs => cs.Equals(cardType.Key))) continue;
+						var set = ValidCardSets.FirstOrDefault(cs => cs.Equals(cardType.Key));
+						if(set == null)
+							continue;
 
 						foreach(var card in cardType.Value)
 						{
@@ -576,13 +583,14 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 								tmp.LocalizedName = localizedCard.Name;
 								tmp.Text = localizedCard.Text;
 							}
+							tmp.Set = set;
 							tempDb.Add(tmp.Id, tmp);
 						}
 					}
+					Logger.WriteLine("Done loading card database (enUS)", "Hearthstone");
 				}
 				_cardDb = new Dictionary<string, Card>(tempDb);
 
-				Logger.WriteLine("Done loading card database (" + languageTag + ")", "Hearthstone");
 			}
 			catch(Exception e)
 			{
@@ -600,11 +608,11 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                 return newcard;
             }
 			Card card;
-			_cardDb.TryGetValue(cardId, out card);
-			if(card != null)
+			//_cardDb.TryGetValue(cardId, out card);
+			if(_cardDb.TryGetValue(cardId, out card))
 				return (Card)card.Clone();
 			Logger.WriteLine("Could not find entry in db for cardId: " + cardId);
-			return new Card(cardId, null, "UNKNOWN", "Minion", "UNKNOWN", 0, "UNKNOWN", 0, 1, "", 0, 0, "UNKNOWN", null, 0);
+			return new Card(cardId, null, "UNKNOWN", "Minion", "UNKNOWN", 0, "UNKNOWN", 0, 1, "", 0, 0, "UNKNOWN", null, 0, "");
 		}
 
 		public static Card GetCardFromName(string name)
@@ -618,17 +626,17 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
 			//not sure with all the values here
 			Logger.WriteLine("Could not get card from name: " + name);
-			return new Card("UNKNOWN", null, "UNKNOWN", "Minion", name, 0, name, 0, 1, "", 0, 0, "UNKNOWN", null, 0);
+			return new Card("UNKNOWN", null, "UNKNOWN", "Minion", name, 0, name, 0, 1, "", 0, 0, "UNKNOWN", null, 0, "");
 		}
 
 		public static List<Card> GetActualCards()
 		{
 			return (from card in _cardDb.Values
-			        where card.Type == "Minion" || card.Type == "Spell" || card.Type == "Weapon"
-			        where Helper.IsNumeric(card.Id.ElementAt(card.Id.Length - 1))
-			        where Helper.IsNumeric(card.Id.ElementAt(card.Id.Length - 2))
-			        where !CardIds.InvalidCardIds.Any(id => card.Id.Contains(id))
-			        select card).ToList();
+					where card.Type == "Minion" || card.Type == "Spell" || card.Type == "Weapon"
+					where Helper.IsNumeric(card.Id.ElementAt(card.Id.Length - 1))
+					where Helper.IsNumeric(card.Id.ElementAt(card.Id.Length - 2))
+					where !CardIds.InvalidCardIds.Any(id => card.Id.Contains(id))
+					select card).ToList();
 		}
 
 		#endregion
@@ -663,11 +671,11 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		{
 			if(card == null) return false;
 			return (card.Type == "Minion"
-			        || card.Type == "Spell"
-			        || card.Type == "Weapon")
-			       && Helper.IsNumeric(card.Id.ElementAt(card.Id.Length - 1))
-			       && Helper.IsNumeric(card.Id.ElementAt(card.Id.Length - 2))
-			       && !CardIds.InvalidCardIds.Any(id => card.Id.Contains(id));
+					|| card.Type == "Spell"
+					|| card.Type == "Weapon")
+				   && Helper.IsNumeric(card.Id.ElementAt(card.Id.Length - 1))
+				   && Helper.IsNumeric(card.Id.ElementAt(card.Id.Length - 2))
+				   && !CardIds.InvalidCardIds.Any(id => card.Id.Contains(id));
 		}
 	}
 }
