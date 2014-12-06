@@ -277,6 +277,7 @@ namespace Hearthstone_Deck_Tracker
 				UpdateDbListView();
 				ExpandNewDeck();
 				UpdateTitle();
+				ManaCurveMyDecks.SetDeck(deck);
 			}
 		}
 

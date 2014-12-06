@@ -215,6 +215,8 @@ namespace Hearthstone_Deck_Tracker
 
 		#endregion
 
+        static int last_opponent_turn = 0;
+
 		public static void SetOpponentHero(string hero)
 		{
 			Game.PlayingAgainst = hero;
@@ -226,7 +228,46 @@ namespace Hearthstone_Deck_Tracker
             DeckStatsList.doPrediction(Game.PlayingAgainst, 1);
 		}
 
-        static int last_opponent_turn = 0;
+		public static void SetPlayerHero(string hero)
+		{
+			Game.PlayingAs = hero;
+
+			var selectedDeck = Helper.MainWindow.DeckPickerList.SelectedDeck;
+			if(selectedDeck != null)
+				Game.SetPremadeDeck((Deck)selectedDeck.Clone());
+
+			if(!string.IsNullOrEmpty(hero))
+			{
+				if(!Game.IsUsingPremade || !Config.Instance.AutoDeckDetection) return;
+
+				if(selectedDeck == null || selectedDeck.Class != Game.PlayingAs)
+				{
+					var classDecks = Helper.MainWindow.DeckList.DecksList.Where(d => d.Class == Game.PlayingAs).ToList();
+					if(classDecks.Count == 0)
+						Logger.WriteLine("Found no deck to switch to", "HandleGameStart");
+					else if(classDecks.Count == 1)
+					{
+						Helper.MainWindow.DeckPickerList.SelectDeck(classDecks[0]);
+						Logger.WriteLine("Found deck to switch to: " + classDecks[0].Name, "HandleGameStart");
+					}
+					else if(Helper.MainWindow.DeckList.LastDeckClass.Any(ldc => ldc.Class == Game.PlayingAs))
+					{
+						var lastDeckName = Helper.MainWindow.DeckList.LastDeckClass.First(ldc => ldc.Class == Game.PlayingAs).Name;
+						Logger.WriteLine("Found more than 1 deck to switch to - last played: " + lastDeckName, "HandleGameStart");
+
+						var deck = Helper.MainWindow.DeckList.DecksList.FirstOrDefault(d => d.Name == lastDeckName);
+
+						if(deck != null)
+						{
+							Helper.MainWindow.DeckPickerList.SelectDeck(deck);
+							Helper.MainWindow.UpdateDeckList(deck);
+							Helper.MainWindow.UseDeck(deck);
+						}
+					}
+				}
+			}
+		}
+
 		public static void TurnStart(Turn player, int turnNumber)
 		{
 
@@ -263,13 +304,11 @@ namespace Hearthstone_Deck_Tracker
 			}
 		}
 
-		public static void HandleGameStart(string playerHero)
+		public static void HandleGameStart()
 		{
 			//avoid new game being started when jaraxxus is played
 			if(!Game.IsInMenu) return;
 
-
-			Game.PlayingAs = playerHero;
             last_opponent_turn = 0;
 
 			Logger.WriteLine("Game start");
@@ -286,45 +325,8 @@ namespace Hearthstone_Deck_Tracker
 				Logger.WriteLine("Sent keypress: " + Config.Instance.KeyPressOnGameStart);
 			}
 
-			var selectedDeck = Helper.MainWindow.DeckPickerList.SelectedDeck;
-			if(selectedDeck != null)
-				Game.SetPremadeDeck((Deck)selectedDeck.Clone());
-
 			Game.IsInMenu = false;
 			Game.Reset();
-
-
-			//select deck based on hero
-			if(!string.IsNullOrEmpty(playerHero))
-			{
-				if(!Game.IsUsingPremade || !Config.Instance.AutoDeckDetection) return;
-
-				if(selectedDeck == null || selectedDeck.Class != Game.PlayingAs)
-				{
-					var classDecks = Helper.MainWindow.DeckList.DecksList.Where(d => d.Class == Game.PlayingAs).ToList();
-					if(classDecks.Count == 0)
-						Logger.WriteLine("Found no deck to switch to", "HandleGameStart");
-					else if(classDecks.Count == 1)
-					{
-						Helper.MainWindow.DeckPickerList.SelectDeck(classDecks[0]);
-						Logger.WriteLine("Found deck to switch to: " + classDecks[0].Name, "HandleGameStart");
-					}
-					else if(Helper.MainWindow.DeckList.LastDeckClass.Any(ldc => ldc.Class == Game.PlayingAs))
-					{
-						var lastDeckName = Helper.MainWindow.DeckList.LastDeckClass.First(ldc => ldc.Class == Game.PlayingAs).Name;
-						Logger.WriteLine("Found more than 1 deck to switch to - last played: " + lastDeckName, "HandleGameStart");
-
-						var deck = Helper.MainWindow.DeckList.DecksList.FirstOrDefault(d => d.Name == lastDeckName);
-
-						if(deck != null)
-						{
-							Helper.MainWindow.DeckPickerList.SelectDeck(deck);
-							Helper.MainWindow.UpdateDeckList(deck);
-							Helper.MainWindow.UseDeck(deck);
-						}
-					}
-				}
-			}
 		}
 
 		private static Deck _assignedDeck;
@@ -541,6 +543,11 @@ namespace Hearthstone_Deck_Tracker
             SetOpponentHero(hero);
         }
 
+	    void IGameHandler.SetPlayerHero(string hero)
+	    {
+		    SetPlayerHero(hero);
+	    }
+
         void IGameHandler.HandleOpponentHeroPower(string cardId, int turn)
         {
             HandleOpponentHeroPower(cardId, turn);
@@ -551,9 +558,9 @@ namespace Hearthstone_Deck_Tracker
             TurnStart(player, turnNumber);
         }
 
-        void IGameHandler.HandleGameStart(string playerHero)
+        void IGameHandler.HandleGameStart()
         {
-            HandleGameStart(playerHero);
+            HandleGameStart();
         }
 
         void IGameHandler.HandleGameEnd(bool backInMenu)
