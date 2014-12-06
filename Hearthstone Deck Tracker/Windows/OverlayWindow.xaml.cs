@@ -610,6 +610,11 @@ namespace Hearthstone_Deck_Tracker
                 PredictedCards.Text = "";
             }
 
+            int mana_advantage = Game.playermanaspent - Game.opponentmanaspent;
+            String manastring = "Mana: P=" + Game.playermanaspent.ToString()
+                + " O=" + Game.opponentmanaspent + " D=" + mana_advantage.ToString();
+            ManaAdvantage.Text = manastring;
+
 			LblWins.Visibility = Config.Instance.ShowDeckWins ? Visibility.Visible : Visibility.Collapsed;
 			LblDeckTitle.Visibility = Config.Instance.ShowDeckTitle ? Visibility.Visible : Visibility.Collapsed;
 			LblWinRateAgainst.Visibility = Config.Instance.ShowWinRateAgainst ? Visibility.Visible : Visibility.Collapsed;
@@ -917,6 +922,7 @@ namespace Hearthstone_Deck_Tracker
                         break;
                 }
             }
+            StackPanelOpponent.Children.Add(ManaAdvantage);
             StackPanelOpponent.Children.Add(PredictedCards);
         }
 		

@@ -63,6 +63,9 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
 		public static List<string> SetAsideCards;
 
+        public static int playermanaspent = 0;
+        public static int opponentmanaspent = 0;
+
 		private static readonly List<string> ValidCardSets = new List<string>
 			{
 				"Basic",
@@ -100,6 +103,9 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			LoadCardDb(Helper.LanguageDict.ContainsValue(Config.Instance.SelectedLanguage)
 						   ? Config.Instance.SelectedLanguage
 						   : "enUS");
+            playermanaspent = 0;
+            opponentmanaspent = 0;
+
 		}
 
 		public static void Reset(bool resetStats = true)
@@ -129,6 +135,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			OpponentHasCoin = true;
 			if(!IsInMenu && resetStats)
 				CurrentGameStats = new GameStats(GameResult.None, PlayingAgainst);
+            playermanaspent = 0;
+            opponentmanaspent = 0;
 		}
 
 		public static void SetPremadeDeck(Deck deck)
@@ -278,6 +286,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 				card.InHandCount--;
 				if(CanRemoveCard(card))
 					PlayerDeck.Remove(card);
+                playermanaspent += card.Cost;
 			}
 		}
 
@@ -422,6 +431,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 				}
 
 				LogDeckChange(true, card, false);
+                opponentmanaspent += card.Cost;
 
 				if(card.IsStolen)
 					Logger.WriteLine("Opponent played stolen card from " + from);
