@@ -41,6 +41,8 @@ namespace Hearthstone_Deck_Tracker
 		{
 			if(string.IsNullOrEmpty(cardId))
 				return;
+			if(Game.SetAsideCards.Contains(cardId))
+				Game.SetAsideCards.Remove(cardId);
 			LogEvent("PlayerDraw", cardId);
 			var correctDeck = Game.PlayerDraw(cardId);
 
@@ -88,6 +90,8 @@ namespace Hearthstone_Deck_Tracker
 			if(string.IsNullOrEmpty(cardId))
 				return;
 			LogEvent("PlayerHandDiscard", cardId);
+			if(Game.SetAsideCards.Contains(cardId))
+				Game.SetAsideCards.Remove(cardId);
 			Game.PlayerHandDiscard(cardId);
 			Helper.MainWindow.Overlay.ListViewPlayer.Items.Refresh();
 			Helper.MainWindow.PlayerWindow.ListViewPlayer.Items.Refresh();
@@ -344,17 +348,29 @@ namespace Hearthstone_Deck_Tracker
 				var selectedDeck = Helper.MainWindow.DeckPickerList.SelectedDeck;
 				if(selectedDeck != null)
 				{
-					if(Config.Instance.DiscardGameIfIncorrectDeck && !Game.PlayerDrawn.All(c => selectedDeck.Cards.Any(c2 => c.Id == c2.Id && c.Count <= c2.Count)))
+					if(!Game.PlayerDrawn.All(c => selectedDeck.Cards.Any(c2 => c.Id == c2.Id && c.Count <= c2.Count)))
 					{
-						Logger.WriteLine("Assigned current game to NO deck - selected deck does not match cards played");
+						if(!Config.Instance.DiscardGameIfIncorrectDeck)
+							Logger.WriteLine("Current game does not match selected deck. Discarded game.");
+						else
+						{
+							DefaultDeckStats.Instance.GetDeckStats(Game.PlayingAs).AddGameResult(Game.CurrentGameStats);
+							Logger.WriteLine(string.Format("Assigned current deck to default {0} deck.", Game.PlayingAs), "GameStats");
+						}
 						_assignedDeck = null;
-						if(Config.Instance.ShowNoteDialogAfterGame)
-							new NoteDialog(Game.CurrentGameStats);
 						return;
 					}
 					selectedDeck.DeckStats.AddGameResult(Game.CurrentGameStats);
+					if(Config.Instance.ShowNoteDialogAfterGame)
+						new NoteDialog(Game.CurrentGameStats);
 					Logger.WriteLine("Assigned current game to deck: " + selectedDeck.Name, "GameStats");
 					_assignedDeck = selectedDeck;
+				}
+				else
+				{
+					DefaultDeckStats.Instance.GetDeckStats(Game.PlayingAs).AddGameResult(Game.CurrentGameStats);
+					Logger.WriteLine(string.Format("Assigned current deck to default {0} deck.", Game.PlayingAs), "GameStats");
+					_assignedDeck = null;
 				}
 				return;
 			}
@@ -421,11 +437,21 @@ namespace Hearthstone_Deck_Tracker
 			   || Game.CurrentGameMode == Game.GameMode.Casual && Config.Instance.RecordCasual)
 			{
 				if(Game.CurrentGameStats != null)
+				{
 					Game.CurrentGameStats.GameMode = Game.CurrentGameMode;
-				Logger.WriteLine("Set gamemode to " + Game.CurrentGameMode);
-				Logger.WriteLine("Saving deckstats", "GameStats");
-				DeckStatsList.Save();
-				//todo: may not want to set current to null - allow for later reassigning of games?
+					Logger.WriteLine("Set gamemode to " + Game.CurrentGameMode);
+				}
+
+				if(_assignedDeck == null)
+				{
+					Logger.WriteLine("Saving DefaultDeckStats", "GameStats");
+					DefaultDeckStats.Save();
+				}
+				else
+				{
+					Logger.WriteLine("Saving DeckStats", "GameStats");
+					DeckStatsList.Save();
+				}
 				Game.CurrentGameStats = null;
 				Helper.MainWindow.DeckPickerList.Items.Refresh();
 				statsControl.Refresh();

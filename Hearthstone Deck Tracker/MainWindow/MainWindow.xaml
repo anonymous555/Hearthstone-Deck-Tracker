@@ -211,7 +211,7 @@
                     <MenuItem x:Name="MenuItemExportIds" Header="COPY IDS TO _CLIPBOARD" Click="BtnClipboard_OnClick"/>
                     <MenuItem x:Name="MenuItemExportScreenshot" Header="_SCREENSHOT" Click="BtnScreenhot_Click"/>
                 </MenuItem>
-                <MenuItem Header="_STATS" Click="BtnDeckStats_Click">
+                <MenuItem Header="_STATS"  Click="BtnDeckStats_Click">
                     <MenuItem.Icon>
                         <Rectangle Width="16" Height="16">
                             <Rectangle.Fill>
@@ -296,7 +296,7 @@
                         <my:LinearAxis Orientation="Y" Interval="2" />
                     </my:Chart.Axes>
                     <my:ColumnSeries DependentValuePath="Value"
-          IndependentValuePath="Key" ItemsSource="{Binding}"
+          IndependentValuePath="Key" ItemsSource="{Binding}" DataContext="{Binding}"
             IsSelectionEnabled="False" Title="Mytitle" />
                 </my:Chart>
                 <my:Chart  Name="HealthChart" Title="Health" Margin="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="2">
@@ -310,7 +310,7 @@
                         <my:LinearAxis Orientation="Y" Interval="2" />
                     </my:Chart.Axes>
                     <my:ColumnSeries DependentValuePath="Value"
-          IndependentValuePath="Key" ItemsSource="{Binding}"
+          IndependentValuePath="Key" ItemsSource="{Binding}" DataContext="{Binding}"
             IsSelectionEnabled="False" Title="Mytitle"  />
 
                 </my:Chart>

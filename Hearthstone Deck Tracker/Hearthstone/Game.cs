@@ -134,7 +134,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			OpponentHandAge[DefaultCoinPosition] = 0;
 			OpponentHasCoin = true;
 			if(!IsInMenu && resetStats)
-				CurrentGameStats = new GameStats(GameResult.None, PlayingAgainst);
+				CurrentGameStats = new GameStats(GameResult.None, PlayingAgainst,PlayingAs);
             playermanaspent = 0;
             opponentmanaspent = 0;
 		}
@@ -237,6 +237,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			if(fromSetAside)
 			{
 				Logger.WriteLine("Got card from setaside: " + cardId);
+				foreach(var c in SetAsideCards)
+					PlayerDeckDiscard(c);
 				SetAsideCards.Clear();
 			}
 
