@@ -45,9 +45,11 @@ namespace Hearthstone_Deck_Tracker
 			_initialized = true;
 			ExpandCollapseGroupBox(GroupboxDeckOverview, Config.Instance.StatsDeckOverviewIsExpanded);
 			ExpandCollapseGroupBox(GroupboxClassOverview, Config.Instance.StatsClassOverviewIsExpanded);
-			ExpandCollapseGroupBox(GroupboxOverallDetailOverview, Config.Instance.StatsOverallDetailIsExpanded);
 
 			LoadOverallStats();
+
+			DataGridGames.Items.SortDescriptions.Add(new SortDescription("StartTime", ListSortDirection.Descending));
+			DataGridOverallGames.Items.SortDescriptions.Add(new SortDescription("StartTime", ListSortDirection.Descending));
 		}
 
 		private void BtnDelete_Click(object sender, RoutedEventArgs e)
@@ -158,8 +160,7 @@ namespace Hearthstone_Deck_Tracker
 
 			DataGridWinLossClass.Items.Add(new WinLoss(allGames, "%"));
 			DataGridWinLossClass.Items.Add(new WinLoss(allGames, "Win - Loss"));
-			DataGridGames.Items.SortDescriptions.Clear();
-			DataGridGames.Items.SortDescriptions.Add(new SortDescription("StartTime", ListSortDirection.Descending));
+			DataGridGames.Items.Refresh();
 		}
 		
 		private IEnumerable<GameStats> FilterGames(IEnumerable<GameStats> games)
@@ -333,15 +334,6 @@ namespace Hearthstone_Deck_Tracker
 			}
 		}
 
-		private void GroupboxOverallDetailOverview_OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-		{
-			if(e.GetPosition(GroupboxOverallDetailOverview).Y < GroupBoxHeaderHeight)
-			{
-				Config.Instance.StatsOverallDetailIsExpanded = ExpandCollapseGroupBox(GroupboxOverallDetailOverview);
-				Config.Save();
-			}
-		}
-
 		private bool ExpandCollapseGroupBox(GroupBox groupBox, bool? expand = null)
 		{
 			_isGroupBoxExpanded[groupBox] = expand ?? !_isGroupBoxExpanded[groupBox];
@@ -452,8 +444,8 @@ namespace Hearthstone_Deck_Tracker
 				DeckStatsList.Save();
 			}
 			DataGridOverallWinLoss.Items.Add(new WinLoss(total, CheckboxPercent.IsChecked ?? true, "Total"));
-
-		}
+			DataGridOverallGames.Items.Refresh();
+        }
 
 		private void CheckboxPercent_Checked(object sender, RoutedEventArgs e)
 		{
