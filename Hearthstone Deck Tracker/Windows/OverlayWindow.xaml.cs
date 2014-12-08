@@ -611,8 +611,7 @@ namespace Hearthstone_Deck_Tracker
             }
 
             int mana_advantage = Game.playermanaspent - Game.opponentmanaspent;
-            String manastring = "Mana: P=" + Game.playermanaspent.ToString()
-                + " O=" + Game.opponentmanaspent + " D=" + mana_advantage.ToString();
+            String manastring = "Mana Adv.= " +  mana_advantage.ToString();
             ManaAdvantage.Text = manastring;
 
 			LblWins.Visibility = Config.Instance.ShowDeckWins ? Visibility.Visible : Visibility.Collapsed;

@@ -664,6 +664,11 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                 }
                 lastOpponentPlays.Add(cardId);
                 last_turn_num = turn;
+                opponentmanaspent += 2;
+            }
+            else if (play == PlayType.PlayerHeroPower)
+            {
+                playermanaspent += 2;
             }
             else if (play == PlayType.OpponentSecretPlayed)
             {
