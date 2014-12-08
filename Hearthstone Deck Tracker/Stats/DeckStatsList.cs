@@ -72,6 +72,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 					MessageBox.Show("Your DeckStats file got corrupted and there was no backup to restore from.", "Error restoring DeckStats backup");
 				}
 			}
+            analyzeAllGames();
 		}
 
 		public static void Save()
