@@ -776,7 +776,7 @@
     <Resource Include="FullImages\call-pet.png" />
     <Resource Include="FullImages\chicken.png" />
     <Resource Include="FullImages\clockwork-giant.png" />
-    <Resource Include="FullImages\clockworkgnome.png" />
+    <Resource Include="FullImages\clockwork-gnome.png" />
     <Resource Include="FullImages\cobalt-guardian.png" />
     <Resource Include="FullImages\cobra-shot.png" />
     <Resource Include="FullImages\Coghammer.png" />
