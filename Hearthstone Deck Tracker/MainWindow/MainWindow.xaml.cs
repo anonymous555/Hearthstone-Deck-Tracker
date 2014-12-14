@@ -9,7 +9,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls.DataVisualization;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
+using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.Stats;
 using Hearthstone_Deck_Tracker.Utility;
@@ -20,6 +23,9 @@ using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 using System.Collections.Generic;
 using System.Windows.Controls.DataVisualization.Charting;
+using ContextMenu = System.Windows.Forms.ContextMenu;
+using MenuItem = System.Windows.Forms.MenuItem;
+
 
 namespace Hearthstone_Deck_Tracker
 {
@@ -170,6 +176,30 @@ namespace Hearthstone_Deck_Tracker
 			DeckStatsList.Load();
 
 			_notifyIcon = new NotifyIcon { Icon = new Icon(@"Images/HearthstoneDeckTracker16.ico"), Visible = true, ContextMenu = new ContextMenu(), Text = "Hearthstone Deck Tracker v" + versionString };
+			_notifyIcon.ContextMenu.MenuItems.Add("Use no deck", (sender, args) => DeselectDeck());
+			_notifyIcon.ContextMenu.MenuItems.Add(new MenuItem("Autoselect deck")
+			{
+				MenuItems =
+													  {
+														  new MenuItem("On",
+																	   (sender, args) =>
+																	   AutoDeckDetection(true)),
+														  new MenuItem("Off",
+																	   (sender, args) =>
+																	   AutoDeckDetection(false))
+													  }
+			}); _notifyIcon.ContextMenu.MenuItems.Add(new MenuItem("Class cards first")
+			{
+				MenuItems =
+													  {
+														  new MenuItem("Yes",
+																	   (sender, args) =>
+																	   SortClassCardsFirst(true)),
+														  new MenuItem("No",
+																	   (sender, args) =>
+																	   SortClassCardsFirst(false))
+													  }
+			});
 			_notifyIcon.ContextMenu.MenuItems.Add("Show", (sender, args) => ActivateWindow());
 			_notifyIcon.ContextMenu.MenuItems.Add("Exit", (sender, args) => Close());
 			_notifyIcon.MouseClick += (sender, args) => { if(args.Button == MouseButtons.Left) ActivateWindow(); };
@@ -494,6 +524,13 @@ namespace Hearthstone_Deck_Tracker
 
 				if(result == MessageDialogResult.Affirmative)
 				{
+					//recheck, in case there was no immediate response to the dialog
+					if((DateTime.Now - _lastUpdateCheck) > new TimeSpan(0, 10, 0))
+					{
+						Helper.CheckForUpdates(out version);
+						if(version != null)
+							newVersionString = string.Format("{0}.{1}.{2}", version.Major, version.Minor, version.Build);
+					}
 					try
 					{
 						Process.Start("Updater.exe", string.Format("{0} {1}", Process.GetCurrentProcess().Id, newVersionString));
@@ -592,7 +629,6 @@ namespace Hearthstone_Deck_Tracker
 
 		private void DeckPickerList_OnSelectedDeckChanged(DeckPicker sender, Deck deck)
 		{
-			if(!_initialized) return;
 			if(deck != null)
 			{
 				//set up notes
@@ -854,6 +890,34 @@ namespace Hearthstone_Deck_Tracker
 			Config.Save();
 		}
 
+		private void AutoDeckDetection(bool enable)
+		{
+			CheckboxDeckDetection.IsChecked = enable;
+            Config.Instance.AutoDeckDetection = enable;
+			Config.Save();
+		}
+
+		private void CheckboxClassCardsFirst_Checked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized)
+				return;
+			SortClassCardsFirst(true);
+		}
+
+		private void CheckboxClassCardsFirst_Unchecked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized)
+				return;
+			SortClassCardsFirst(false);
+		}
+
+		private void SortClassCardsFirst(bool classFirst)
+		{
+			CheckboxClassCardsFirst.IsChecked = classFirst;
+			Config.Instance.CardSortingClassFirst = classFirst;
+			Config.Save();
+			Helper.SortCardCollection(Helper.MainWindow.ListViewDeck.ItemsSource, classFirst);
+		}
 	}
 }
 

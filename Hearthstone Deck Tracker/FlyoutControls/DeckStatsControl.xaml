@@ -6,9 +6,12 @@
              xmlns:system="clr-namespace:System;assembly=mscorlib"
              xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
              xmlns:local="clr-namespace:Hearthstone_Deck_Tracker"
+             xmlns:enums="clr-namespace:Hearthstone_Deck_Tracker.Enums"
              mc:Ignorable="d"
              d:DesignHeight="600" d:Width="500">
-
+    <UserControl.Resources>
+        <enums:EnumDescriptionConverter x:Key="EnumDescriptionConverter"/>
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -25,29 +28,30 @@
                     <Label Content="Timeframe:" />
                     <ComboBox x:Name="ComboboxTime" SelectedIndex="6" VerticalAlignment="Bottom" Width="90"
                               SelectionChanged="ComboboxTime_SelectionChanged">
-                        <system:String>Today</system:String>
-                        <system:String>Last Week</system:String>
-                        <system:String>Last Month</system:String>
-                        <system:String>Last Year</system:String>
-                        <system:String>All Time</system:String>
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Path=., Converter={StaticResource EnumDescriptionConverter}}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
                     </ComboBox>
                 </StackPanel>
-                <TextBox Name="TextboxNoteFilter" controls:TextboxHelper.Watermark="Note filter" Margin="3"
+                <TextBox Name="TextboxNoteFilter" controls:TextBoxHelper.Watermark="Note filter" Margin="3"
                          TextChanged="TextBox_TextChanged" Width="120" />
                 <StackPanel Name="StackPanelUnassignedFilter" Orientation="Horizontal" Margin="3" Visibility="Collapsed">
                     <Label Content="Games:" />
-                    <ComboBox x:Name="ComboboxUnassigned" SelectedIndex="6" VerticalAlignment="Bottom" Width="90"
-                              SelectionChanged="ComboboxUnassigned_SelectionChanged" ToolTip="Show games with an/no associated deck.">
-                        <system:String>With deck</system:String>
-                        <system:String>Without deck</system:String>
-                        <system:String>All</system:String>
+                    <ComboBox x:Name="ComboboxUnassigned" VerticalAlignment="Bottom" Width="90"
+                              SelectionChanged="ComboboxUnassigned_SelectionChanged" ToolTip="Show games with a/no associated deck.">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Path=., Converter={StaticResource EnumDescriptionConverter}}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
                     </ComboBox>
                 </StackPanel>
-
             </WrapPanel>
         </GroupBox>
         <TabControl Grid.Row="1" Name="TabControlCurrentOverall">
-            <TabItem Name="TabItemDeck" Header="Deck" PreviewMouseDown="TabItemHeaderCurrent_OnPreviewMouseDown">
+            <TabItem Name="TabItemDeck" Header="Deck" PreviewMouseDown="TabItemDeck_OnPreviewMouseDown">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto" />
@@ -322,6 +326,10 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
+                            <StackPanel Orientation="Horizontal">
+                                <Label Content="Opponent:" />
+                                <ComboBox x:Name="ComboBoxOpponentClassD" VerticalAlignment="Bottom" Width="90" SelectionChanged="ComboBoxOpponentClass_SelectionChanged"/>
+                            </StackPanel>
                             <DataGrid IsReadOnly="True" Grid.Row="1" Margin="0,5" CanUserAddRows="False"
                                       Name="DataGridGames"
                                       AlternationCount="2" AutoGenerateColumns="False" CanUserDeleteRows="False"
@@ -364,7 +372,7 @@
                                             </Style>
                                         </DataGridTextColumn.ElementStyle>
                                     </DataGridTextColumn>
-                                    <DataGridTextColumn Header="Time" Binding="{Binding Duration}">
+                                    <DataGridTextColumn Header="Time" Binding="{Binding Duration}" SortMemberPath="SortableDuration">
                                         <DataGridTextColumn.ElementStyle>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="HorizontalAlignment" Value="Center" />
@@ -402,10 +410,10 @@
                     </GroupBox>
                 </Grid>
             </TabItem>
-            <TabItem Name="TabItemOverall" Header="Overall" PreviewMouseDown="TabItemHeaderOverall_OnPreviewMouseDown">
+            <TabItem Name="TabItemOverall" Header="Overall" PreviewMouseDown="TabItemOverall_OnPreviewMouseDown">
                 <Grid>
                     <TabControl Grid.Row="0">
-                        <TabItem Header="Stats">
+                        <TabItem Header="Stats" Height="41" VerticalAlignment="Bottom">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="auto" />
@@ -415,10 +423,14 @@
                                           VerticalAlignment="Top"
                                           Height="auto" Grid.Row="1" Grid.ColumnSpan="2">
                                         <StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                            <CheckBox Name="CheckBoxApplyTagFiltersOS"  Content="Apply tag filters" ToolTip="Tags selected in DECKS > SORT / FILTER" Checked="CheckBoxApplyTagFilters_OnChecked" Unchecked="CheckBoxApplyTagFilters_OnUnchecked"/>
                                             <CheckBox Name="CheckboxPercent" Content="Show as percent"
                                                   Checked="CheckboxPercent_Checked"
-                                                  Unchecked="CheckboxPercent_Unchecked" />
-                                            <ScrollViewer VerticalScrollBarVisibility="Disabled" Margin="0,5,0,0">
+                                                  Unchecked="CheckboxPercent_Unchecked" Margin="10,4"/>
+                                        </StackPanel>
+
+                                        <ScrollViewer VerticalScrollBarVisibility="Disabled" Margin="0,5,0,0">
                                                 <DataGrid IsReadOnly="True" Name="DataGridOverallWinLoss"
                                                       AutoGenerateColumns="False"
                                                       HorizontalAlignment="Left" VerticalAlignment="Top" Height="auto"
@@ -588,7 +600,16 @@
                                             <RowDefinition Height="Auto" />
                                             <RowDefinition Height="Auto" />
                                         </Grid.RowDefinitions>
-
+                                        <StackPanel Grid.Row="0" Orientation="Horizontal">
+                                            <CheckBox Name="CheckBoxApplyTagFiltersOG"  Content="Apply tag filters" ToolTip="Tags selected in DECKS > SORT / FILTER" Checked="CheckBoxApplyTagFilters_OnChecked" Unchecked="CheckBoxApplyTagFilters_OnUnchecked"/>
+                                                <Label Content="Opponent:" Margin="5,0,0,0"/>
+                                                <ComboBox x:Name="ComboBoxOpponentClassOG" VerticalAlignment="Bottom" Width="90"
+                              SelectionChanged="ComboBoxOpponentClass_SelectionChanged"/>
+                                            
+                                            <Label Content="Player:" />
+                                            <ComboBox x:Name="ComboBoxPlayerClass" VerticalAlignment="Bottom" Width="90"
+                              SelectionChanged="ComboBoxPlayerClass_SelectionChanged"/>
+                                        </StackPanel>
                                         <DataGrid IsReadOnly="True" Grid.Row="1" Margin="0,5" CanUserAddRows="False"
                                                   Name="DataGridOverallGames"
                                                   AlternationCount="2" AutoGenerateColumns="False"
@@ -641,7 +662,7 @@
                                                         </Style>
                                                     </DataGridTextColumn.ElementStyle>
                                                 </DataGridTextColumn>
-                                                <DataGridTextColumn Header="Time" Binding="{Binding Duration}">
+                                                <DataGridTextColumn Header="Time" Binding="{Binding Duration}" SortMemberPath="SortableDuration">
                                                     <DataGridTextColumn.ElementStyle>
                                                         <Style TargetType="TextBlock">
                                                             <Setter Property="HorizontalAlignment" Value="Center" />
@@ -687,3 +708,4 @@
 
     </Grid>
 </UserControl>
+    
