@@ -200,7 +200,7 @@ namespace Hearthstone_Deck_Tracker
 				Game.OpponentPlay(cardId, from, turn);
 			Game.AddPlayToCurrentGame(PlayType.OpponentSecretPlayed, turn, cardId);
 
-			var isStolenCard = Game.OpponentHandMarks[from - 1] == CardMark.Stolen;
+			var isStolenCard = from > 0 && Game.OpponentHandMarks[from - 1] == CardMark.Stolen;
 			Game.OpponentSecrets.NewSecretPlayed(otherId, isStolenCard);
 
 			Helper.MainWindow.Overlay.ShowSecrets();
@@ -382,11 +382,11 @@ namespace Hearthstone_Deck_Tracker
 				Helper.MainWindow.Overlay.HideTimers();
 				if(Game.CurrentGameStats == null)
 					return;
-				if(!RecordCurrentGameMode)
+				/*if(!RecordCurrentGameMode) // causes casual games to be discarded
 				{
 					Logger.WriteLine(Game.CurrentGameMode + " is set to not record games. Discarding game.");
 					return;
-				}
+				}*/
 				Game.CurrentGameStats.Turns = HsLogReader.Instance.GetTurnNumber();
 				if(Config.Instance.DiscardZeroTurnGame && Game.CurrentGameStats.Turns < 1)
 				{
