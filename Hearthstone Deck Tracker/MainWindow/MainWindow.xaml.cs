@@ -12,12 +12,12 @@ using System.Windows.Controls.DataVisualization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
-using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.Stats;
 using Hearthstone_Deck_Tracker.Utility;
 using Hearthstone_Deck_Tracker.Windows;
 using MahApps.Metro;
+using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
@@ -44,9 +44,7 @@ namespace Hearthstone_Deck_Tracker
 		public readonly PlayerWindow PlayerWindow;
 		public readonly StatsWindow StatsWindow;
 		public readonly TimerWindow TimerWindow;
-		//private readonly string _configPath;
 		private readonly string _decksPath;
-		private readonly string _defaultDecksPath;
 		private readonly bool _foundHsDirectory;
 		private readonly bool _initialized;
 
@@ -83,7 +81,6 @@ namespace Hearthstone_Deck_Tracker
 
 		public MainWindow()
 		{
-
 			// Set working directory to path of executable
 			Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
 
@@ -223,6 +220,14 @@ namespace Hearthstone_Deck_Tracker
 				DeckList.AllTags.Add("All");
 				WriteDecks();
 			}
+			if(!DeckList.AllTags.Contains("Favorite"))
+			{
+				if(DeckList.AllTags.Count > 1)
+					DeckList.AllTags.Insert(1, "Favorite");
+				else
+					DeckList.AllTags.Add("Favorite");
+				WriteDecks();
+			}
 			if(!DeckList.AllTags.Contains("Arena"))
 			{
 				DeckList.AllTags.Add("Arena");
@@ -231,6 +236,11 @@ namespace Hearthstone_Deck_Tracker
 			if(!DeckList.AllTags.Contains("Constructed"))
 			{
 				DeckList.AllTags.Add("Constructed");
+				WriteDecks();
+			}
+			if(!DeckList.AllTags.Contains("None"))
+			{
+				DeckList.AllTags.Add("None");
 				WriteDecks();
 			}
 
@@ -433,7 +443,8 @@ namespace Hearthstone_Deck_Tracker
 		private void MinimizeToTray()
 		{
 			_notifyIcon.Visible = true;
-			Hide();
+			Visibility = Visibility.Collapsed;
+			ShowInTaskbar = false;
 		}
 
 		private async void UpdateOverlayAsync()
@@ -567,6 +578,7 @@ namespace Hearthstone_Deck_Tracker
 		{
 			Show();
 			WindowState = WindowState.Normal;
+			ShowInTaskbar = true;
 			Activate();
 		}
 
@@ -673,6 +685,9 @@ namespace Hearthstone_Deck_Tracker
 				ManaCurveMyDecks.SetDeck(deck);
                 updateCharts(deck);
 				TagControlEdit.SetSelectedTags(deck.Tags);
+				MenuItemQuickSetTag.ItemsSource = TagControlEdit.Tags;
+				MenuItemQuickSetTag.Items.Refresh();
+				MenuItemUpdateDeck.IsEnabled = !string.IsNullOrEmpty(deck.Url);
 			}
 			else
 			{
@@ -917,6 +932,22 @@ namespace Hearthstone_Deck_Tracker
 			Config.Instance.CardSortingClassFirst = classFirst;
 			Config.Save();
 			Helper.SortCardCollection(Helper.MainWindow.ListViewDeck.ItemsSource, classFirst);
+		}
+
+		private void MenuItemQuickFilter_Click(object sender, EventArgs e)
+		{
+			var tag = ((TextBlock)sender).Text;
+			var actualTag = SortFilterDecksFlyout.Tags.FirstOrDefault(t => t.Name.ToUpperInvariant() == tag);
+			if(actualTag != null)
+			{
+				var tags = new List<string>() {actualTag.Name};
+				SortFilterDecksFlyout.SetSelectedTags(tags);
+				Helper.MainWindow.DeckPickerList.SetSelectedTags(tags);
+				Config.Instance.SelectedTags = tags;
+				Config.Save();
+				Helper.MainWindow.StatsWindow.StatsControl.LoadOverallStats();
+				Helper.MainWindow.DeckStatsFlyout.LoadOverallStats();
+			}
 		}
 	}
 }

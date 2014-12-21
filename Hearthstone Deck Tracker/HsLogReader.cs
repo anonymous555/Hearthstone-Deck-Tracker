@@ -2,8 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing.Text;
 using System.IO;
-using System.Security.Policy;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Hearthstone_Deck_Tracker.Enums;
@@ -17,12 +17,13 @@ namespace Hearthstone_Deck_Tracker
 	{
 		#region Properties
 
-		private const int PowerCountTreshold = 14;
+		private const int PowerCountThreshold = 25;
 
 		//should be about 180,000 lines
 		private const int MaxFileLength = 6000000;
 
 		private readonly Regex _cardMovementRegex = new Regex(@"\w*(cardId=(?<Id>(\w*))).*(zone\ from\ (?<from>((\w*)\s*)*))((\ )*->\ (?<to>(\w*\s*)*))*.*");
+		private readonly Regex _otherIdRegex = new Regex(@".*\[.*(id=(?<Id>(\d+))).*");
 
 		private readonly string _fullOutputPath;
 
@@ -69,6 +70,8 @@ namespace Hearthstone_Deck_Tracker
 				{"NAX15_01H", "Kel'Thuzad"}
 			};
 
+		private readonly Regex _cardAlreadyInCacheRegex = new Regex(@"somehow\ the\ card\ def\ for\ (?<id>(\w+_\w+))\ was\ already\ in\ the\ cache...");
+		private readonly Regex _unloadCardRegex = new Regex(@"unloading\ name=(?<id>(\w+_\w+))\ family=CardPrefab\ persistent=False");
 		private readonly Regex _opponentPlayRegex = new Regex(@"\w*(zonePos=(?<zonePos>(\d+))).*(zone\ from\ OPPOSING\ HAND).*");
 
 		private readonly int _updateDelay;
@@ -304,6 +307,10 @@ namespace Hearthstone_Deck_Tracker
 						Game.CurrentGameMode = GameMode.Ranked;
 						Logger.WriteLine(">>> GAME MODE: RANKED");
 					}
+					else if(_unloadCardRegex.IsMatch(logLine) && Game.CurrentGameMode == GameMode.Arena)
+					{
+						_gameHandler.HandlePossibleArenaCard(_unloadCardRegex.Match(logLine).Groups["id"].Value);
+					}
 				}
 				else if(logLine.StartsWith("[Bob] legend rank"))
 				{
@@ -324,6 +331,7 @@ namespace Hearthstone_Deck_Tracker
 				{
 					Game.CurrentGameMode = GameMode.Arena;
 					Logger.WriteLine(">>> GAME MODE: ARENA");
+					Game.ResetArenaCards();
 				}
 				else if(logLine.StartsWith("[Bob] ---RegisterScreenFriendly---"))
 				{
@@ -345,6 +353,14 @@ namespace Hearthstone_Deck_Tracker
 					_lastPlayerDrawIncrementedTurn = false;
 					ClearLog();
 				}
+				else if(logLine.StartsWith("[Rachelle]"))
+				{
+					if(_cardAlreadyInCacheRegex.IsMatch(logLine) && Game.CurrentGameMode == GameMode.Arena)
+					{
+						//Console.WriteLine();
+						_gameHandler.HandlePossibleArenaCard(_cardAlreadyInCacheRegex.Match(logLine).Groups["id"].Value);
+					}
+				}
 				else if(logLine.StartsWith("[Zone]"))
 				{
 					if(_cardMovementRegex.IsMatch(logLine))
@@ -354,6 +370,7 @@ namespace Hearthstone_Deck_Tracker
 						var id = match.Groups["Id"].Value.Trim();
 						var from = match.Groups["from"].Value.Trim();
 						var to = match.Groups["to"].Value.Trim();
+						var otherId = -1;
 
 						var zonePos = -1;
 						//var zone = string.Empty;
@@ -401,7 +418,7 @@ namespace Hearthstone_Deck_Tracker
 								if(to == "FRIENDLY HAND")
 								{
 									//player draw
-									if(_powerCount >= PowerCountTreshold)
+									if(_powerCount >= PowerCountThreshold)
 									{
 										_turnCount++;
 										_gameHandler.TurnStart(Turn.Player, GetTurnNumber());
@@ -450,7 +467,11 @@ namespace Hearthstone_Deck_Tracker
 									_gameHandler.HandleOpponentMulligan(zonePos);
 								}
 								else if(to == "OPPOSING SECRET")
-									_gameHandler.HandleOpponentSecretPlayed(id, zonePos, GetTurnNumber(), false);
+								{
+									if(_otherIdRegex.IsMatch(logLine))
+										otherId = int.Parse(_otherIdRegex.Match(logLine).Groups["Id"].Value);
+									_gameHandler.HandleOpponentSecretPlayed(id, zonePos, GetTurnNumber(), false, otherId);
+								}
 								else if(to == "OPPOSING PLAY")
 									_gameHandler.HandleOpponentPlay(id, zonePos, GetTurnNumber());
 								else
@@ -460,7 +481,7 @@ namespace Hearthstone_Deck_Tracker
 							case "OPPOSING DECK":
 								if(to == "OPPOSING HAND")
 								{
-									if(_powerCount >= PowerCountTreshold)
+									if(_powerCount >= PowerCountThreshold)
 									{
 										_turnCount++;
 										_gameHandler.TurnStart(Turn.Opponent, GetTurnNumber());
@@ -475,7 +496,12 @@ namespace Hearthstone_Deck_Tracker
 									_gameHandler.HandleOpponentDraw(GetTurnNumber());
 								}
 								else if(to == "OPPOSING SECRET")
-									_gameHandler.HandleOpponentSecretPlayed(id, zonePos, GetTurnNumber(), true);
+								{
+									if(_otherIdRegex.IsMatch(logLine))
+										otherId = int.Parse(_otherIdRegex.Match(logLine).Groups["Id"].Value);
+
+									_gameHandler.HandleOpponentSecretPlayed(id, zonePos, GetTurnNumber(), true, otherId);
+								}
 								else if(to == "OPPOSING GRAVEYARD" || to == "OPPOSING PLAY")
 									//opponent discard from deck              (deathlord)
 									_gameHandler.HandleOpponentDeckDiscard(id, GetTurnNumber());
@@ -484,9 +510,13 @@ namespace Hearthstone_Deck_Tracker
 
 								break;
 							case "OPPOSING SECRET":
-								if(to == "OPPOSING GRAVEYARD")
-									//opponent secret triggered
-									_gameHandler.HandleOpponentSecretTrigger(id, GetTurnNumber());
+								if(to == "OPPOSING GRAVEYARD" || to == "FRIENDLY SECRET")
+								{
+									//opponent secret triggered || stolen
+									if(_otherIdRegex.IsMatch(logLine))
+										otherId = int.Parse(_otherIdRegex.Match(logLine).Groups["Id"].Value);
+									_gameHandler.HandleOpponentSecretTrigger(id, GetTurnNumber(), otherId);
+								}
 								break;
 							case "OPPOSING PLAY":
 								if(to == "OPPOSING HAND") //card from play back to hand (sap/brew)
@@ -525,6 +555,11 @@ namespace Hearthstone_Deck_Tracker
 								break;
 						}
 						_powerCount = 0;
+						if((from.Contains("PLAY") || from.Contains("HAND") || to.Contains("PLAY")) && logLine.Contains("->") && !string.IsNullOrEmpty(id))
+						{
+							Game.LastZoneChangedCardId = id;
+							Logger.WriteLine("Last zone change: " + id);
+						}
 					}
 				}
 			}

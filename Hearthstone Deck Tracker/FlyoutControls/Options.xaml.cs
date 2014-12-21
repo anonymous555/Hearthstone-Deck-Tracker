@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -721,7 +722,7 @@ namespace Hearthstone_Deck_Tracker
 			Config.Instance.HideSecrets = false;
 			SaveConfig(false);
 			if(!Game.IsInMenu)
-				Helper.MainWindow.Overlay.ShowSecrets(Game.PlayingAgainst);
+				Helper.MainWindow.Overlay.ShowSecrets();
 		}
 
 		private void CheckboxHighlightDiscarded_Checked(object sender, RoutedEventArgs e)
@@ -1221,6 +1222,7 @@ namespace Hearthstone_Deck_Tracker
 		{
 			if(!_initialized) return;
 			Config.Instance.ShowNoteDialogAfterGame = true;
+			CheckboxNoteDialogDelayed.IsEnabled = true;
 			Config.Save();
 		}
 
@@ -1228,6 +1230,7 @@ namespace Hearthstone_Deck_Tracker
 		{
 			if(!_initialized) return;
 			Config.Instance.ShowNoteDialogAfterGame = false;
+			CheckboxNoteDialogDelayed.IsEnabled = false;
 			Config.Save();
 		}
 
@@ -1371,6 +1374,72 @@ namespace Hearthstone_Deck_Tracker
 			{
 				e.Handled = true;
 			}
+		}
+
+		private void CheckboxNoteDialogDelay_Unchecked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized)
+				return;
+			Config.Instance.NoteDialogDelayed = false;
+			Config.Save();
+		}
+
+		private void CheckboxNoteDialogDelay_Checked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized)
+				return;
+			Config.Instance.NoteDialogDelayed = true;
+			Config.Save();
+		}
+
+		private void CheckboxStartWithWindows_Checked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized)
+				return;
+			var regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+			if(regKey != null)
+				regKey.SetValue("Hearthstone Deck Tracker", Application.ResourceAssembly.Location);
+		}
+
+		private void CheckboxStartWithWindows_Unchecked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized)
+				return;
+			var regKey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
+			if(regKey != null)
+				regKey.DeleteValue("Hearthstone Deck Tracker", false);
+		}
+
+		private void CheckboxAutoGrayoutSecrets_Checked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized)
+				return;
+			Config.Instance.AutoGrayoutSecrets = true;
+			Config.Save();
+		}
+
+		private void CheckboxAutoGrayoutSecrets_Unchecked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized)
+				return;
+			Config.Instance.AutoGrayoutSecrets = false;
+			Config.Save();
+		}
+
+		private void CheckboxOverlayCardMarkToolTips_Checked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized)
+				return;
+			Config.Instance.OverlayCardMarkToolTips = true;
+			Config.Save();
+		}
+
+		private void CheckboxOverlayCardMarkToolTips_Unchecked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized)
+				return;
+			Config.Instance.OverlayCardMarkToolTips = false;
+			Config.Save();
 		}
 	}
 }

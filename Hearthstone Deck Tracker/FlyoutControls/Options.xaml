@@ -7,7 +7,7 @@
              xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
              xmlns:local="clr-namespace:Hearthstone_Deck_Tracker"
              mc:Ignorable="d"
-             d:DesignHeight="650" d:DesignWidth="515">
+             d:DesignHeight="700" d:DesignWidth="515">
     <Grid>
         <TabControl Width="auto">
             <TabItem Header="General" Background="{x:Null}">
@@ -93,7 +93,7 @@
                             </StackPanel>
                         </GroupBox>
                         <GroupBox Header="Overlay" Grid.Column="0" Grid.Row="0" Grid.RowSpan="2"
-                                  HorizontalAlignment="Left" VerticalAlignment="Top" Height="480" Width="235"
+                                  HorizontalAlignment="Left" VerticalAlignment="Top" Height="auto" Width="235"
                                   Margin="5,0,0,0">
                             <StackPanel>
                                 <CheckBox x:Name="CheckboxHideOverlay" Content="Hide (completely)"
@@ -154,6 +154,11 @@
                                           Checked="CheckboxOverlayAdditionalCardToolTips_Checked"
                                           Unchecked="CheckboxOverlayAdditionalCardToolTips_Unchecked"
                                           HorizontalAlignment="Left" />
+                                <CheckBox x:Name="CheckboxOverlayCardMarkToolTips" Content="Card-mark tooltips*"
+                                          Margin="10,5,0,0" VerticalAlignment="Top" ToolTip="Displays the card *responsible* for stealing/returning"
+                                          Checked="CheckboxOverlayCardMarkToolTips_Checked"
+                                          Unchecked="CheckboxOverlayCardMarkToolTips_Unchecked"
+                                          HorizontalAlignment="Left"/>
                                 <DockPanel>
                                     <Label Content="Opacity:" HorizontalAlignment="Left" Margin="5,5,0,0"
                                            VerticalAlignment="Center" />
@@ -183,7 +188,7 @@
                             </StackPanel>
                         </GroupBox>
                         <GroupBox Header="Other" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Left"
-                                  VerticalAlignment="Top" Height="282" Width="235" Margin="10,10,0,0">
+                                  VerticalAlignment="Top" Height="auto" Width="235" Margin="10,10,0,0">
                             <StackPanel>
                                 <CheckBox x:Name="CheckboxFlashHs" Content="Flash Hearthstone on turn start"
                                           HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top"
@@ -235,12 +240,21 @@
                                           HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top"
                                           Checked="CheckboxDeleteDeckKeepStats_Checked"
                                           Unchecked="CheckboxDeleteDeckKeepStats_Unchecked" />
-
+                                <CheckBox x:Name="CheckboxAutoGrayoutSecrets"
+                                          Content="Automatically gray out secrets"
+                                          HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top"
+                                          Checked="CheckboxAutoGrayoutSecrets_Checked"
+                                          Unchecked="CheckboxAutoGrayoutSecrets_Unchecked" />
                                 <CheckBox x:Name="CheckboxNoteDialog"
                                           Content="Show note dialog after game"
                                           HorizontalAlignment="Left" Margin="10,5,0,0" VerticalAlignment="Top"
                                           Checked="CheckboxNoteDialog_Checked"
                                           Unchecked="CheckboxNoteDialog_Unchecked" />
+                                <CheckBox x:Name="CheckboxNoteDialogDelayed"
+                                          Content="Wait until back in menu"
+                                          HorizontalAlignment="Left" Margin="30,5,0,0" VerticalAlignment="Top"
+                                          Checked="CheckboxNoteDialogDelay_Checked"
+                                          Unchecked="CheckboxNoteDialogDelay_Unchecked" />
                             </StackPanel>
                         </GroupBox>
                     </Grid>
@@ -349,7 +363,7 @@
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
                             <GroupBox Header="Tracker" Grid.Row="0" HorizontalAlignment="Left"
-                                      VerticalAlignment="Top" Height="465" Width="235" Margin="5,0,0,0"
+                                      VerticalAlignment="Top" Height="auto" Width="235" Margin="5,0,0,0"
                                       Grid.RowSpan="2">
                                 <StackPanel>
                                     <DockPanel Margin="10,5,10,0">
@@ -421,6 +435,10 @@
                                               HorizontalAlignment="Left" Margin="10,5,0,0"
                                               VerticalAlignment="Top" Checked="CheckboxStartMinimized_Checked"
                                               Unchecked="CheckboxStartMinimized_Unchecked" />
+                                    <CheckBox x:Name="CheckboxStartWithWindows" Content="Start with windows"
+                                              HorizontalAlignment="Left" Margin="10,5,0,0"
+                                              VerticalAlignment="Top" Checked="CheckboxStartWithWindows_Checked"
+                                              Unchecked="CheckboxStartWithWindows_Unchecked" />
                                     <CheckBox x:Name="CheckboxCloseWithHearthstone"
                                               Content="Close with Hearthstone" HorizontalAlignment="Left"
                                               Margin="10,5,0,0" VerticalAlignment="Top"

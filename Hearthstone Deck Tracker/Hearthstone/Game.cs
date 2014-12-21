@@ -47,6 +47,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
         public static List<KeyValuePair<string, int>> OpponentReturnedToDeck; 
         public static int playermanaspent = 0;
         public static int opponentmanaspent = 0;
+   		public static OpponentSecrets OpponentSecrets;
 
 		private static readonly List<string> ValidCardSets = new List<string>
 			{
@@ -62,6 +63,9 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
 		public static int[] OpponentHandAge { get; private set; }
 		public static CardMark[] OpponentHandMarks { get; private set; }
+		public static Card[] OpponentStolenCardsInformation { get; private set; }
+		public static List<Card> PossibleArenaCards { get; set; }
+		public static string LastZoneChangedCardId;
 
 		#endregion
 
@@ -74,9 +78,12 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			PlayerDeck = new ObservableCollection<Card>();
 			PlayerDrawn = new ObservableCollection<Card>();
 			OpponentCards = new ObservableCollection<Card>();
+			PossibleArenaCards = new List<Card>();
 			_cardDb = new Dictionary<string, Card>();
 			OpponentHandAge = new int[MaxHandSize];
 			OpponentHandMarks = new CardMark[MaxHandSize];
+			OpponentStolenCardsInformation = new Card[MaxHandSize];
+			OpponentSecrets = new OpponentSecrets();
 			for(var i = 0; i < MaxHandSize; i++)
 			{
 				OpponentHandAge[i] = -1;
@@ -103,8 +110,11 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			OpponentCards.Clear();
 			OpponentHandCount = 0;
 			OpponentDeckCount = 30;
+			LastZoneChangedCardId = null;
 			OpponentHandAge = new int[MaxHandSize];
 			OpponentHandMarks = new CardMark[MaxHandSize];
+			OpponentStolenCardsInformation = new Card[MaxHandSize];
+			OpponentSecrets.ClearSecrets();
 
 			for(var i = 0; i < MaxHandSize; i++)
 			{
@@ -217,6 +227,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 				OpponentHasCoin = false;
 				OpponentHandMarks[DefaultCoinPosition] = CardMark.None;
 				OpponentHandAge[DefaultCoinPosition] = -1;
+				OpponentStolenCardsInformation[DefaultCoinPosition] = null;
 				Logger.WriteLine("Player got the coin", "Hearthstone");
 			}
 
@@ -458,10 +469,13 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			{
 				OpponentHandAge[i] = OpponentHandAge[i + 1];
 				OpponentHandMarks[i] = OpponentHandMarks[i + 1];
+				OpponentStolenCardsInformation[i] = OpponentStolenCardsInformation[i + 1];
 			}
 
 			OpponentHandAge[MaxHandSize - 1] = -1;
 			OpponentHandMarks[MaxHandSize - 1] = CardMark.None;
+			OpponentStolenCardsInformation[MaxHandSize - 1] = null;
+			
 
 			LogOpponentHand();
             if(turn != last_turn_num)
@@ -507,6 +521,12 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			{
 				OpponentHandAge[OpponentHandCount - 1] = turn;
 				OpponentHandMarks[OpponentHandCount - 1] = CardMark.Returned;
+				if(!string.IsNullOrEmpty(LastZoneChangedCardId))
+				{
+					var card = GetCardFromId(LastZoneChangedCardId);
+					if(card != null)
+						OpponentStolenCardsInformation[OpponentHandCount - 1] = card;
+				}
 			}
 		}
 
@@ -566,7 +586,17 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			OpponentHandAge[OpponentHandCount - 1] = turn;
 
 			if(OpponentHandMarks[OpponentHandCount - 1] != CardMark.Coin)
+			{
 				OpponentHandMarks[OpponentHandCount - 1] = CardMark.Stolen;
+				if(!string.IsNullOrEmpty(LastZoneChangedCardId))
+				{
+					var card = GetCardFromId(LastZoneChangedCardId);
+					if(card != null)
+						OpponentStolenCardsInformation[OpponentHandCount - 1] = card;
+				}
+			}
+
+			
 
 			LogOpponentHand();
 		}
@@ -655,7 +685,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
 		public static Card GetCardFromName(string name)
 		{
-			if(GetActualCards().Any(c => c.Name.Equals(name)))
+			if(GetActualCards().Any(c => string.Equals(c.Name, name, StringComparison.InvariantCultureIgnoreCase)))
 			{
 				var card = GetActualCards().FirstOrDefault(c => c.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
 				if(card != null)
@@ -719,6 +749,12 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 				   && Helper.IsNumeric(card.Id.ElementAt(card.Id.Length - 1))
 				   && Helper.IsNumeric(card.Id.ElementAt(card.Id.Length - 2))
 				   && !CardIds.InvalidCardIds.Any(id => card.Id.Contains(id));
+		}
+
+		public static void ResetArenaCards()
+		{
+			PossibleArenaCards.Clear();
+			Helper.MainWindow.MenuItemImportArena.IsEnabled = Config.Instance.ShowArenaImportMessage;
 		}
 	}
 }

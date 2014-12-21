@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Forms;
 using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Hearthstone;
-using Hearthstone_Deck_Tracker.Utility;
 using Hearthstone_Deck_Tracker.Windows;
 using MahApps.Metro;
 using Microsoft.Win32;
@@ -224,6 +221,24 @@ namespace Hearthstone_Deck_Tracker
 					Config.Instance.SaveDataInAppData = Config.Instance.SaveInAppData;
 					converted = true;
 #pragma warning restore 612
+				}
+				if(configVersion <= new Version(0, 6, 6, 0))
+				{
+					if(Config.Instance.ExportClearX == 0.86)
+					{
+						Config.Instance.Reset("ExportClearX");
+						converted = true;
+					}
+					if(Config.Instance.ExportClearY == 0.16)
+					{
+						Config.Instance.Reset("ExportClearY");
+						converted = true;
+					}
+					if(Config.Instance.ExportClearCheckYFixed == 0.2)
+					{
+						Config.Instance.Reset("ExportClearCheckYFixed");
+						converted = true;
+					}
 				}
 			}
 
@@ -497,6 +512,10 @@ namespace Hearthstone_Deck_Tracker
 			Options.CheckboxHideOverlayInSpectator.IsChecked = Config.Instance.HideOverlayInSpectator;
 			Options.TextboxExportDelay.Text = Config.Instance.ExportStartDelay.ToString();
 			Options.CheckboxDiscardZeroTurnGame.IsChecked = Config.Instance.DiscardZeroTurnGame;
+			Options.CheckboxNoteDialogDelayed.IsChecked = Config.Instance.NoteDialogDelayed;
+			Options.CheckboxNoteDialogDelayed.IsEnabled = Config.Instance.ShowNoteDialogAfterGame;
+			Options.CheckboxStartWithWindows.IsChecked = Config.Instance.StartWithWindows;
+			Options.CheckboxOverlayCardMarkToolTips.IsChecked = Config.Instance.OverlayCardMarkToolTips;
 			Options.SliderOverlayOpacity.Value = Config.Instance.OverlayOpacity;
 			Options.SliderOpponentOpacity.Value = Config.Instance.OpponentOpacity;
 			Options.SliderPlayerOpacity.Value = Config.Instance.PlayerOpacity;
@@ -513,12 +532,13 @@ namespace Hearthstone_Deck_Tracker
 
 			SortFilterDecksFlyout.LoadTags(DeckList.AllTags);
 
+			UpdateQuickFilterItemSource();
+
 			SortFilterDecksFlyout.SetSelectedTags(Config.Instance.SelectedTags);
 			DeckPickerList.SetSelectedTags(Config.Instance.SelectedTags);
 
-			var tags = new List<string>(DeckList.AllTags);
-			tags.Remove("All");
-			TagControlEdit.LoadTags(tags);
+			
+			TagControlEdit.LoadTags(DeckList.AllTags.Where(tag => tag != "All" && tag != "None").ToList());
 			DeckPickerList.SetTagOperation(Config.Instance.TagOperation);
 			SortFilterDecksFlyout.OperationSwitch.IsChecked = Config.Instance.TagOperation == TagFilerOperation.And;
 
@@ -557,12 +577,21 @@ namespace Hearthstone_Deck_Tracker
 			GameDetailsFlyout.LoadConfig();
 			StatsWindow.StatsControl.LoadConfig();
 			StatsWindow.GameDetailsFlyout.LoadConfig();
+
+			MenuItemImportArena.IsEnabled = Config.Instance.ShowArenaImportMessage;
+		}
+
+		public void UpdateQuickFilterItemSource()
+		{
+			MenuItemQuickSelectFilter.ItemsSource =
+				DeckList.AllTags.Where(t => DeckList.DecksList.Any(d => d.Tags.Contains(t) || t == "All" || t == "None" && d.Tags.Count == 0))
+				        .Select(x => x.ToUpperInvariant());
 		}
 
 		public void ReloadTags()
 		{
 			SortFilterDecksFlyout.LoadTags(DeckList.AllTags);
-			TagControlEdit.LoadTags(DeckList.AllTags.Where(tag => tag != "All").ToList());
+			TagControlEdit.LoadTags(DeckList.AllTags.Where(tag => tag != "All" && tag != "None").ToList());
 		}
 
 

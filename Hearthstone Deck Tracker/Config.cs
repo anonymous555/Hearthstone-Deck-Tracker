@@ -38,6 +38,9 @@ namespace Hearthstone_Deck_Tracker
 		public bool AutoDeckDetection = true;
 
 		[DefaultValue(true)]
+		public bool AutoGrayoutSecrets = true;
+
+		[DefaultValue(true)]
 		public bool AutoSelectDetectedDeck = true;
 
 		[DefaultValue(false)]
@@ -92,13 +95,13 @@ namespace Hearthstone_Deck_Tracker
 		[DefaultValue(0.32)]
 		public double ExportCardsY = 0.32;
 
-		[DefaultValue(0.86)]
+		[DefaultValue(0.83)]
 		public double ExportClearX = 0.83;
 
-		[DefaultValue(0.16)]
+		[DefaultValue(0.13)]
 		public double ExportClearY = 0.13;
 
-		[DefaultValue(0.2)]
+		[DefaultValue(0.185)]
 		public double ExportClearCheckYFixed = 0.185;
 
 		[DefaultValue(0.85)]
@@ -216,6 +219,9 @@ namespace Hearthstone_Deck_Tracker
 		[DefaultValue(false)]
 		public bool MinimizeToTray = false;
 
+		[DefaultValue(false)]
+		public bool NoteDialogDelayed = false;
+
 		[DefaultValue(0)]
 		public int OffsetX = 0;
 
@@ -248,6 +254,9 @@ namespace Hearthstone_Deck_Tracker
 
 		[DefaultValue(true)]
 		public bool OverlayCardToolTips = true;
+
+		[DefaultValue(true)]
+		public bool OverlayCardMarkToolTips = true;
 
 		[DefaultValue(100)]
 		public double OverlayOpacity = 100;
@@ -383,6 +392,9 @@ namespace Hearthstone_Deck_Tracker
 		[DefaultValue(false)]
 		public bool ShowLogTab = false;
 
+		[DefaultValue(true)]
+		public bool ShowArenaImportMessage = true;
+
 		[DefaultValue(false)]
 		public bool ShowNoteDialogAfterGame = false;
 
@@ -394,6 +406,9 @@ namespace Hearthstone_Deck_Tracker
 
 		[DefaultValue(false)]
 		public bool StartMinimized = false;
+
+		[DefaultValue(false)]
+		public bool StartWithWindows = false;
 
 		[DefaultValue(false)]
 		public bool StatsClassOverviewIsExpanded = false;
