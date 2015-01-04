@@ -5,6 +5,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Hearthstone_Deck_Tracker.Enums;
+using Hearthstone_Deck_Tracker.Enums.Hearthstone;
+using Hearthstone_Deck_Tracker.Hearthstone.Entities;
+using Hearthstone_Deck_Tracker.Replay;
 using Hearthstone_Deck_Tracker.Stats;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -41,6 +44,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		public static int PlayerHandCount;
 		public static string PlayingAgainst;
 		public static string PlayingAs;
+		public static string PlayerName;
+		public static string OpponentName;
 
 
 		public static List<string> SetAsideCards;
@@ -67,10 +72,18 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		public static List<Card> PossibleArenaCards { get; set; }
 		public static string LastZoneChangedCardId;
 
+		//public static List<Entity> Entities;
+		public static Dictionary<int, Entity> Entities;
+		public static int PlayerId;
+		public static int OpponentId;
+		public static bool SavedReplay;
+		//public static Dictionary<string, int> PlayerIds; 
+
 		#endregion
 
 		static Game()
 		{
+			Entities = new Dictionary<int, Entity>();
 			CurrentGameMode = GameMode.None;
 			IsInMenu = true;
 			SetAsideCards = new List<string>();
@@ -98,6 +111,19 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
 		}
 
+		public static bool IsMulliganDone
+		{
+			get
+			{
+				if(Entities.Count < 3)
+					return false;
+				return Entities[2].GetTag(GAME_TAG.MULLIGAN_STATE) == (int)TAG_MULLIGAN.DONE &&
+				       Entities[3].GetTag(GAME_TAG.MULLIGAN_STATE) == (int)TAG_MULLIGAN.DONE;
+			}
+		}
+
+		//public static object ResetObject = new object();
+
 		public static void Reset(bool resetStats = true)
 		{
 			Logger.WriteLine(">>>>>>>>>>> Reset <<<<<<<<<<<");
@@ -105,6 +131,13 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			PlayerDrawn.Clear();
             last_turn_num = 0;
             lastOpponentPlays.Clear();
+			ReplayMaker.Reset();
+			PlayerDrawn.Clear();
+			Entities.Clear();
+			PlayerId = -1;
+			OpponentId = -1;
+			SavedReplay = false;
+
 			PlayerHandCount = 0;
 			OpponentSecretCount = 0;
 			OpponentCards.Clear();
@@ -129,11 +162,18 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
 			SetAsideCards.Clear();
 			OpponentReturnedToDeck.Clear();
-
+			CurrentGameMode = GameMode.None;
 			if(!IsInMenu && resetStats)
-				CurrentGameStats = new GameStats(GameResult.None, PlayingAgainst,PlayingAs);
+			{
+				CurrentGameStats = new GameStats(GameResult.None, PlayingAgainst, PlayingAs)
+				                   {
+					                   PlayerName = PlayerName,
+					                   OpponentName = OpponentName
+				                   };
+			}
             playermanaspent = 0;
             opponentmanaspent = 0;
+
 		}
 
 		public static void SetPremadeDeck(Deck deck)
@@ -500,7 +540,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		}
 
 
-		public static void OpponentBackToHand(string cardId, int turn)
+		public static void OpponentBackToHand(string cardId, int turn, int id)
 		{
 			OpponentHandCount++;
 
@@ -523,7 +563,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 				OpponentHandMarks[OpponentHandCount - 1] = CardMark.Returned;
 				if(!string.IsNullOrEmpty(LastZoneChangedCardId))
 				{
-					var card = GetCardFromId(LastZoneChangedCardId);
+					var card = GetCardFromId(cardId);
 					if(card != null)
 						OpponentStolenCardsInformation[OpponentHandCount - 1] = card;
 				}
@@ -576,7 +616,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			LogDeckChange(true, card, false);
 		}
 
-		public static void OpponentGet(int turn)
+		public static void OpponentGet(int turn, int id)
 		{
 			OpponentHandCount++;
 
@@ -590,7 +630,12 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 				OpponentHandMarks[OpponentHandCount - 1] = CardMark.Stolen;
 				if(!string.IsNullOrEmpty(LastZoneChangedCardId))
 				{
-					var card = GetCardFromId(LastZoneChangedCardId);
+					var cardId = Entities[id].CardId;
+					if(string.IsNullOrEmpty(cardId) && Entities[id].HasTag(GAME_TAG.LAST_AFFECTED_BY))
+						cardId = Entities[Entities[id].GetTag(GAME_TAG.LAST_AFFECTED_BY)].CardId;
+					if(string.IsNullOrEmpty(cardId))
+						cardId = LastZoneChangedCardId;
+					var card = GetCardFromId(cardId);
 					if(card != null)
 						OpponentStolenCardsInformation[OpponentHandCount - 1] = card;
 				}

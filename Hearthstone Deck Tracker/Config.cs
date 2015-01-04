@@ -128,6 +128,9 @@ namespace Hearthstone_Deck_Tracker
 		[DefaultValue(false)]
 		public bool ExtraFeatures = false;
 
+		[DefaultValue(false)]
+		public bool ForceMouseHook = false;
+
 		[DefaultValue(true)]
 		public bool FlashHsOnTurnStart = true;
 
@@ -329,6 +332,18 @@ namespace Hearthstone_Deck_Tracker
 
 		[DefaultValue(true)]
 		public bool RecordRanked = true;
+
+		[DefaultValue(660)]
+		public int ReplayWindowHeight = 660;
+
+		[DefaultValue(null)]
+		public int? ReplayWindowLeft = null;
+
+		[DefaultValue(null)]
+		public int? ReplayWindowTop = null;
+
+		[DefaultValue(1250)]
+		public int ReplayWindowWidth = 1250;
 
         [DefaultValue(false)]
         public bool DiscardZeroTurnGame = false;
@@ -560,6 +575,10 @@ namespace Hearthstone_Deck_Tracker
 			get { return Instance.SaveDataInAppData == false ? string.Empty : AppDataPath + "\\"; }
 		}
 
+		public string ReplayDir
+		{
+			get { return Path.Combine(DataDir, "Replays"); }
+		}
 		public string LogFilePath
 		{
 			get { return Instance._currentLogFile ?? GetLogFileName(); }
@@ -580,7 +599,6 @@ namespace Hearthstone_Deck_Tracker
 				return _config;
 			}
 		}
-
 
 		#endregion
 

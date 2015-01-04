@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Hearthstone;
+using Hearthstone_Deck_Tracker.Replay;
 using Hearthstone_Deck_Tracker.Stats;
 using Hearthstone_Deck_Tracker.Windows;
 using MahApps.Metro.Controls;
@@ -195,9 +197,16 @@ namespace Hearthstone_Deck_Tracker
 			StackPanelUnassignedFilter.Visibility = TabControlCurrentOverall.SelectedIndex == 1 ? Visibility.Visible : Visibility.Collapsed;
 			DataGridGames.Items.Clear();
 			var filteredGames = FilterGames(deck.DeckStats.Games).ToList();
+			var modified = false;
 			foreach(var game in filteredGames)
+			{
+				if(!game.VerifiedHeroes && VerifyHeroes(game))
+					modified = true;
 				if(Config.Instance.StatsFilterOpponentHeroClass == HeroClassAll.All || game.OpponentHero == Config.Instance.StatsFilterOpponentHeroClass.ToString())
 					DataGridGames.Items.Add(game);
+			}
+			if(modified)
+				DeckStatsList.Save();
 			DataGridWinLoss.Items.Clear();
 			DataGridWinLoss.Items.Add(new WinLoss(filteredGames, "%"));
 			DataGridWinLoss.Items.Add(new WinLoss(filteredGames, "Win - Loss"));
@@ -300,7 +309,11 @@ namespace Hearthstone_Deck_Tracker
 		{
 			if(selected != null)
 			{
-				if(Config.Instance.StatsInWindow)
+				if(selected.HasReplayFile)
+				{
+					ReplayReader.Read(selected.ReplayFile);
+				}
+				else if(Config.Instance.StatsInWindow)
 				{
 					Helper.MainWindow.StatsWindow.GameDetailsFlyout.SetGame(selected);
 					Helper.MainWindow.StatsWindow.FlyoutGameDetails.Header = selected.ToString();
@@ -487,6 +500,60 @@ namespace Hearthstone_Deck_Tracker
 			Helper.MainWindow.DeckPickerList.UpdateList();
 		}
 
+		private bool VerifyHeroes(GameStats game)
+		{
+			var modifiedHero = false;
+			var playerHeroes = new Dictionary<string, int>();
+			var opponentHeroes = new Dictionary<string, int>();
+			foreach(var turn in game.TurnStats)
+			{
+				foreach(var play in turn.Plays)
+				{
+					if(string.IsNullOrEmpty(play.CardId))
+						continue;
+					if(play.Type.ToString().Contains("Player"))
+					{
+						var hero = Game.GetCardFromId(play.CardId).PlayerClass;
+						if(hero == null)
+							continue;
+						if(!playerHeroes.ContainsKey(hero))
+							playerHeroes.Add(hero, 0);
+						playerHeroes[hero]++;
+					}
+					else if(play.Type.ToString().Contains("Opponent"))
+					{
+						var hero = Game.GetCardFromId(play.CardId).PlayerClass;
+						if(hero == null)
+							continue;
+						if(!opponentHeroes.ContainsKey(hero))
+							opponentHeroes.Add(hero, 0);
+						opponentHeroes[hero]++;
+					}
+				}
+			}
+			if(playerHeroes.Count > 0)
+			{
+				var pHero = playerHeroes.OrderByDescending(x => x.Value).First().Key;
+				if(game.PlayerHero != pHero)
+				{
+					game.PlayerHero = pHero;
+					modifiedHero = true;
+				}
+			}
+			if(opponentHeroes.Count > 0)
+			{
+				var oHero = opponentHeroes.OrderByDescending(x => x.Value).First().Key;
+				if(game.OpponentHero != oHero)
+				{
+					game.OpponentHero = oHero;
+					modifiedHero = true;
+				}
+			}
+
+			game.VerifiedHeroes = true;
+			return modifiedHero;
+		}
+
 
 		public void LoadOverallStats()
 		{
@@ -495,6 +562,7 @@ namespace Hearthstone_Deck_Tracker
 			DataGridOverallGames.Items.Clear();
 			var sortedCol = DataGridOverallGames.Columns.FirstOrDefault(col => col.SortDirection != null);
 			var total = new List<GameStats>();
+			var modified = false;
 			foreach(var @class in Enum.GetNames(typeof(HeroClass)))
 			{
 				var allGames = new List<GameStats>();
@@ -516,12 +584,14 @@ namespace Hearthstone_Deck_Tracker
 						game.PlayerHero = @class;
 						needToSaveDeckStats = true;
 					}
+					if(!game.VerifiedHeroes && VerifyHeroes(game))
+						modified = true;
 					if((Config.Instance.StatsOverallFilterPlayerHeroClass == HeroClassAll.All || game.PlayerHero == Config.Instance.StatsOverallFilterPlayerHeroClass.ToString())
 						&& (Config.Instance.StatsFilterOpponentHeroClass == HeroClassAll.All || game.OpponentHero == Config.Instance.StatsFilterOpponentHeroClass.ToString()))
 						DataGridOverallGames.Items.Add(game);
 				}
 			}
-			if(needToSaveDeckStats)
+			if(needToSaveDeckStats || modified)
 			{
 				DeckStatsList.Save();
 			}

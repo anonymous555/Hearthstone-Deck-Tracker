@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using System.Xml.Serialization;
 using Hearthstone_Deck_Tracker.Enums;
@@ -52,6 +53,16 @@ namespace Hearthstone_Deck_Tracker.Stats
 		public DateTime EndTime { get; set; }
 		public string Note { get; set; }
 		public bool IsClone { get; set; }
+		public string PlayerName { get; set; }
+		public string OpponentName { get; set; }
+		public bool VerifiedHeroes { get; set; }
+		public string ReplayFile { get; set; }
+
+		[XmlIgnore]
+		public bool HasReplayFile
+		{
+			get { return ReplayFile != null && File.Exists(Path.Combine(Config.Instance.ReplayDir, ReplayFile)); }
+		}
 		
 		[XmlIgnore]
 		public BitmapImage OpponentHeroImage

@@ -49,7 +49,7 @@ namespace Hearthstone_Deck_Tracker
 		{
 			InitializeComponent();
 
-			if(Config.Instance.ExtraFeatures)
+			if(Config.Instance.ExtraFeatures && Config.Instance.ForceMouseHook)
 				HookMouse();
 
 			ListViewPlayer.ItemsSource = Game.IsUsingPremade ? Game.PlayerDeck : Game.PlayerDrawn;
@@ -397,7 +397,11 @@ namespace Hearthstone_Deck_Tracker
 		public void ShowOverlay(bool enable)
 		{
 			if(enable)
+			{
 				Show();
+				if(User32.GetForegroundWindow() == new WindowInteropHelper(this).Handle)
+					User32.BringHsToForeground();
+			}
 			else Hide();
 		}
 
@@ -769,7 +773,29 @@ namespace Hearthstone_Deck_Tracker
 				HideAdditionalToolTips();
 				_lastToolTipCardId = string.Empty;
 			}
+
+
+			if(!Config.Instance.ForceMouseHook)
+			{
+				if(Config.Instance.ExtraFeatures)
+				{
+
+					var relativePos = PointFromScreen(new Point(pos.X, pos.Y));
+					if((StackPanelSecrets.IsVisible 
+						&& (PointInsideControl(StackPanelSecrets.PointFromScreen(new Point(pos.X, pos.Y)), StackPanelSecrets.ActualWidth, StackPanelSecrets.ActualHeight, new Thickness(20)))
+						|| relativePos.X < 170 && relativePos.Y > Height - 120))
+					{
+						if(_mouseInput == null)
+							HookMouse();
+					}
+					else if(_mouseInput != null)
+						UnHookMouse();
+				}
+				else if(_mouseInput != null)
+					UnHookMouse();
+			}
 		}
+		
 
 		private double GetListViewOffset(StackPanel stackPanel)
 		{
@@ -832,8 +858,9 @@ namespace Hearthstone_Deck_Tracker
 			{
 				UpdateCardTooltip();
 			}
-			catch(Exception)
+			catch(Exception ex)
 			{
+				Logger.WriteLine(ex.ToString());
 			}
 		}
 
@@ -853,7 +880,7 @@ namespace Hearthstone_Deck_Tracker
 				if(Config.Instance.Debug)
 				{
 					LblDebugLog.Text += string.Format("Current turn: {0} {1} {2} \n",
-					                                  timerEventArgs.CurrentTurn.ToString(),
+					                                  timerEventArgs.CurrentActivePlayer.ToString(),
 					                                  timerEventArgs.PlayerSeconds.ToString(),
 					                                  timerEventArgs.OpponentSeconds.ToString());
 					DebugViewer.ScrollToBottom();
@@ -1014,8 +1041,8 @@ namespace Hearthstone_Deck_Tracker
 			_uiMovable = !_uiMovable;
 			if(_uiMovable)
 			{
-				if(!Config.Instance.ExtraFeatures)
-					HookMouse();
+				//if(!Config.Instance.ExtraFeatures)
+				HookMouse();
 				if(StackPanelSecrets.Visibility != Visibility.Visible)
 				{
 					_secretsTempVisible = true;
@@ -1072,7 +1099,7 @@ namespace Hearthstone_Deck_Tracker
 			}
 			else
 			{
-				if(!Config.Instance.ExtraFeatures)
+				if(!(Config.Instance.ExtraFeatures && Config.Instance.ForceMouseHook))
 					UnHookMouse();
 				if(_secretsTempVisible)
 					HideSecrets();
@@ -1108,6 +1135,8 @@ namespace Hearthstone_Deck_Tracker
 
 		public void HookMouse()
 		{
+			if(_mouseInput != null)
+				return;
 			_mouseInput = new User32.MouseInput();
 			_mouseInput.LmbDown += MouseInputOnLmbDown;
 			_mouseInput.LmbUp += MouseInputOnLmbUp;
@@ -1117,6 +1146,8 @@ namespace Hearthstone_Deck_Tracker
 
 		public void UnHookMouse()
 		{
+			if(_uiMovable || _mouseInput == null)
+				return;
 			_mouseInput.Dispose();
 			_mouseInput = null;
 			Logger.WriteLine("Disabled mouse hook");

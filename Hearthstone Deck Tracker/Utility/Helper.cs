@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Color = System.Drawing.Color;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
@@ -281,7 +283,7 @@ namespace Hearthstone_Deck_Tracker
 				MainWindow.OpponentWindow.SetOpponentCardCount(Game.OpponentHandCount, Game.OpponentDeckCount, Game.OpponentHasCoin);
 
 
-			if(MainWindow.NeedToIncorrectDeckMessage && !MainWindow.IsShowingIncorrectDeckMessage)
+			if(MainWindow.NeedToIncorrectDeckMessage && !MainWindow.IsShowingIncorrectDeckMessage && Game.CurrentGameMode != GameMode.Spectator)
 			{
 				MainWindow.IsShowingIncorrectDeckMessage = true;
 				MainWindow.ShowIncorrectDeckMessage();
@@ -335,6 +337,18 @@ namespace Hearthstone_Deck_Tracker
 		{
 			if(wins + losses == 0) return "-%";
 			return Math.Round(wins*100.0/(wins+losses), 0) + "%";
+		}
+
+		public static T DeepClone<T>(T obj)
+		{
+			using (var ms = new MemoryStream())
+			{
+				var formatter = new BinaryFormatter();
+				formatter.Serialize(ms, obj);
+				ms.Position = 0;
+
+				return (T)formatter.Deserialize(ms);
+			}
 		}
 	}
 }
