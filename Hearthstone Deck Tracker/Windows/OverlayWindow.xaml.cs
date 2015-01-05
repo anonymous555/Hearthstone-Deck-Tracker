@@ -268,6 +268,7 @@ namespace Hearthstone_Deck_Tracker
 			GrayOutSecrets(_mousePos);
 		}
 
+		private bool? _isFriendsListOpen;
 		private async void HideCardsWhenFriendsListOpen(Point clickPos)
 		{
 			var panels = new List<StackPanel>();
@@ -276,7 +277,7 @@ namespace Hearthstone_Deck_Tracker
 			if(Canvas.GetLeft(StackPanelOpponent) < 500)
 				panels.Add(StackPanelOpponent);
 
-			bool? isFriendsListOpen = null;
+			_isFriendsListOpen = null;
 			if(panels.Count > 0 && !Config.Instance.HideDecksInOverlay)
 			{
 				foreach(var panel in panels)
@@ -293,9 +294,9 @@ namespace Hearthstone_Deck_Tracker
 
 					if(checkForFriendsList)
 					{
-						if(isFriendsListOpen == null)
-							isFriendsListOpen = await Helper.FriendsListOpen();
-						if(isFriendsListOpen.Value)
+						if(_isFriendsListOpen == null)
+							_isFriendsListOpen = await Helper.FriendsListOpen();
+						if(_isFriendsListOpen.Value)
 						{
 							var needToHide = Canvas.GetTop(panel) + panel.ActualHeight > Height * 0.3;
 							if(needToHide)
@@ -659,7 +660,7 @@ namespace Hearthstone_Deck_Tracker
 			return false;
 		}
 
-		private void UpdateCardTooltip()
+		private async Task UpdateCardTooltip()
 		{
 			var pos = User32.GetMousePos();
 			var relativePlayerDeckPos = ListViewPlayer.PointFromScreen(new Point(pos.X, pos.Y));
@@ -788,7 +789,7 @@ namespace Hearthstone_Deck_Tracker
 						if(_mouseInput == null)
 							HookMouse();
 					}
-					else if(_mouseInput != null)
+					else if(_mouseInput != null && !((_isFriendsListOpen.HasValue && _isFriendsListOpen.Value) || await Helper.FriendsListOpen()))
 						UnHookMouse();
 				}
 				else if(_mouseInput != null)
@@ -835,7 +836,7 @@ namespace Hearthstone_Deck_Tracker
 				Canvas.SetLeft(ToolTipCard, Canvas.GetLeft(stackpanel) - ToolTipCard.Width);
 		}
 
-		public void UpdatePosition()
+		public async void UpdatePosition()
 		{
 			//hide the overlay depenting on options
 			ShowOverlay(!(
@@ -856,7 +857,7 @@ namespace Hearthstone_Deck_Tracker
 			ReSizePosLists();
 			try
 			{
-				UpdateCardTooltip();
+				await UpdateCardTooltip();
 			}
 			catch(Exception ex)
 			{

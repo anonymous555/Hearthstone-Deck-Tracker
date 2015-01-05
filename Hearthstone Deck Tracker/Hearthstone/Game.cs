@@ -111,14 +111,17 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
 		}
 
+
 		public static bool IsMulliganDone
 		{
 			get
 			{
-				if(Entities.Count < 3)
+				var player = Entities.FirstOrDefault(x => x.Value.IsPlayer);
+				var opponent = Entities.FirstOrDefault(x => x.Value.HasTag(GAME_TAG.PLAYER_ID) && !x.Value.IsPlayer);
+				if(player.Value == null || opponent.Value == null)
 					return false;
-				return Entities[2].GetTag(GAME_TAG.MULLIGAN_STATE) == (int)TAG_MULLIGAN.DONE &&
-				       Entities[3].GetTag(GAME_TAG.MULLIGAN_STATE) == (int)TAG_MULLIGAN.DONE;
+				return player.Value.GetTag(GAME_TAG.MULLIGAN_STATE) == (int)TAG_MULLIGAN.DONE &&
+					   opponent.Value.GetTag(GAME_TAG.MULLIGAN_STATE) == (int)TAG_MULLIGAN.DONE;
 			}
 		}
 
@@ -162,7 +165,6 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
 			SetAsideCards.Clear();
 			OpponentReturnedToDeck.Clear();
-			CurrentGameMode = GameMode.None;
 			if(!IsInMenu && resetStats)
 			{
 				CurrentGameStats = new GameStats(GameResult.None, PlayingAgainst, PlayingAs)

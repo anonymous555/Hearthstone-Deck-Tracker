@@ -293,8 +293,6 @@ namespace Hearthstone_Deck_Tracker
 			Game.PlayingAs = hero;
 
 			var selectedDeck = Helper.MainWindow.DeckPickerList.SelectedDeck;
-			//if(selectedDeck != null)
-			//	Game.SetPremadeDeck((Deck)selectedDeck.Clone());
 
 			if(!string.IsNullOrEmpty(hero))
 			{
@@ -364,14 +362,13 @@ namespace Hearthstone_Deck_Tracker
 
 		}
 
+	    private static DateTime _lastGameStart;
 		public static void HandleGameStart()
 		{
-			//avoid new game being started when jaraxxus is played
-
-			///if(!Game.IsInMenu) return;
-
+			if(DateTime.Now - _lastGameStart < new TimeSpan(0, 0, 0, 5)) //game already started
+				return;
             last_opponent_turn = 0;
-
+			_lastGameStart = DateTime.Now;
 			Logger.WriteLine("Game start");
 
 			if(Config.Instance.FlashHsOnTurnStart)
@@ -385,65 +382,122 @@ namespace Hearthstone_Deck_Tracker
 				SendKeys.SendWait("{" + Config.Instance.KeyPressOnGameStart + "}");
 				Logger.WriteLine("Sent keypress: " + Config.Instance.KeyPressOnGameStart);
 			}
-			_waitingForRankedMessage = false;
+			_showedNoteDialog = false;
 			Game.IsInMenu = false;
 			Game.Reset();
+			
+			var selectedDeck = Helper.MainWindow.DeckPickerList.SelectedDeck;
+			if(selectedDeck != null)
+				Game.SetPremadeDeck((Deck)selectedDeck.Clone());
 		}
 
 		private static Deck _assignedDeck;
 #pragma warning disable 4014
-		public static void HandleGameEnd(bool backInMenu)
+	    public static void HandleGameEnd()
+	    {
+		    Helper.MainWindow.Overlay.HideTimers();
+		    if(Game.CurrentGameStats == null)
+			    return;
+		    Game.CurrentGameStats.PlayerName =
+			    Game.Entities.First(
+			                        e =>
+			                        e.Value.HasTag(GAME_TAG.PLAYER_ID) && e.Value.GetTag(GAME_TAG.PLAYER_ID) == Game.PlayerId)
+			        .Value.Name;
+		    Game.CurrentGameStats.OpponentName =
+			    Game.Entities.First(
+			                        e =>
+			                        e.Value.HasTag(GAME_TAG.PLAYER_ID) && e.Value.GetTag(GAME_TAG.PLAYER_ID) == Game.OpponentId)
+			        .Value.Name;
+		    Game.CurrentGameStats.Turns = HsLogReader.Instance.GetTurnNumber();
+		    if(Config.Instance.DiscardZeroTurnGame && Game.CurrentGameStats.Turns < 1)
+		    {
+			    Logger.WriteLine("Game has 0 turns, discarded. (DiscardZeroTurnGame)");
+			    _assignedDeck = null;
+			    return;
+		    }
+		    Game.CurrentGameStats.GameEnd();
+		    var selectedDeck = Helper.MainWindow.DeckPickerList.SelectedDeck;
+		    if(selectedDeck != null)
+		    {
+			    if(Config.Instance.DiscardGameIfIncorrectDeck &&
+			       !Game.PlayerDrawn.All(c => c.IsStolen || selectedDeck.Cards.Any(c2 => c.Id == c2.Id && c.Count <= c2.Count)))
+			    {
+				    Logger.WriteLine("Assigned current game to NO deck - selected deck does not match cards played");
+				    Game.CurrentGameStats.DeleteGameFile();
+				    _assignedDeck = null;
+				    return;
+			    }
+			    selectedDeck.DeckStats.AddGameResult(Game.CurrentGameStats);
+			    if(Config.Instance.ShowNoteDialogAfterGame && !Config.Instance.NoteDialogDelayed && !_showedNoteDialog)
+			    {
+				    _showedNoteDialog = true;
+				    new NoteDialog(Game.CurrentGameStats);
+			    }
+			    Logger.WriteLine("Assigned current game to deck: " + selectedDeck.Name, "GameStats");
+			    _assignedDeck = selectedDeck;
+		    }
+		    else
+		    {
+			    DefaultDeckStats.Instance.GetDeckStats(Game.PlayingAs).AddGameResult(Game.CurrentGameStats);
+			    Logger.WriteLine(string.Format("Assigned current deck to default {0} deck.", Game.PlayingAs), "GameStats");
+			    _assignedDeck = null;
+		    }
+
+	    }
+#pragma warning restore 4014
+
+		private static void LogEvent(string type, string id = "", int turn = 0, int from = -1)
 		{
-			if(Game.Entities.Count > 0 && !Game.SavedReplay && Game.CurrentGameStats != null &&
-			   Game.CurrentGameStats.ReplayFile == null && RecordCurrentGameMode)
-			{
-				Game.CurrentGameStats.ReplayFile = ReplayMaker.SaveToDisk();
-				SaveAndUpdateStats();
-			}
-			if(!backInMenu)
-			{
-				Helper.MainWindow.Overlay.HideTimers();
-				if(Game.CurrentGameStats == null)
-					return;
-				/*if(!RecordCurrentGameMode) // causes casual games to be discarded
-				{
-					Logger.WriteLine(Game.CurrentGameMode + " is set to not record games. Discarding game.");
-					return;
-				}*/
-				Game.CurrentGameStats.PlayerName = Game.Entities.First(e => e.Value.HasTag(GAME_TAG.PLAYER_ID) && e.Value.GetTag(GAME_TAG.PLAYER_ID) == Game.PlayerId).Value.Name;
-				Game.CurrentGameStats.OpponentName = Game.Entities.First(e => e.Value.HasTag(GAME_TAG.PLAYER_ID) && e.Value.GetTag(GAME_TAG.PLAYER_ID) == Game.OpponentId).Value.Name;
-				Game.CurrentGameStats.Turns = HsLogReader.Instance.GetTurnNumber();
-				if(Config.Instance.DiscardZeroTurnGame && Game.CurrentGameStats.Turns < 1)
-				{
-					Logger.WriteLine("Game has 0 turns, discarded. (DiscardZeroTurnGame)");
-					_assignedDeck = null;
-					return;
-				}
-				Game.CurrentGameStats.GameEnd();
-				var selectedDeck = Helper.MainWindow.DeckPickerList.SelectedDeck;
-				if(selectedDeck != null)
-				{
-					if(Config.Instance.DiscardGameIfIncorrectDeck && !Game.PlayerDrawn.All(c => c.IsStolen || selectedDeck.Cards.Any(c2 => c.Id == c2.Id && c.Count <= c2.Count)))
-					{
-						Logger.WriteLine("Assigned current game to NO deck - selected deck does not match cards played");
-						Game.CurrentGameStats.DeleteGameFile();
-						_assignedDeck = null;
-						return;
-					}
-					selectedDeck.DeckStats.AddGameResult(Game.CurrentGameStats);
-					if(Config.Instance.ShowNoteDialogAfterGame && !Config.Instance.NoteDialogDelayed)
-						new NoteDialog(Game.CurrentGameStats);
-					Logger.WriteLine("Assigned current game to deck: " + selectedDeck.Name, "GameStats");
-					_assignedDeck = selectedDeck;
-				}
-				else
-				{
-					DefaultDeckStats.Instance.GetDeckStats(Game.PlayingAs).AddGameResult(Game.CurrentGameStats);
-					Logger.WriteLine(string.Format("Assigned current deck to default {0} deck.", Game.PlayingAs), "GameStats");
-					_assignedDeck = null;
-				}
+			Logger.WriteLine(string.Format("{0} (id:{1} turn:{2} from:{3})", type, id, turn, from), "LogReader");
+		}
+
+		public static void PlayerSetAside(string id)
+		{
+			Game.SetAsideCards.Add(id);
+			Logger.WriteLine("set aside: " + id);
+		}
+
+		public void HandlePossibleArenaCard(string id)
+		{
+			var card = Game.GetCardFromId(id);
+            if(!Game.PossibleArenaCards.Contains(card))
+				Game.PossibleArenaCards.Add(card);
+			Helper.MainWindow.MenuItemImportArena.IsEnabled = true;
+		}
+
+	    public static void HandleWin(bool fromAssetUnload)
+		{
+			if(Game.CurrentGameStats == null)
 				return;
-			}
+			Logger.WriteLine("Game was won!", "GameStats");
+			Game.CurrentGameStats.Result = GameResult.Win;
+		}
+
+		public static void HandleLoss(bool fromAssetUnload)
+		{
+			if(Game.CurrentGameStats == null)
+				return;
+			Logger.WriteLine("Game was lost!", "GameStats");
+			Game.CurrentGameStats.Result = GameResult.Loss;
+		}
+
+	    public static void SetGameMode(GameMode mode)
+		{
+			Logger.WriteLine(">> GAME MODE: " + mode);
+			Game.CurrentGameMode = mode;
+	    }
+
+	    public void HandleInMenu()
+	    {
+		    if(Game.IsInMenu)
+			    return;
+
+			if(Game.Entities.Count > 0 && !Game.SavedReplay && Game.CurrentGameStats != null &&
+				  Game.CurrentGameStats.ReplayFile == null && RecordCurrentGameMode)
+				Game.CurrentGameStats.ReplayFile = ReplayMaker.SaveToDisk();
+
+			SaveAndUpdateStats();
+
 			Game.IsInMenu = true;
 			TurnTimer.Instance.Stop();
 			Helper.MainWindow.Overlay.HideTimers();
@@ -461,78 +515,23 @@ namespace Hearthstone_Deck_Tracker
 			}
 			if(!Game.IsUsingPremade)
 				Game.DrawnLastGame = new List<Card>(Game.PlayerDrawn);
-			if(_waitingForRankedMessage)
-				return; 
 			HsLogReader.Instance.ClearLog();
 			if(!Config.Instance.KeepDecksVisible)
 				Game.Reset(false);
 		}
-#pragma warning restore 4014
 
-		private static void LogEvent(string type, string id = "", int turn = 0, int from = -1)
-		{
-			Logger.WriteLine(string.Format("{0} (id:{1} turn:{2} from:{3})", type, id, turn, from), "LogReader");
-		}
-
-		public static void PlayerSetAside(string id)
-		{
-			Game.SetAsideCards.Add(id);
-			Logger.WriteLine("set aside: " + id);
-		}
-
-		public void HandlePossibleArenaCard(string id)
-		{
-			Game.PossibleArenaCards.Add(Game.GetCardFromId(id));
-			Helper.MainWindow.MenuItemImportArena.IsEnabled = true;
-		}
-
-	    public static void HandleWin(bool fromAssetUnload)
-		{
-			if(Game.CurrentGameStats == null)
-				return;
-			Logger.WriteLine("Game was won!", "GameStats");
-			Game.CurrentGameStats.Result = GameResult.Win;
-			if(fromAssetUnload)
-				SaveAndUpdateStats();
-		}
-
-		public static void HandleLoss(bool fromAssetUnload)
-		{
-			if(Game.CurrentGameStats == null)
-				return;
-			Logger.WriteLine("Game was lost!", "GameStats");
-			Game.CurrentGameStats.Result = GameResult.Loss;
-			if(fromAssetUnload)
-				SaveAndUpdateStats();
-		}
-
-	    public static void SetGameMode(GameMode mode)
-	    {
-			if(_waitingForRankedMessage && mode != GameMode.Ranked)
-			{
-				SaveAndUpdateStats();
-				_waitingForRankedMessage = false;
-				Game.CurrentGameStats = null;
-				HandleGameEnd(true);
-			}
-			Game.CurrentGameMode = mode;
-			Logger.WriteLine(">> GAME MODE: " + mode );
-		    if(Game.CurrentGameStats == null || mode == GameMode.None && !Config.Instance.RecordOther)
-			    return;
-		    Logger.WriteLine(">> GAME MODE: " + mode + "(saved to gamestats)");
-		    //Game.CurrentGameStats.GameMode = mode;
-		    SaveAndUpdateStats();
-	    }
-
-	    private static bool _waitingForRankedMessage;
+	    private static bool _showedNoteDialog;
 		private static void SaveAndUpdateStats()
 		{
 			var statsControl = Config.Instance.StatsInWindow ? Helper.MainWindow.StatsWindow.StatsControl : Helper.MainWindow.DeckStatsFlyout;
 			if(RecordCurrentGameMode)
 			{
 
-				if(Config.Instance.ShowNoteDialogAfterGame && Config.Instance.NoteDialogDelayed)
+				if(Config.Instance.ShowNoteDialogAfterGame && Config.Instance.NoteDialogDelayed && !_showedNoteDialog)
+				{
+					_showedNoteDialog = true;
 					new NoteDialog(Game.CurrentGameStats);
+				}
 
 				if(Game.CurrentGameStats != null)
 				{
@@ -544,10 +543,7 @@ namespace Hearthstone_Deck_Tracker
 					}
 					Game.CurrentGameStats.GameMode = Game.CurrentGameMode;
 					Logger.WriteLine("Set gamemode to " + Game.CurrentGameMode);
-					if(Game.CurrentGameMode == GameMode.Casual)
-						_waitingForRankedMessage = true;
-					else if(Game.CurrentGameMode != GameMode.None)
-					    Game.CurrentGameStats = null;
+					Game.CurrentGameStats = null;
 				}
 
 				if(_assignedDeck == null)
@@ -711,9 +707,9 @@ namespace Hearthstone_Deck_Tracker
             HandleGameStart();
         }
 
-        void IGameHandler.HandleGameEnd(bool backInMenu)
+        void IGameHandler.HandleGameEnd()
         {
-            HandleGameEnd(backInMenu);
+            HandleGameEnd();
         }
 
         void IGameHandler.HandleLoss(bool fromAssetUnload)
