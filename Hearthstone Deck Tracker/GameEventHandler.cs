@@ -342,13 +342,13 @@ namespace Hearthstone_Deck_Tracker
 					User32.BringHsToForeground();
 			}
 
-            if (player != ActivePlayer.Player)
+            if (player == ActivePlayer.Opponent)
             {
                 // DeckStatsList.doPrediction(Game.PlayingAgainst, turnNumber + 1);
                 last_opponent_turn = turnNumber + 1;
                 ///
             }
-            else
+            else if(player == ActivePlayer.Player)
             {
                 if (last_opponent_turn == 0)
                 {
@@ -356,7 +356,7 @@ namespace Hearthstone_Deck_Tracker
                 }
                 else
                 {
-                    DeckStatsList.doPredictionLastCard(Game.PlayingAgainst, last_opponent_turn, Game.lastOpponentPlays);
+                    DeckStatsList.doPredictionLastCard(Game.PlayingAgainst, last_opponent_turn + 1, Game.lastOpponentPlays);
                 }
             }
 
