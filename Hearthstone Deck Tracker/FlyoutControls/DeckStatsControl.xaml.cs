@@ -359,6 +359,7 @@ namespace Hearthstone_Deck_Tracker
 			BtnOverallDelete.IsEnabled = enabled;
 			BtnOverallDetails.IsEnabled = enabled;
 			BtnOverallNote.IsEnabled = enabled;
+			BtnOverallImportOpponentDeck.IsEnabled = enabled;
 			BtnOverallMoveToOtherDeck.IsEnabled = enabled;
 		}
 
@@ -383,6 +384,7 @@ namespace Hearthstone_Deck_Tracker
 			var enabled = DataGridGames.SelectedItems.Count > 0;
 			BtnDelete.IsEnabled = enabled;
 			BtnDetails.IsEnabled = enabled;
+			BtnImportOpponentDeck.IsEnabled = enabled;
 			BtnNote.IsEnabled = enabled;
 			BtnMoveToOtherDeck.IsEnabled = enabled;
 		}
@@ -468,9 +470,10 @@ namespace Hearthstone_Deck_Tracker
 				}
 			}
 
-			var heroPlayed = heroes.OrderByDescending(x => x.Value).First().Key;
+			
+			var heroPlayed = heroes.Any() ? heroes.OrderByDescending(x => x.Value).First().Key : "Any";
 
-			var possibleTargets = Helper.MainWindow.DeckList.DecksList.Where(d => d.Class == heroPlayed);
+			var possibleTargets = Helper.MainWindow.DeckList.DecksList.Where(d => d.Class == heroPlayed || heroPlayed == "Any");
 
 			var dialog = new MoveGameDialog(possibleTargets);
 			if(Config.Instance.StatsInWindow)
@@ -724,15 +727,15 @@ namespace Hearthstone_Deck_Tracker
 
 			private string GetWinLoss(string hsClass = null)
 			{
-				var wins = _stats.Count(s => s.Result.ToString() == "Win" && (hsClass == null || s.OpponentHero == hsClass));
-				var losses = _stats.Count(s => s.Result.ToString() == "Loss" && (hsClass == null || s.OpponentHero == hsClass));
+				var wins = _stats.Count(s => s.Result == GameResult.Win && (hsClass == null || s.OpponentHero == hsClass));
+				var losses = _stats.Count(s => s.Result == GameResult.Loss && (hsClass == null || s.OpponentHero == hsClass));
 				return wins + " - " + losses;
 			}
 
 			private string GetPercent(string hsClass = null)
 			{
-				var wins = _stats.Count(s => s.Result.ToString() == "Win" && (hsClass == null || s.OpponentHero == hsClass));
-				var total = _stats.Count(s => (hsClass == null || s.OpponentHero == hsClass));
+				var wins = _stats.Count(s => s.Result == GameResult.Win && (hsClass == null || s.OpponentHero == hsClass));
+				var total = _stats.Count(s => s.Result != GameResult.None && (hsClass == null || s.OpponentHero == hsClass));
 				return total > 0 ? Math.Round(100.0 * wins / total, 1) + "%" : "-";
 			}
 
@@ -806,6 +809,56 @@ namespace Hearthstone_Deck_Tracker
 		private void TabItemOverall_OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
 		{
 			StackPanelUnassignedFilter.Visibility = Visibility.Visible;
+		}
+
+		private void BtnOverallImportOpponentDeck_Click(object sender, RoutedEventArgs e)
+		{
+			var game = DataGridOverallGames.SelectedItem as GameStats;
+			if(game != null)
+				ImportOpponentDeck(game);
+		}
+
+		private void BtnImportOpponentDeck_Click(object sender, RoutedEventArgs e)
+		{
+			var game = DataGridGames.SelectedItem as GameStats;
+			if(game != null)
+				ImportOpponentDeck(game);
+		}
+
+		private void ImportOpponentDeck(GameStats stats)
+		{
+			var ignoreCards = new List<Card>();
+			var deck = new Deck { Class = stats.OpponentHero };
+			foreach(var turn in stats.TurnStats)
+			{
+				foreach(var play in turn.Plays)
+				{
+					if(play.Type == PlayType.OpponentPlay || play.Type == PlayType.OpponentDeckDiscard || play.Type == PlayType.OpponentHandDiscard || play.Type == PlayType.OpponentSecretTriggered)
+					{
+						var card = Game.GetCardFromId(play.CardId);
+						if(Game.IsActualCard(card))
+						{
+							if(ignoreCards.Contains(card))
+							{
+								ignoreCards.Remove(card);
+								continue;
+							}
+							var deckCard = deck.Cards.FirstOrDefault(c => c.Id == card.Id);
+							if(deckCard != null)
+								deckCard.Count++;
+							else deck.Cards.Add(card);
+						}
+					}
+					else if(play.Type == PlayType.OpponentBackToHand)
+					{
+						var card = Game.GetCardFromId(play.CardId);
+						if(Game.IsActualCard(card))
+							ignoreCards.Add(card);
+					}
+				}
+			}
+			Helper.MainWindow.SetNewDeck(deck);
+			Helper.MainWindow.FlyoutDeckStats.IsOpen = false;
 		}
 	}
 }

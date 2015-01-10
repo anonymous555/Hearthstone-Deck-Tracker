@@ -512,6 +512,7 @@ namespace Hearthstone_Deck_Tracker
 			Options.CheckboxHideOverlayInSpectator.IsChecked = Config.Instance.HideOverlayInSpectator;
 			Options.TextboxExportDelay.Text = Config.Instance.ExportStartDelay.ToString();
 			Options.CheckboxDiscardZeroTurnGame.IsChecked = Config.Instance.DiscardZeroTurnGame;
+            Options.CheckboxSaveHSLogIntoReplayFile.IsChecked = Config.Instance.SaveHSLogIntoReplay;
 			Options.CheckboxNoteDialogDelayed.IsChecked = Config.Instance.NoteDialogDelayed;
 			Options.CheckboxNoteDialogDelayed.IsEnabled = Config.Instance.ShowNoteDialogAfterGame;
 			Options.CheckboxStartWithWindows.IsChecked = Config.Instance.StartWithWindows;
@@ -519,6 +520,7 @@ namespace Hearthstone_Deck_Tracker
 			Options.ComboBoxLogLevel.SelectedValue = Config.Instance.LogLevel.ToString();
 			Options.CheckBoxForceExtraFeatures.IsChecked = Config.Instance.ForceMouseHook;
 			Options.CheckBoxForceExtraFeatures.IsEnabled = Config.Instance.ExtraFeatures;
+			Options.CheckboxAutoGrayoutSecrets.IsChecked = Config.Instance.AutoGrayoutSecrets;
 			Options.SliderOverlayOpacity.Value = Config.Instance.OverlayOpacity;
 			Options.SliderOpponentOpacity.Value = Config.Instance.OpponentOpacity;
 			Options.SliderPlayerOpacity.Value = Config.Instance.PlayerOpacity;

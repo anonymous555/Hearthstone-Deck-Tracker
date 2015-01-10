@@ -249,22 +249,29 @@ namespace Hearthstone_Deck_Tracker
 			}
 		}
 
-		private void Analyze(string log)
-		{
-			var logLines = log.Split('\n');
+		private void Analyze(string log) {
+		    var logLines = log.Split(new[] {'\n', '\r'}, StringSplitOptions.RemoveEmptyEntries);
 			foreach(var logLine in logLines)
 			{
 				_currentOffset += logLine.Length + 1;
+
+			    if (logLine.StartsWith("["))
+			        Game.AddHSLogLine(logLine);
+
 				#region [Power]
 				if(logLine.StartsWith("[Power]"))
 				{
 					if(logLine.Contains("CREATE_GAME"))
 					{
 						_gameHandler.HandleGameStart();
+						_gameEnded = false;
+						_addToTurn = -1;
 					}
 					else if(_gameEntityRegex.IsMatch(logLine))
 					{
 						_gameHandler.HandleGameStart();
+						_gameEnded = false;
+						_addToTurn = -1;
 						var match = _gameEntityRegex.Match(logLine);
 						var id = int.Parse(match.Groups["id"].Value);
 						if(!Game.Entities.ContainsKey(id))
@@ -411,10 +418,18 @@ namespace Hearthstone_Deck_Tracker
 				#region [Asset]
 				else if(logLine.StartsWith("[Asset]"))
 				{
-					if(logLine.ToLower().Contains("victory_screen_start") && Game.CurrentGameStats != null && Game.CurrentGameStats.Result == GameResult.None)
-                        _gameHandler.HandleWin(true);
-					else if(logLine.ToLower().Contains("defeat_screen_start") && Game.CurrentGameStats != null && Game.CurrentGameStats.Result == GameResult.None)
+					if(logLine.ToLower().Contains("victory_screen_start") && Game.CurrentGameStats != null && !_gameEnded)
+					{
+						_gameHandler.HandleGameEnd();
+						_gameHandler.HandleWin(true);
+						_gameEnded = true;
+					}
+					else if(logLine.ToLower().Contains("defeat_screen_start") && Game.CurrentGameStats != null && !_gameEnded)
+					{
+						_gameHandler.HandleGameEnd();
 						_gameHandler.HandleLoss(true);
+						_gameEnded = true;
+					}
 					else if(logLine.Contains("rank"))
 					{
 						_gameHandler.SetGameMode(GameMode.Ranked);
@@ -508,8 +523,8 @@ namespace Hearthstone_Deck_Tracker
 							continue;
 						}
 
-						if((from.Contains("PLAY") || from.Contains("HAND") || from.Contains("SECRET") || to.Contains("PLAY")) && logLine.Contains("->") && !string.IsNullOrEmpty(id))
-							Game.LastZoneChangedCardId = id;
+						//if((from.Contains("PLAY") || from.Contains("HAND") || from.Contains("SECRET") || to.Contains("PLAY")) && logLine.Contains("->") && !string.IsNullOrEmpty(id))
+						//	Game.LastZoneChangedCardId = id;
 
 					}
 				}
@@ -540,10 +555,14 @@ namespace Hearthstone_Deck_Tracker
 
 		private void TagChange(string rawTag, int id, string rawValue, bool isRecursive = false)
 		{
-			if(_lastId != id && _proposedKeyPoint != null)
+			if(_lastId != id)
 			{
-				ReplayMaker.Generate(_proposedKeyPoint.Type, _proposedKeyPoint.Id, _proposedKeyPoint.Player);
-				_proposedKeyPoint = null;
+				Game.SecondToLastUsedId = _lastId;
+				if(_proposedKeyPoint != null)
+				{
+					ReplayMaker.Generate(_proposedKeyPoint.Type, _proposedKeyPoint.Id, _proposedKeyPoint.Player);
+					_proposedKeyPoint = null;
+				}
 			}
 			_lastId = id;
 			if(!Game.Entities.ContainsKey(id))
@@ -870,6 +889,16 @@ namespace Hearthstone_Deck_Tracker
 					else if(controller == Game.OpponentId)
 						ProposeKeyPoint(KeyPointType.HeroPower, id, ActivePlayer.Opponent);
 				}
+			}
+			else if(tag == GAME_TAG.CONTROLLER && Game.Entities[id].IsInZone(TAG_ZONE.SECRET))
+			{
+				if(value == Game.PlayerId)
+				{
+					_gameHandler.HandleOpponentSecretTrigger(cardId, GetTurnNumber(), id);
+					ProposeKeyPoint(KeyPointType.SecretStolen, id, ActivePlayer.Player);
+				}
+				else if(value == Game.OpponentId)
+					ProposeKeyPoint(KeyPointType.SecretStolen, id, ActivePlayer.Player);
 			}
 			if(_waitForController != null)
 			{
