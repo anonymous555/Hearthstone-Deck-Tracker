@@ -100,7 +100,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <Menu Grid.Row="0" Grid.ColumnSpan="5">
+            <Menu Grid.Row="0" Grid.ColumnSpan="5" d:IsHidden="True">
                 <MenuItem Header="_DECKS">
                     <MenuItem.Icon>
                         <Rectangle Width="16" Height="16">
@@ -261,8 +261,8 @@
                     <MenuItem Header="LOAD _FiLE" Click="MenuItemReplayFromFile_OnClick"/>
                 </MenuItem>
             </Menu>
-            <Separator Grid.Row="0" Grid.ColumnSpan="5" Margin="0,29,0,0" Panel.ZIndex="2" />
-            <Grid Grid.Column="2" Grid.Row="1" Margin="-1,0,0,0" Width="255">
+            <Separator Grid.Row="0" Grid.ColumnSpan="5" Margin="0,29,0,0" Panel.ZIndex="2" d:IsHidden="True" />
+            <Grid Grid.Column="2" Grid.Row="1" Margin="-1,0,0,0" Width="255" d:IsHidden="True">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
@@ -323,7 +323,7 @@
                 <local:ManaCurve x:Name="ManaCurveMyDecks" Grid.Row="2" Height="150" Margin="0,0,0,6" />
             </Grid>
 <!--            <StackPanel Margin="5" Grid.Column="1" Grid.Row="1"> -->
-            <Grid Grid.Column="1" Grid.Row="1">
+            <Grid Grid.Column="1" Grid.Row="1" d:IsHidden="True">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="*" />
@@ -413,14 +413,14 @@
 				Grid.Row="1"
 				Height="auto" Width="auto"
 				Background="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}"
-				OnSelectedDeckChanged="DeckPickerList_OnSelectedDeckChanged" />
+				OnSelectedDeckChanged="DeckPickerList_OnSelectedDeckChanged" d:IsHidden="True" />
             <Rectangle x:Name="DeckPickerListCover" HorizontalAlignment="Stretch" Margin="6,6,0,6" Grid.Column="0"
 				Grid.Row="1" Panel.ZIndex="1"
-				Height="auto" Width="auto" Fill="#7F000000" Visibility="Hidden" />
+				Height="auto" Width="auto" Fill="#7F000000" Visibility="Hidden" d:IsHidden="True" />
 
 
 
-            <Menu Name="MenuNewDeck" Grid.Column="2" Grid.Row="0" Visibility="Collapsed">
+            <Menu Name="MenuNewDeck" Grid.Column="3" Grid.Row="0" Visibility="Collapsed">
                 <MenuItem Header="SAVE" Name="MenuItemSave" SubmenuOpened="MenuItem_OnSubmenuOpened">
                     <MenuItem.Icon>
                         <Rectangle Width="16" Height="16">
@@ -484,7 +484,7 @@
                     </MenuItem>
                 </MenuItem>
             </Menu>
-           <Grid Grid.Column="4" Grid.Row="1" x:Name="GridNewDeck" Visibility="Collapsed" Width="246">
+           <Grid Grid.Column="3" Grid.Row="1" x:Name="GridNewDeck" Visibility="Collapsed" >
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="5*" />
                     <ColumnDefinition Width="5*" />
@@ -494,7 +494,7 @@
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,6,0,0" Grid.Row="0"
-                            Width="235" Grid.ColumnSpan="2">
+                             Grid.ColumnSpan="2">
                     <TextBox controls:TextBoxHelper.Watermark="Deckname" x:Name="TextBoxDeckName" Width="107"
                              VerticalContentAlignment="Center" HorizontalAlignment="Left" Height="26"
                              TextWrapping="NoWrap" Text="" VerticalAlignment="Top"
