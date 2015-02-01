@@ -1,12 +1,14 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Xml.Serialization;
 using Hearthstone_Deck_Tracker.Enums;
+
+#endregion
 
 namespace Hearthstone_Deck_Tracker.Stats
 {
@@ -37,7 +39,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 			{
 				_instance = XmlManager<DeckStatsList>.Load(file);
 			}
-			catch (Exception)
+			catch(Exception)
 			{
 				//failed loading deckstats 
 				var corruptedFile = Helper.GetValidFilePath(Config.Instance.DataDir, "DeckStats_corrupted", "xml");
@@ -45,16 +47,15 @@ namespace Hearthstone_Deck_Tracker.Stats
 				{
 					File.Move(file, corruptedFile);
 				}
-				catch (Exception)
+				catch(Exception)
 				{
-					throw new Exception("Can not load or move DeckStats.xml file. Please manually delete the file in \"%appdata\\HearthstoneDeckTracker\".");
+					throw new Exception(
+						"Can not load or move DeckStats.xml file. Please manually delete the file in \"%appdata\\HearthstoneDeckTracker\".");
 				}
 
 				//get latest backup file
 				var backup =
-					new DirectoryInfo(Config.Instance.DataDir).GetFiles("DeckStats_backup*")
-															  .OrderByDescending(x => x.CreationTime)
-															  .FirstOrDefault();
+					new DirectoryInfo(Config.Instance.DataDir).GetFiles("DeckStats_backup*").OrderByDescending(x => x.CreationTime).FirstOrDefault();
 				if(backup != null)
 				{
 					try
@@ -62,9 +63,10 @@ namespace Hearthstone_Deck_Tracker.Stats
 						File.Copy(backup.FullName, file);
 						_instance = XmlManager<DeckStatsList>.Load(file);
 					}
-					catch (Exception)
+					catch(Exception)
 					{
-						throw new Exception("Error restoring DeckStats backup. Please manually rename \"DeckStats_backup.xml\" to \"DeckStats.xml\" in \"%appdata\\HearthstoneDeckTracker\".");
+						throw new Exception(
+							"Error restoring DeckStats backup. Please manually rename \"DeckStats_backup.xml\" to \"DeckStats.xml\" in \"%appdata\\HearthstoneDeckTracker\".");
 					}
 				}
 				else

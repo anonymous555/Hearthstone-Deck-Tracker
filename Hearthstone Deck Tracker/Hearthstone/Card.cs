@@ -1,6 +1,7 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -8,6 +9,8 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml.Serialization;
+
+#endregion
 
 namespace Hearthstone_Deck_Tracker.Hearthstone
 {
@@ -26,10 +29,14 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		[XmlIgnore]
 		public string Rarity;
 
+		private ImageBrush _cachedBackground;
+
 		private int _count;
 		private int _inHandCount;
 		private bool _isStolen;
 		private bool _justDrawn;
+		private int _lastCount;
+		private bool _loaded;
 		private string _localizedName;
 		private string _name;
 		private string _text;
@@ -40,8 +47,9 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			Count = 1;
 		}
 
-		public Card(string id, string playerClass, string rarity, string type, string name, int cost, string localizedName,
-					int inHandCount, int count, string text, int attack, int health, string race, string[] mechanics, int? durability, string artist)
+		public Card(string id, string playerClass, string rarity, string type, string name, int cost, string localizedName, int inHandCount,
+		            int count, string text, int attack, int health, string race, string[] mechanics, int? durability, string artist,
+		            string set)
 		{
 			Id = id;
 			PlayerClass = playerClass;
@@ -58,8 +66,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			Race = race;
 			Durability = durability;
 			Mechanics = mechanics;
-
 			Artist = artist;
+			Set = set;
 		}
 
 		public int Count
@@ -85,14 +93,13 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			set
 			{
 				_text = value != null
-							? value.Replace("<b>", "")
-								   .Replace("</b>", "")
-								   .Replace("<i>", "")
-								   .Replace("</i>", "")
-								   .Replace("$", "")
-								   .Replace("#", "")
-								   .Replace("\\n", "\n")
-							: null;
+					        ? value.Replace("<b>", "")
+					               .Replace("</b>", "")
+					               .Replace("<i>", "")
+					               .Replace("</i>", "")
+					               .Replace("$", "")
+					               .Replace("#", "")
+					               .Replace("\\n", "\n") : null;
 			}
 		}
 
@@ -225,14 +232,13 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 					color = Colors.Orange;
 				else if(InHandCount > 0 && Game.HighlightCardsInHand || IsStolen)
 					color = Colors.GreenYellow;
-				else if(Count == 0)
+				else if(Count <= 0)
 					color = Colors.Gray;
 				else if(WasDiscarded && Game.HighlightDiscarded)
 					color = Colors.IndianRed;
 				else
 					color = Colors.White;
-				return
-					new SolidColorBrush(color);
+				return new SolidColorBrush(color);
 			}
 		}
 
@@ -242,24 +248,20 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			get { return new SolidColorBrush(Colors.White); }
 		}
 
-		private int _lastCount;
-		private ImageBrush _cachedBackground;
 		public ImageBrush Background
 		{
 			get
 			{
 				if(_cachedBackground != null && Count == _lastCount)
-				{
 					return _cachedBackground;
-				}
 				_lastCount = Count;
+
 				if(Id == null || Name == null)
 					return new ImageBrush();
 				try
 				{
-					var cardFileName =
-						Name.ToLowerInvariant().Replace(' ', '-').Replace(":", "").Replace("'", "-").Replace(".", "").Replace("!", "") +
-						".png";
+					var cardFileName = Name.ToLowerInvariant().Replace(' ', '-').Replace(":", "").Replace("'", "-").Replace(".", "").Replace("!", "")
+					                   + ".png";
 
 
 					//card graphic
@@ -267,44 +269,38 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
 					if(File.Exists("Images/" + cardFileName))
 					{
-						drawingGroup.Children.Add(
-							new ImageDrawing(new BitmapImage(new Uri("Images/" + cardFileName, UriKind.Relative)),
-											 new Rect(104, 1, 110, 34)));
+						drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/" + cardFileName, UriKind.Relative)),
+						                                           new Rect(104, 1, 110, 34)));
 					}
 
 					//frame
-					drawingGroup.Children.Add(
-						new ImageDrawing(new BitmapImage(new Uri("Images/frame.png", UriKind.Relative)),
-										 new Rect(0, 0, 218, 35)));
+					drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/frame.png", UriKind.Relative)), new Rect(0, 0, 218, 35)));
 
 					//extra info?
-					if(Count >= 2 || Rarity == "Legendary")
+					if(Math.Abs(Count) > 1 || Rarity == "Legendary")
 					{
 						drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/frame_countbox.png", UriKind.Relative)),
-																   new Rect(189, 6, 25, 24)));
+						                                           new Rect(189, 6, 25, 24)));
 
-						if(Count >= 2 && Count <= 9)
+						if(Math.Abs(Count) > 1 && Math.Abs(Count) <= 9)
 						{
-							drawingGroup.Children.Add(new ImageDrawing(
-														  new BitmapImage(new Uri("Images/frame_" + Count + ".png", UriKind.Relative)),
-														  new Rect(194, 8, 18, 21)));
+							drawingGroup.Children.Add(
+							                          new ImageDrawing(
+								                          new BitmapImage(new Uri("Images/frame_" + Math.Abs(Count) + ".png", UriKind.Relative)),
+								                          new Rect(194, 8, 18, 21)));
 						}
 						else
 						{
 							drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/frame_legendary.png", UriKind.Relative)),
-																	   new Rect(194, 8, 18, 21)));
+							                                           new Rect(194, 8, 18, 21)));
 						}
 					}
 
 					//dark overlay
-					if(Count == 0)
-					{
-						drawingGroup.Children.Add(
-							new ImageDrawing(new BitmapImage(new Uri("Images/dark.png", UriKind.Relative)),
-											 new Rect(0, 0, 218, 35)));
-					}
+					if(Count <= 0)
+						drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/dark.png", UriKind.Relative)), new Rect(0, 0, 218, 35)));
 
-					var brush = new ImageBrush { ImageSource = new DrawingImage(drawingGroup) };
+					var brush = new ImageBrush {ImageSource = new DrawingImage(drawingGroup)};
 					_cachedBackground = brush;
 					return brush;
 				}
@@ -352,8 +348,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
 		public object Clone()
 		{
-			var newcard = new Card(Id, PlayerClass, Rarity, Type, Name, Cost, LocalizedName, InHandCount, Count, Text, Attack, Health,
-								   Race, Mechanics, Durability, Artist);
+			var newcard = new Card(Id, PlayerClass, Rarity, Type, Name, Cost, LocalizedName, InHandCount, Count, Text, Attack, Health, Race,
+			                       Mechanics, Durability, Artist, Set);
 			return newcard;
 		}
 
@@ -377,7 +373,6 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			return Name.GetHashCode();
 		}
 
-		private bool _loaded;
 		public void Load()
 		{
 			if(_loaded)
@@ -398,6 +393,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			Durability = stats.Durability;
 			Mechanics = stats.Mechanics;
 			Artist = stats.Artist;
+			Set = stats.Set;
 			_wasDiscarded = false;
 			_loaded = true;
 			OnPropertyChanged();

@@ -1,5 +1,9 @@
-﻿using System.Windows.Controls;
+﻿#region
+
+using System.Windows.Controls;
 using Hearthstone_Deck_Tracker.Hearthstone;
+
+#endregion
 
 namespace Hearthstone_Deck_Tracker
 {
@@ -36,7 +40,7 @@ namespace Hearthstone_Deck_Tracker
 				return hsClass.GetName;
 			var deck = DataContext as Deck;
 			if(deck != null)
-				return deck.Name;
+				return deck.NameAndVersion;
 			return string.Empty;
 		}
 	}

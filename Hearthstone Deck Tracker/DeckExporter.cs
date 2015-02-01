@@ -16,7 +16,8 @@ namespace Hearthstone_Deck_Tracker
 	{
 		public static async Task Export(Deck deck)
 		{
-			if(deck == null) return;
+			if(deck == null)
+				return;
 			try
 			{
 				Logger.WriteLine(string.Format("Exporting " + deck.GetDeckInfo(), "DeckExporter"));
@@ -71,9 +72,23 @@ namespace Hearthstone_Deck_Tracker
 				await ClickAllCrystal(ratio, hsRect.Width, hsRect.Height, hsHandle);
 
 				Logger.WriteLine("Creating deck...", "DeckExporter");
+				deck.MissingCards.Clear();
 				foreach(var card in deck.Cards)
-					await AddCardToDeck(card, searchBoxPos, cardPosX, card2PosX, cardPosY, hsRect.Height, hsHandle);
+				{
+					var missingCardsCount =
+						await AddCardToDeck(card, searchBoxPos, cardPosX, card2PosX, cardPosY, hsRect.Height, hsRect.Width, hsHandle);
+					if(missingCardsCount < 0)
+						return;
+					if(missingCardsCount > 0)
+					{
+						var missingCard = (Card)card.Clone();
+						missingCard.Count = missingCardsCount;
+						deck.MissingCards.Add(missingCard);
+					}
+				}
 
+				if(deck.MissingCards.Any())
+					Helper.MainWindow.WriteDecks();
 
 				// Clear search field now all cards have been entered
 
@@ -87,7 +102,6 @@ namespace Hearthstone_Deck_Tracker
 				}
 				catch
 				{
-
 				}
 				Logger.WriteLine("Done creating deck.", "DeckExporter");
 			}
@@ -100,19 +114,22 @@ namespace Hearthstone_Deck_Tracker
 				Helper.MainWindow.Overlay.ForceHidden = false;
 				Helper.MainWindow.Overlay.UpdatePosition();
 			}
-
 		}
 
 		private static async Task ClickAllCrystal(double ratio, int width, int height, IntPtr hsHandle)
 		{
 			Logger.WriteLine("Clicking \"all\" crystal...", "DeckExporter");
-			await ClickOnPoint(hsHandle, new Point((int)GetXPos(Config.Instance.ExportAllButtonX, width, ratio), (int)(Config.Instance.ExportAllButtonY * height)));
+			await
+				ClickOnPoint(hsHandle,
+				             new Point((int)GetXPos(Config.Instance.ExportAllButtonX, width, ratio),
+				                       (int)(Config.Instance.ExportAllButtonY * height)));
 		}
 
 		private static async Task SetDeckName(string name, double ratio, int width, int height, IntPtr hsHandle)
 		{
 			Logger.WriteLine("Setting deck name...", "DeckExporter");
-			var nameDeckPos = new Point((int)GetXPos(Config.Instance.ExportNameDeckX, width, ratio), (int)(Config.Instance.ExportNameDeckY * height));
+			var nameDeckPos = new Point((int)GetXPos(Config.Instance.ExportNameDeckX, width, ratio),
+			                            (int)(Config.Instance.ExportNameDeckY * height));
 			await ClickOnPoint(hsHandle, nameDeckPos);
 			//send enter and second click to make sure the current name gets selected
 			SendKeys.SendWait("{ENTER}");
@@ -129,24 +146,24 @@ namespace Hearthstone_Deck_Tracker
 
 		private static double GetXPos(double left, int width, double ratio)
 		{
-			return (width * ratio * left) + ((width - width * ratio) / 2);
+			return (width * ratio * left) + (width * (1 - ratio) / 2);
 		}
 
-		private static async Task AddCardToDeck(Card card, Point searchBoxPos, double cardPosX, double card2PosX, double cardPosY, int height, IntPtr hsHandle)
+		//returns the number of missing cards
+		private static async Task<int> AddCardToDeck(Card card, Point searchBoxPos, double cardPosX, double card2PosX, double cardPosY,
+		                                             int height, int width, IntPtr hsHandle)
 		{
 			if(!User32.IsHearthstoneInForeground())
 			{
 				Helper.MainWindow.ShowMessage("Exporting aborted", "Hearthstone window lost focus.");
 				Logger.WriteLine("Exporting aborted, window lost focus", "DeckExporter");
-				return;
+				return -1;
 			}
 
 			await ClickOnPoint(hsHandle, searchBoxPos);
 
 			var addArtist = new[] {"zhCN", "zhTW", "ruRU", "koKR"}.All(x => Config.Instance.SelectedLanguage != x);
-			var fixedName = addArtist
-				                ? (card.LocalizedName + " " + card.Artist).ToLowerInvariant()
-				                : card.LocalizedName.ToLowerInvariant();
+			var fixedName = addArtist ? (card.LocalizedName + " " + card.Artist).ToLowerInvariant() : card.LocalizedName.ToLowerInvariant();
 			if(Config.Instance.ExportPasteClipboard)
 			{
 				Clipboard.SetText(fixedName);
@@ -156,28 +173,50 @@ namespace Hearthstone_Deck_Tracker
 				SendKeys.SendWait(fixedName);
 			SendKeys.SendWait("{ENTER}");
 
+			Logger.WriteLine("try to export card: " + card.Name, "DeckExporter", 1);
 			await Task.Delay(Config.Instance.DeckExportDelay * 2);
 
-			if(await CheckForSpecialCases(card, cardPosX, card2PosX, cardPosY, hsHandle))
-				return;
+			if(await CheckForSpecialCases(card, cardPosX + 50, card2PosX + 50, cardPosY + 50, hsHandle))
+				return 0;
 
-			var golden = CheckForGolden(hsHandle, new Point((int)card2PosX, (int)(cardPosY + height * 0.05)));
-			for(var i = 0; i < card.Count; i++)
+			//Check if Card exist in collection
+			if(CardExists(hsHandle, (int)cardPosX, (int)cardPosY))
 			{
-				if(Config.Instance.PrioritizeGolden && golden)
-					await ClickOnPoint(hsHandle, new Point((int)card2PosX, (int)cardPosY));
-				else
-					await ClickOnPoint(hsHandle, new Point((int)cardPosX, (int)cardPosY));
-			}
+				//move mouse over card if card is new  TODO: currently does nothing
+				/*var newCard = new Point((int)cardPosX, (int)cardPosY);
+				User32.ClientToScreen(hsHandle, ref newCard);
+				for(var i = 0; i < 3; i++)
+					Cursor.Position = new Point(newCard.X + i + 50, newCard.Y - i + 50);*/
 
-			if(card.Count == 2 && golden)
-			{
-				//click again to make sure we get 2 cards 
-				if(Config.Instance.PrioritizeGolden)
-					await ClickOnPoint(hsHandle, new Point((int)cardPosX, (int)cardPosY));
+				//Check if a golden exist
+				if(Config.Instance.PrioritizeGolden && CardExists(hsHandle, (int)card2PosX, (int)cardPosY))
+				{
+					await ClickOnPoint(hsHandle, new Point((int)card2PosX + 50, (int)cardPosY + 50));
+
+					if(card.Count == 2)
+					{
+						await ClickOnPoint(hsHandle, new Point((int)card2PosX + 50, (int)cardPosY + 50));
+						await ClickOnPoint(hsHandle, new Point((int)cardPosX + 50, (int)cardPosY + 50));
+					}
+				}
 				else
-					await ClickOnPoint(hsHandle, new Point((int)card2PosX, (int)cardPosY));
+				{
+					await ClickOnPoint(hsHandle, new Point((int)cardPosX + 50, (int)cardPosY + 50));
+
+					if(card.Count == 2)
+					{
+						//Check if two card are not available 
+						await Task.Delay(100);
+						if(CardHasLock(hsHandle, (int)(cardPosX + width * 0.048), (int)(cardPosY + height * 0.287)))
+							return 1;
+
+						await ClickOnPoint(hsHandle, new Point((int)cardPosX + 50, (int)cardPosY + 50));
+					}
+				}
 			}
+			else
+				return card.Count;
+			return 0;
 		}
 
 		private static async Task<bool> CheckForSpecialCases(Card card, double cardPosX, double card2PosX, double cardPosY, IntPtr hsHandle)
@@ -236,37 +275,54 @@ namespace Hearthstone_Deck_Tracker
 			await Task.Delay(Config.Instance.DeckExportDelay);
 		}
 
-		private static bool CheckForGolden(IntPtr wndHandle, Point point)
+		private static bool CardExists(IntPtr wndHandle, int posX, int posY)
 		{
-			const int width = 50, height = 50, targetHue = 43;
-			const float targetSat = 0.38f;
-			var avgHue = 0.0f;
-			var avgSat = 0.0f;
-			var capture = Helper.CaptureHearthstone(point, width, height, wndHandle);
+			const int width = 40;
+			const int height = 40;
+			const double minHue = 90;
 
+			var capture = Helper.CaptureHearthstone(new Point(posX, posY), width, height, wndHandle);
 			if(capture == null)
 				return false;
 
+			return GetAverageHueAndBrightness(capture).Hue > minHue;
+		}
+
+		private static bool CardHasLock(IntPtr wndHandle, int posX, int posY)
+		{
+			const int width = 55;
+			const int height = 30;
+			const double maxBrightness = 5 / 11;
+
+			var capture = Helper.CaptureHearthstone(new Point(posX, posY), width, height, wndHandle);
+			if(capture == null)
+				return false;
+
+			return GetAverageHueAndBrightness(capture).Brightness < maxBrightness;
+		}
+
+		private static HueAndBrightness GetAverageHueAndBrightness(Bitmap bmp, double saturationThreshold = 0.05)
+		{
+			var totalHue = 0.0f;
+			var totalBrightness = 0.0f;
 			var validPixels = 0;
-			for(var i = 0; i < width; i++)
+			for(var i = 0; i < bmp.Width; i++)
 			{
-				for(var j = 0; j < height; j++)
+				for(var j = 0; j < bmp.Height; j++)
 				{
-					var pixel = capture.GetPixel(i, j);
+					var pixel = bmp.GetPixel(i, j);
 
 					//ignore sparkle
-					if(pixel.GetSaturation() > 0.05)
+					if(pixel.GetSaturation() > saturationThreshold)
 					{
-						avgHue += pixel.GetHue();
-						avgSat += pixel.GetSaturation();
+						totalHue += pixel.GetHue();
+						totalBrightness += pixel.GetBrightness();
 						validPixels++;
 					}
 				}
 			}
-			avgHue /= validPixels;
-			avgSat /= validPixels;
 
-			return avgHue <= targetHue && avgSat <= targetSat;
+			return new HueAndBrightness(totalHue / validPixels, totalBrightness / validPixels);
 		}
 
 		private static async Task ClearDeck(int width, int height, IntPtr handle, double ratio)
@@ -277,8 +333,7 @@ namespace Hearthstone_Deck_Tracker
 			{
 				await
 					ClickOnPoint(handle,
-					             new Point((int)GetXPos(Config.Instance.ExportClearX, width, ratio),
-					                       (int)(Config.Instance.ExportClearY * height)));
+					             new Point((int)GetXPos(Config.Instance.ExportClearX, width, ratio), (int)(Config.Instance.ExportClearY * height)));
 				if(count++ > 35)
 					break;
 			}
@@ -286,16 +341,28 @@ namespace Hearthstone_Deck_Tracker
 
 		private static bool CheckForCardsInDeck(IntPtr wndHandle, int width, int height, double ratio)
 		{
-
-			var capture = Helper.CaptureHearthstone(new Point((int)GetXPos(Config.Instance.ExportClearX, width, ratio), (int)(Config.Instance.ExportClearCheckYFixed*height)), 1,
-			                                        1, wndHandle);
-			return ColorDistance(capture.GetPixel(0, 0), Color.FromArgb(255,56,45,69), 5);
+			var capture =
+				Helper.CaptureHearthstone(
+				                          new Point((int)GetXPos(Config.Instance.ExportClearX, width, ratio),
+				                                    (int)(Config.Instance.ExportClearCheckYFixed * height)), 1, 1, wndHandle);
+			return ColorDistance(capture.GetPixel(0, 0), Color.FromArgb(255, 56, 45, 69), 5);
 		}
 
 		private static bool ColorDistance(Color color, Color target, double distance)
 		{
-			return Math.Abs(color.R - target.R) < distance && Math.Abs(color.G - target.G) < distance &&
-			       Math.Abs(color.B - target.B) < distance;
+			return Math.Abs(color.R - target.R) < distance && Math.Abs(color.G - target.G) < distance && Math.Abs(color.B - target.B) < distance;
+		}
+
+		private class HueAndBrightness
+		{
+			public HueAndBrightness(double hue, double brightness)
+			{
+				Hue = hue;
+				Brightness = brightness;
+			}
+
+			public double Hue { get; private set; }
+			public double Brightness { get; private set; }
 		}
 	}
 }

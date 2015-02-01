@@ -1,18 +1,23 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Windows.Forms;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using System.Xml.Serialization;
 using Hearthstone_Deck_Tracker.Enums;
-using Hearthstone_Deck_Tracker.Hearthstone;
+
+#endregion
 
 namespace Hearthstone_Deck_Tracker.Stats
 {
 	public class GameStats
 	{
-		private readonly string[] _hsClasses = new[] {"Druid", "Hunter", "Mage", "Priest", "Paladin", "Shaman", "Rogue", "Warlock", "Warrior"};
+		private readonly string[] _hsClasses = {"Druid", "Hunter", "Mage", "Priest", "Paladin", "Shaman", "Rogue", "Warlock", "Warrior"};
+
 		public Guid GameId;
 		private List<TurnStats> _turnStats;
 
@@ -57,13 +62,37 @@ namespace Hearthstone_Deck_Tracker.Stats
 		public string OpponentName { get; set; }
 		public bool VerifiedHeroes { get; set; }
 		public string ReplayFile { get; set; }
+		public bool WasConceded { get; set; }
+
+		[XmlIgnore]
+		public string ResultString
+		{
+			get { return Result + (WasConceded ? "*" : ""); }
+		}
+
+		public SerializableVersion PlayerDeckVersion { get; set; }
+
+		[XmlIgnore]
+		public string PlayerDeckVersionString
+		{
+			get
+			{
+				return PlayerDeckVersion != null ? PlayerDeckVersion.ToString("v{M}.{m}") : SerializableVersion.Default.ToString("v{M}.{m}");
+			}
+		}
+
+		[XmlIgnore]
+		public ToolTip ResultToolTip
+		{
+			get { return new ToolTip {Content = "conceded", Visibility = (WasConceded ? Visibility.Visible : Visibility.Hidden)}; }
+		}
 
 		[XmlIgnore]
 		public bool HasReplayFile
 		{
 			get { return ReplayFile != null && File.Exists(Path.Combine(Config.Instance.ReplayDir, ReplayFile)); }
 		}
-		
+
 		[XmlIgnore]
 		public BitmapImage OpponentHeroImage
 		{
@@ -75,7 +104,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 				return new BitmapImage(uri);
 			}
 		}
-		 
+
 		[XmlIgnore]
 		public BitmapImage PlayerHeroImage
 		{
@@ -118,7 +147,21 @@ namespace Hearthstone_Deck_Tracker.Stats
 
 		public GameStats CloneWithNewId()
 		{
-			var newGame = new GameStats(Result, OpponentHero, PlayerHero) {StartTime = StartTime, EndTime = EndTime, Coin = Coin, GameMode = GameMode, Turns = Turns, _turnStats = LoadTurnStats(), IsClone = true};
+			var newGame = new GameStats(Result, OpponentHero, PlayerHero)
+			{
+				StartTime = StartTime,
+				EndTime = EndTime,
+				Coin = Coin,
+				GameMode = GameMode,
+				Turns = Turns,
+				_turnStats = LoadTurnStats(),
+				PlayerName = PlayerName,
+				OpponentName = OpponentName,
+				ReplayFile = ReplayFile,
+				WasConceded = WasConceded,
+				VerifiedHeroes = VerifiedHeroes,
+				IsClone = true
+			};
 			newGame.Save();
 			return newGame;
 		}
@@ -130,9 +173,12 @@ namespace Hearthstone_Deck_Tracker.Stats
 
 		public override bool Equals(object obj)
 		{
-			if(ReferenceEquals(null, obj)) return false;
-			if(ReferenceEquals(this, obj)) return true;
-			if(obj.GetType() != GetType()) return false;
+			if(ReferenceEquals(null, obj))
+				return false;
+			if(ReferenceEquals(this, obj))
+				return true;
+			if(obj.GetType() != GetType())
+				return false;
 			return Equals((GameStats)obj);
 		}
 
@@ -142,53 +188,56 @@ namespace Hearthstone_Deck_Tracker.Stats
 		}
 
 
-        private void ResolveSecrets(IEnumerable<TurnStats> newturnstats)
-        {
-            var unresolvedSecrets = 0;
-            var triggeredSecrets = 0;
-            TurnStats.Play candidateSecret = null;
+		private void ResolveSecrets(IEnumerable<TurnStats> newturnstats)
+		{
+			var unresolvedSecrets = 0;
+			var triggeredSecrets = 0;
+			TurnStats.Play candidateSecret = null;
 
-            foreach (var turn in newturnstats)
-            {
-                foreach (var play in turn.Plays)
-                {
-                    // is secret play
-                    if ((play.Type == PlayType.OpponentHandDiscard && play.CardId == "") ||
-                        play.Type == PlayType.OpponentSecretPlayed)
-                    {
-                        unresolvedSecrets++;
-                        candidateSecret = play;
-                        play.Type = PlayType.OpponentSecretPlayed;
-                    }
-                    else if (play.Type == PlayType.OpponentSecretTriggered)
-                    {
-                        if (unresolvedSecrets == 1 && candidateSecret != null)
-                        {
-                            candidateSecret.CardId = play.CardId;
-                        }
-                        triggeredSecrets++;
-                        if (triggeredSecrets == unresolvedSecrets)
-                        {
-                            triggeredSecrets = 0;
-                            unresolvedSecrets = 0;
+			foreach(var turn in newturnstats)
+			{
+				foreach(var play in turn.Plays)
+				{
+					// is secret play
+					if((play.Type == PlayType.OpponentHandDiscard && play.CardId == "") || play.Type == PlayType.OpponentSecretPlayed)
+					{
+						unresolvedSecrets++;
+						candidateSecret = play;
+						play.Type = PlayType.OpponentSecretPlayed;
+					}
+					else if(play.Type == PlayType.OpponentSecretTriggered)
+					{
+						if(unresolvedSecrets == 1 && candidateSecret != null)
+							candidateSecret.CardId = play.CardId;
+						triggeredSecrets++;
+						if(triggeredSecrets == unresolvedSecrets)
+						{
+							triggeredSecrets = 0;
+							unresolvedSecrets = 0;
+						}
+					}
+				}
+			}
+		}
 
-                        }
-                    }
-                }
-            }
-        }
-
-        private List<TurnStats> LoadTurnStats()
-        {
-            Directory.CreateDirectory(_gamesDir);
-            if (GameId != Guid.Empty && File.Exists(_gameFile))
-            {
-                var newturnstats = XmlManager<List<TurnStats>>.Load(_gameFile);
-                ResolveSecrets(newturnstats);
-                return newturnstats;
-            }
-            return new List<TurnStats>();
-        }
+		private List<TurnStats> LoadTurnStats()
+		{
+			Directory.CreateDirectory(_gamesDir);
+			if(GameId != Guid.Empty && File.Exists(_gameFile))
+			{
+				try
+				{
+					var newturnstats = XmlManager<List<TurnStats>>.Load(_gameFile);
+					ResolveSecrets(newturnstats);
+					return newturnstats;
+				}
+				catch(Exception e)
+				{
+					Logger.WriteLine("Error loading file: " + _gameFile + "\n" + e);
+				}
+			}
+			return new List<TurnStats>();
+		}
 
 		public void DeleteGameFile()
 		{

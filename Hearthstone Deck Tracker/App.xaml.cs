@@ -1,8 +1,12 @@
-﻿// ReSharper disable RedundantUsingDirective
+﻿#region
+
+// ReSharper disable RedundantUsingDirective
 using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
+
+#endregion
 
 namespace Hearthstone_Deck_Tracker
 {

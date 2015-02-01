@@ -1,4 +1,6 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -12,6 +14,8 @@ using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 using Point = System.Drawing.Point;
 
+#endregion
+
 namespace Hearthstone_Deck_Tracker
 {
 	public partial class MainWindow
@@ -24,19 +28,24 @@ namespace Hearthstone_Deck_Tracker
 				switch(itemName)
 				{
 					case "Deck Title":
-						Options.ElementSorterPlayer.AddItem(new ElementSorterItem("Deck Title", Config.Instance.ShowDeckTitle, value => Config.Instance.ShowDeckTitle = value, true));
+						Options.ElementSorterPlayer.AddItem(new ElementSorterItem("Deck Title", Config.Instance.ShowDeckTitle,
+						                                                          value => Config.Instance.ShowDeckTitle = value, true));
 						break;
 					case "Cards":
-						Options.ElementSorterPlayer.AddItem(new ElementSorterItem("Cards", !Config.Instance.HidePlayerCards, value => Config.Instance.HidePlayerCards = !value, true));
+						Options.ElementSorterPlayer.AddItem(new ElementSorterItem("Cards", !Config.Instance.HidePlayerCards,
+						                                                          value => Config.Instance.HidePlayerCards = !value, true));
 						break;
 					case "Card Counter":
-						Options.ElementSorterPlayer.AddItem(new ElementSorterItem("Card Counter", !Config.Instance.HidePlayerCardCount, value => Config.Instance.HidePlayerCardCount = !value, true));
+						Options.ElementSorterPlayer.AddItem(new ElementSorterItem("Card Counter", !Config.Instance.HidePlayerCardCount,
+						                                                          value => Config.Instance.HidePlayerCardCount = !value, true));
 						break;
 					case "Draw Chances":
-						Options.ElementSorterPlayer.AddItem(new ElementSorterItem("Draw Chances", !Config.Instance.HideDrawChances, value => Config.Instance.HideDrawChances = !value, true));
+						Options.ElementSorterPlayer.AddItem(new ElementSorterItem("Draw Chances", !Config.Instance.HideDrawChances,
+						                                                          value => Config.Instance.HideDrawChances = !value, true));
 						break;
 					case "Wins":
-						Options.ElementSorterPlayer.AddItem(new ElementSorterItem("Wins", Config.Instance.ShowDeckWins, value => Config.Instance.ShowDeckWins = value, true));
+						Options.ElementSorterPlayer.AddItem(new ElementSorterItem("Wins", Config.Instance.ShowDeckWins,
+						                                                          value => Config.Instance.ShowDeckWins = value, true));
 						break;
 				}
 			}
@@ -49,16 +58,20 @@ namespace Hearthstone_Deck_Tracker
 				switch(itemName)
 				{
 					case "Cards":
-						Options.ElementSorterOpponent.AddItem(new ElementSorterItem("Cards", !Config.Instance.HideOpponentCards, value => Config.Instance.HideOpponentCards = !value, false));
+						Options.ElementSorterOpponent.AddItem(new ElementSorterItem("Cards", !Config.Instance.HideOpponentCards,
+						                                                            value => Config.Instance.HideOpponentCards = !value, false));
 						break;
 					case "Card Counter":
-						Options.ElementSorterOpponent.AddItem(new ElementSorterItem("Card Counter", !Config.Instance.HideOpponentCardCount, value => Config.Instance.HideOpponentCardCount = !value, false));
+						Options.ElementSorterOpponent.AddItem(new ElementSorterItem("Card Counter", !Config.Instance.HideOpponentCardCount,
+						                                                            value => Config.Instance.HideOpponentCardCount = !value, false));
 						break;
 					case "Draw Chances":
-						Options.ElementSorterOpponent.AddItem(new ElementSorterItem("Draw Chances", !Config.Instance.HideOpponentDrawChances, value => Config.Instance.HideOpponentDrawChances = !value, false));
+						Options.ElementSorterOpponent.AddItem(new ElementSorterItem("Draw Chances", !Config.Instance.HideOpponentDrawChances,
+						                                                            value => Config.Instance.HideOpponentDrawChances = !value, false));
 						break;
 					case "Win Rate":
-						Options.ElementSorterOpponent.AddItem(new ElementSorterItem("Win Rate", Config.Instance.ShowWinRateAgainst, value => Config.Instance.ShowWinRateAgainst = value, false));
+						Options.ElementSorterOpponent.AddItem(new ElementSorterItem("Win Rate", Config.Instance.ShowWinRateAgainst,
+						                                                            value => Config.Instance.ShowWinRateAgainst = value, false));
 						break;
 				}
 			}
@@ -66,17 +79,61 @@ namespace Hearthstone_Deck_Tracker
 			OpponentWindow.UpdateOpponentLayout();
 		}
 
-		private void SetupDeckStatsFile()
+		public void CopyReplayFiles()
 		{
 			if(Config.Instance.SaveDataInAppData == null)
 				return;
-            var appDataPath = Config.Instance.AppDataPath + @"\DeckStats.xml";
-			var appDataGamesDirPath = Config.Instance.AppDataPath + @"\Games";
-			const string localPath = "DeckStats.xml";
-			const string localGamesDirPath = "Games";
+			var appDataReplayDirPath = Config.Instance.AppDataPath + @"\Replays";
+			var dataReplayDirPath = Config.Instance.DataDirPath + @"\Replays";
 			if(Config.Instance.SaveDataInAppData.Value)
 			{
-				if(File.Exists(localPath))
+				if(Directory.Exists(dataReplayDirPath))
+				{
+					//backup in case the file already exists
+					var time = DateTime.Now.ToFileTime();
+					if(Directory.Exists(appDataReplayDirPath))
+					{
+						Helper.CopyFolder(appDataReplayDirPath, appDataReplayDirPath + time);
+						Directory.Delete(appDataReplayDirPath, true);
+						Logger.WriteLine("Created backups of replays in appdata");
+					}
+
+
+					Helper.CopyFolder(dataReplayDirPath, appDataReplayDirPath);
+					Directory.Delete(dataReplayDirPath, true);
+
+					Logger.WriteLine("Moved Games to appdata");
+				}
+			}
+			else if(Directory.Exists(appDataReplayDirPath)) //Save in DataDir and AppData Replay dir still exists
+			{
+				//backup in case the file already exists
+				var time = DateTime.Now.ToFileTime();
+				if(Directory.Exists(dataReplayDirPath))
+				{
+					Helper.CopyFolder(dataReplayDirPath, dataReplayDirPath + time);
+					Directory.Delete(dataReplayDirPath, true);
+				}
+				Logger.WriteLine("Created backups of replays locally");
+
+
+				Helper.CopyFolder(appDataReplayDirPath, dataReplayDirPath);
+				Directory.Delete(appDataReplayDirPath, true);
+				Logger.WriteLine("Moved Games to appdata");
+			}
+		}
+
+		public void SetupDeckStatsFile()
+		{
+			if(Config.Instance.SaveDataInAppData == null)
+				return;
+			var appDataPath = Config.Instance.AppDataPath + @"\DeckStats.xml";
+			var appDataGamesDirPath = Config.Instance.AppDataPath + @"\Games";
+			var dataDirPath = Config.Instance.DataDirPath + @"\DeckStats.xml";
+			var dataGamesDirPath = Config.Instance.DataDirPath + @"\Games";
+			if(Config.Instance.SaveDataInAppData.Value)
+			{
+				if(File.Exists(dataDirPath))
 				{
 					if(File.Exists(appDataPath))
 					{
@@ -90,45 +147,44 @@ namespace Hearthstone_Deck_Tracker
 						}
 						Logger.WriteLine("Created backups of deckstats and games in appdata");
 					}
-					File.Move(localPath, appDataPath);
+					File.Move(dataDirPath, appDataPath);
 					Logger.WriteLine("Moved DeckStats to appdata");
-					if(Directory.Exists(localGamesDirPath))
+					if(Directory.Exists(dataGamesDirPath))
 					{
-						Helper.CopyFolder(localGamesDirPath, appDataGamesDirPath);
-						Directory.Delete(localGamesDirPath, true);
+						Helper.CopyFolder(dataGamesDirPath, appDataGamesDirPath);
+						Directory.Delete(dataGamesDirPath, true);
 					}
 					Logger.WriteLine("Moved Games to appdata");
 				}
 			}
 			else if(File.Exists(appDataPath))
 			{
-				if(File.Exists(localPath))
+				if(File.Exists(dataDirPath))
 				{
 					//backup in case the file already exists
 					var time = DateTime.Now.ToFileTime();
-					File.Move(localPath, localPath + time);
-					if(Directory.Exists(localGamesDirPath))
+					File.Move(dataDirPath, dataDirPath + time);
+					if(Directory.Exists(dataGamesDirPath))
 					{
-						Helper.CopyFolder(localGamesDirPath, localGamesDirPath + time);
-						Directory.Delete(localGamesDirPath, true);
+						Helper.CopyFolder(dataGamesDirPath, dataGamesDirPath + time);
+						Directory.Delete(dataGamesDirPath, true);
 					}
 					Logger.WriteLine("Created backups of deckstats and games locally");
 				}
-				File.Move(appDataPath, localPath);
+				File.Move(appDataPath, dataDirPath);
 				Logger.WriteLine("Moved DeckStats to local");
 				if(Directory.Exists(appDataGamesDirPath))
 				{
-					Helper.CopyFolder(appDataGamesDirPath, localGamesDirPath);
+					Helper.CopyFolder(appDataGamesDirPath, dataGamesDirPath);
 					Directory.Delete(appDataGamesDirPath, true);
 				}
 				Logger.WriteLine("Moved Games to appdata");
 			}
 
 			var filePath = Config.Instance.DataDir + "DeckStats.xml";
-			//load saved decks
+			//create file if it does not exist
 			if(!File.Exists(filePath))
 			{
-				//avoid overwriting decks file with new releases.
 				using(var sr = new StreamWriter(filePath, false))
 					sr.WriteLine("<DeckStatsList></DeckStatsList>");
 			}
@@ -240,6 +296,24 @@ namespace Hearthstone_Deck_Tracker
 						converted = true;
 					}
 				}
+				if(configVersion <= new Version(0, 7, 6, 0))
+				{
+					if(Config.Instance.ExportCard1X != 0.04)
+					{
+						Config.Instance.Reset("ExportCard1X");
+						converted = true;
+					}
+					if(Config.Instance.ExportCard2X != 0.2)
+					{
+						Config.Instance.Reset("ExportCard2X");
+						converted = true;
+					}
+					if(Config.Instance.ExportCardsY != 0.168)
+					{
+						Config.Instance.Reset("ExportCardsY");
+						converted = true;
+					}
+				}
 			}
 
 			if(converted)
@@ -255,12 +329,10 @@ namespace Hearthstone_Deck_Tracker
 		private bool FindHearthstoneDir()
 		{
 			var found = false;
-			if(string.IsNullOrEmpty(Config.Instance.HearthstoneDirectory) ||
-			   !File.Exists(Config.Instance.HearthstoneDirectory + @"\Hearthstone.exe"))
+			if(string.IsNullOrEmpty(Config.Instance.HearthstoneDirectory)
+			   || !File.Exists(Config.Instance.HearthstoneDirectory + @"\Hearthstone.exe"))
 			{
-				using(
-					var hsDirKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Hearthstone")
-					)
+				using(var hsDirKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Hearthstone"))
 				{
 					if(hsDirKey != null)
 					{
@@ -318,62 +390,59 @@ namespace Hearthstone_Deck_Tracker
 				if(_updatedLogConfig)
 				{
 					MessageBox.Show(
-						e.Message + "\n\n" + e.InnerException +
-						"\n\n Please manually copy the log.config from the Files directory to \"%LocalAppData%/Blizzard/Hearthstone\".",
-						"Error writing log.config");
+					                e.Message + "\n\n" + e.InnerException
+					                + "\n\n Please manually copy the log.config from the Files directory to \"%LocalAppData%/Blizzard/Hearthstone\".",
+					                "Error writing log.config");
 					Application.Current.Shutdown();
 				}
 			}
 			return updated;
 		}
 
-		private void SetupDeckListFile()
+		public void SetupDeckListFile()
 		{
 			if(Config.Instance.SaveDataInAppData == null)
 				return;
 			var appDataPath = Config.Instance.AppDataPath + @"\PlayerDecks.xml";
-			const string localPath = "PlayerDecks.xml";
+			var dataDirPath = Config.Instance.DataDirPath + @"\PlayerDecks.xml";
 			if(Config.Instance.SaveDataInAppData.Value)
 			{
-				if(File.Exists(localPath))
+				if(File.Exists(dataDirPath))
 				{
 					if(File.Exists(appDataPath))
 						//backup in case the file already exists
 						File.Move(appDataPath, appDataPath + DateTime.Now.ToFileTime());
-					File.Move(localPath, appDataPath);
+					File.Move(dataDirPath, appDataPath);
 					Logger.WriteLine("Moved decks to appdata");
 				}
 			}
 			else if(File.Exists(appDataPath))
 			{
-				if(File.Exists(localPath))
+				if(File.Exists(dataDirPath))
 					//backup in case the file already exists
-					File.Move(localPath, localPath + DateTime.Now.ToFileTime());
-				File.Move(appDataPath, localPath);
+					File.Move(dataDirPath, dataDirPath + DateTime.Now.ToFileTime());
+				File.Move(appDataPath, dataDirPath);
 				Logger.WriteLine("Moved decks to local");
 			}
 
-			//load saved decks
-			if(!File.Exists(_decksPath))
+			//create file if it doesn't exist
+			var path = Path.Combine(Config.Instance.DataDir, "PlayerDecks.xml");
+			if(!File.Exists(path))
 			{
-				//avoid overwriting decks file with new releases.
-				using(var sr = new StreamWriter(_decksPath, false))
+				using(var sr = new StreamWriter(path, false))
 					sr.WriteLine("<Decks></Decks>");
 			}
-			else if(!File.Exists(_decksPath + ".old"))
-				//the new playerdecks.xml wont work with versions below 0.2.19, make copy
-				File.Copy(_decksPath, _decksPath + ".old");
 		}
 
-		private void SetupDefaultDeckStatsFile()
+		public void SetupDefaultDeckStatsFile()
 		{
 			if(Config.Instance.SaveDataInAppData == null)
 				return;
 			var appDataPath = Config.Instance.AppDataPath + @"\DefaultDeckStats.xml";
-			const string localPath = "DefaultDeckStats.xml";
+			var dataDirPath = Config.Instance.DataDirPath + @"\DefaultDeckStats.xml";
 			if(Config.Instance.SaveDataInAppData.Value)
 			{
-				if(File.Exists(localPath))
+				if(File.Exists(dataDirPath))
 				{
 					if(File.Exists(appDataPath))
 					{
@@ -382,29 +451,28 @@ namespace Hearthstone_Deck_Tracker
 						File.Move(appDataPath, appDataPath + time);
 						Logger.WriteLine("Created backups of DefaultDeckStats in appdata");
 					}
-					File.Move(localPath, appDataPath);
+					File.Move(dataDirPath, appDataPath);
 					Logger.WriteLine("Moved DefaultDeckStats to appdata");
 				}
 			}
 			else if(File.Exists(appDataPath))
 			{
-				if(File.Exists(localPath))
+				if(File.Exists(dataDirPath))
 				{
 					//backup in case the file already exists
 					var time = DateTime.Now.ToFileTime();
-					File.Move(localPath, localPath + time);
+					File.Move(dataDirPath, dataDirPath + time);
 					Logger.WriteLine("Created backups of DefaultDeckStats locally");
 				}
-				File.Move(appDataPath, localPath);
+				File.Move(appDataPath, dataDirPath);
 				Logger.WriteLine("Moved DefaultDeckStats to local");
 			}
 
 			var filePath = Config.Instance.DataDir + "DefaultDeckStats.xml";
-			//load saved decks
+			//create if it does not exist
 			if(!File.Exists(filePath))
 			{
-				//avoid overwriting file with new releases.
-				using (var sr = new StreamWriter(filePath, false))
+				using(var sr = new StreamWriter(filePath, false))
 					sr.WriteLine("<DefaultDeckStats></DefaultDeckStats>");
 			}
 		}
@@ -416,13 +484,19 @@ namespace Hearthstone_Deck_Tracker
 			if(Config.Instance.TrackerWindowLeft.HasValue)
 				Left = Config.Instance.TrackerWindowLeft.Value;
 
+			if(Config.Instance.WindowHeight < 0)
+				Config.Instance.Reset("WindowHeight");
+			Height = Config.Instance.WindowHeight;
+			if(Config.Instance.WindowWidth < 0)
+				Config.Instance.Reset("WindowWidth");
+			Width = Config.Instance.WindowWidth;
 			var titleBarCorners = new[]
-				{
-					new Point((int)Left + 5, (int)Top + 5),
-					new Point((int)(Left + Width) - 5, (int)Top + 5),
-					new Point((int)Left + 5, (int)(Top + TitlebarHeight) - 5),
-					new Point((int)(Left + Width) - 5, (int)(Top + TitlebarHeight) - 5)
-				};
+			{
+				new Point((int)Left + 5, (int)Top + 5),
+				new Point((int)(Left + Width) - 5, (int)Top + 5),
+				new Point((int)Left + 5, (int)(Top + TitlebarHeight) - 5),
+				new Point((int)(Left + Width) - 5, (int)(Top + TitlebarHeight) - 5)
+			};
 			if(!Screen.AllScreens.Any(s => titleBarCorners.Any(c => s.WorkingArea.Contains(c))))
 			{
 				Top = 100;
@@ -437,18 +511,14 @@ namespace Hearthstone_Deck_Tracker
 			}
 
 			var theme = string.IsNullOrEmpty(Config.Instance.ThemeName)
-							? ThemeManager.DetectAppStyle().Item1
-							: ThemeManager.AppThemes.First(t => t.Name == Config.Instance.ThemeName);
+				            ? ThemeManager.DetectAppStyle().Item1 : ThemeManager.AppThemes.First(t => t.Name == Config.Instance.ThemeName);
 			var accent = string.IsNullOrEmpty(Config.Instance.AccentName)
-							 ? ThemeManager.DetectAppStyle().Item2
-							 : ThemeManager.Accents.First(a => a.Name == Config.Instance.AccentName);
+				             ? ThemeManager.DetectAppStyle().Item2 : ThemeManager.Accents.First(a => a.Name == Config.Instance.AccentName);
 			ThemeManager.ChangeAppStyle(Application.Current, accent, theme);
 			Options.ComboboxTheme.SelectedItem = theme;
 			Options.ComboboxAccent.SelectedItem = accent;
-			
 
-			Height = Config.Instance.WindowHeight;
-			Width = Config.Instance.WindowWidth;
+
 			Game.HighlightCardsInHand = Config.Instance.HighlightCardsInHand;
 			Game.HighlightDiscarded = Config.Instance.HighlightDiscarded;
 			Options.CheckboxHideOverlayInBackground.IsChecked = Config.Instance.HideInBackground;
@@ -512,7 +582,7 @@ namespace Hearthstone_Deck_Tracker
 			Options.CheckboxHideOverlayInSpectator.IsChecked = Config.Instance.HideOverlayInSpectator;
 			Options.TextboxExportDelay.Text = Config.Instance.ExportStartDelay.ToString();
 			Options.CheckboxDiscardZeroTurnGame.IsChecked = Config.Instance.DiscardZeroTurnGame;
-            Options.CheckboxSaveHSLogIntoReplayFile.IsChecked = Config.Instance.SaveHSLogIntoReplay;
+			Options.CheckboxSaveHSLogIntoReplayFile.IsChecked = Config.Instance.SaveHSLogIntoReplay;
 			Options.CheckboxNoteDialogDelayed.IsChecked = Config.Instance.NoteDialogDelayed;
 			Options.CheckboxNoteDialogDelayed.IsEnabled = Config.Instance.ShowNoteDialogAfterGame;
 			Options.CheckboxStartWithWindows.IsChecked = Config.Instance.StartWithWindows;
@@ -521,6 +591,8 @@ namespace Hearthstone_Deck_Tracker
 			Options.CheckBoxForceExtraFeatures.IsChecked = Config.Instance.ForceMouseHook;
 			Options.CheckBoxForceExtraFeatures.IsEnabled = Config.Instance.ExtraFeatures;
 			Options.CheckboxAutoGrayoutSecrets.IsChecked = Config.Instance.AutoGrayoutSecrets;
+			Options.CheckboxImportNetDeck.IsChecked = Config.Instance.NetDeckClipboardCheck ?? false;
+			Options.CheckboxAutoSaveOnImport.IsChecked = Config.Instance.AutoSaveOnImport;
 			Options.SliderOverlayOpacity.Value = Config.Instance.OverlayOpacity;
 			Options.SliderOpponentOpacity.Value = Config.Instance.OpponentOpacity;
 			Options.SliderPlayerOpacity.Value = Config.Instance.PlayerOpacity;
@@ -542,7 +614,7 @@ namespace Hearthstone_Deck_Tracker
 			SortFilterDecksFlyout.SetSelectedTags(Config.Instance.SelectedTags);
 			DeckPickerList.SetSelectedTags(Config.Instance.SelectedTags);
 
-			
+
 			TagControlEdit.LoadTags(DeckList.AllTags.Where(tag => tag != "All" && tag != "None").ToList());
 			DeckPickerList.SetTagOperation(Config.Instance.TagOperation);
 			SortFilterDecksFlyout.OperationSwitch.IsChecked = Config.Instance.TagOperation == TagFilerOperation.And;
@@ -552,8 +624,7 @@ namespace Hearthstone_Deck_Tracker
 			Options.ComboboxWindowBackground.SelectedItem = Config.Instance.SelectedWindowBackground;
 			Options.TextboxCustomBackground.IsEnabled = Config.Instance.SelectedWindowBackground == "Custom";
 			Options.TextboxCustomBackground.Text = string.IsNullOrEmpty(Config.Instance.WindowsBackgroundHex)
-													   ? "#696969"
-													   : Config.Instance.WindowsBackgroundHex;
+				                                       ? "#696969" : Config.Instance.WindowsBackgroundHex;
 			Options.UpdateAdditionalWindowsBackground();
 
 			if(Helper.LanguageDict.Values.Contains(Config.Instance.SelectedLanguage))
@@ -621,7 +692,7 @@ namespace Hearthstone_Deck_Tracker
 			if(_updatedLogConfig)
 			{
 				this.ShowMessage("Restart Hearthstone",
-								 "This is either your first time starting the tracker or the log.config file has been updated. Please restart Heartstone once, for the tracker to work properly.");
+				                 "This is either your first time starting the tracker or the log.config file has been updated. Please restart Heartstone once, for the tracker to work properly.");
 			}
 
 			ManaCurveMyDecks.UpdateValues();

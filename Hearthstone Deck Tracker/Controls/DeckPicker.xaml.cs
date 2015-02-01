@@ -1,13 +1,18 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Hearthstone;
-using Hearthstone_Deck_Tracker.Stats;
+
+#endregion
 
 namespace Hearthstone_Deck_Tracker
 {
@@ -43,13 +48,13 @@ namespace Hearthstone_Deck_Tracker
 				{
 					return (Name == "Back" || Name == "All")
 						       ? Name
-						       : Name + " (" +
-						         Decks.Count(
-							         d =>
-							         SelectedTags.Any(t => t == "All") ||
-							         (TagOperation == TagFilerOperation.Or
-								          ? SelectedTags.Any(t => d.Tags.Contains(t) || t == "None" && d.Tags.Count == 0) 
-								          : SelectedTags.All(t => d.Tags.Contains(t) || t == "None" && d.Tags.Count == 0))) + ")";
+						       : Name + " ("
+						         + Decks.Count(
+						                       d =>
+						                       SelectedTags.Any(t => t == "All")
+						                       || (TagOperation == TagFilerOperation.Or
+							                           ? SelectedTags.Any(t => d.Tags.Contains(t) || t == "None" && d.Tags.Count == 0)
+							                           : SelectedTags.All(t => d.Tags.Contains(t) || t == "None" && d.Tags.Count == 0))) + ")";
 				}
 			}
 
@@ -57,10 +62,14 @@ namespace Hearthstone_Deck_Tracker
 			{
 				get
 				{
-					if(Name == "Back" || Name == "All") return "win%";
-					var filteredDecks = Decks.Where(d => Config.Instance.SelectedTags.Any(t => t == "All" || d.Tags.Contains(t) || t == "None" && d.Tags.Count == 0)).ToList();
+					if(Name == "Back" || Name == "All")
+						return "win%";
+					var filteredDecks =
+						Decks.Where(d => Config.Instance.SelectedTags.Any(t => t == "All" || d.Tags.Contains(t) || t == "None" && d.Tags.Count == 0))
+						     .ToList();
 					var total = filteredDecks.Sum(d => d.DeckStats.Games.Count);
-					if(total == 0) return "-%";
+					if(total == 0)
+						return "-%";
 					return Math.Round(100.0 * filteredDecks.Sum(d => d.DeckStats.Games.Count(g => g.Result == GameResult.Win)) / total, 0) + "%";
 				}
 			}
@@ -112,21 +121,23 @@ namespace Hearthstone_Deck_Tracker
 
 		#region Properties
 
+		public delegate void DoubleClickHandler(DeckPicker sender, Deck deck);
+
 		public delegate void SelectedDeckHandler(DeckPicker sender, Deck deck);
 
 
 		private readonly List<string> _classNames = new List<string>
-			{
-				"Druid",
-				"Hunter",
-				"Mage",
-				"Paladin",
-				"Priest",
-				"Rogue",
-				"Shaman",
-				"Warlock",
-				"Warrior"
-			};
+		{
+			"Druid",
+			"Hunter",
+			"Mage",
+			"Paladin",
+			"Priest",
+			"Rogue",
+			"Shaman",
+			"Warlock",
+			"Warrior"
+		};
 
 		private readonly List<HsClass> _hsClasses;
 		private readonly bool _initialized;
@@ -142,9 +153,15 @@ namespace Hearthstone_Deck_Tracker
 			get { return _selectedClass != null ? _selectedClass.Name : "None"; }
 		}
 
+		public bool ChangedSelection { get; set; }
+
 		public event SelectedDeckHandler OnSelectedDeckChanged;
+		public event DoubleClickHandler OnDoubleClick;
 
 		#endregion
+
+		private bool _wasClicked;
+		private bool _wasDoubleClicked;
 
 		public DeckPicker()
 		{
@@ -168,23 +185,26 @@ namespace Hearthstone_Deck_Tracker
 
 		public void AddDeck(Deck deck)
 		{
-			if(deck == null) return;
+			if(deck == null)
+				return;
 			var hsClass = _hsClasses.FirstOrDefault(c => c.Name == deck.Class) ?? _hsClasses.First(c => c.Name == "Undefined");
 			hsClass.Decks.Add(deck);
 		}
 
 		public void AddAndSelectDeck(Deck deck)
 		{
-			if(deck == null) return;
+			if(deck == null)
+				return;
 			AddDeck(deck);
 			SelectDeck(deck);
 		}
 
 		public void SelectDeck(Deck deck)
 		{
-			if(deck == null) return;
-			var hsClass = _hsClasses.FirstOrDefault(c => c.Name == deck.Class) ??
-			              _hsClasses.First(c => c.Name == "Undefined");
+			if(deck == null)
+				return;
+			ChangedSelection = true;
+			var hsClass = _hsClasses.FirstOrDefault(c => c.Name == deck.Class) ?? _hsClasses.First(c => c.Name == "Undefined");
 
 			if(hsClass != null)
 			{
@@ -213,19 +233,21 @@ namespace Hearthstone_Deck_Tracker
 			}
 
 			SelectedDeck = deck;
+			ChangedSelection = false;
 		}
 
 		private bool DeckMatchesSelectedTags(Deck deck)
 		{
-			return SelectedTags.Any(t => t == "All") ||
-			       (TagOperation == TagFilerOperation.Or
-				        ? SelectedTags.Any(t => deck.Tags.Contains(t) || t == "None" && deck.Tags.Count == 0)
-				        : SelectedTags.All(t => deck.Tags.Contains(t) || t == "None" && deck.Tags.Count == 0));
+			return SelectedTags.Any(t => t == "All")
+			       || (TagOperation == TagFilerOperation.Or
+				           ? SelectedTags.Any(t => deck.Tags.Contains(t) || t == "None" && deck.Tags.Count == 0)
+				           : SelectedTags.All(t => deck.Tags.Contains(t) || t == "None" && deck.Tags.Count == 0));
 		}
 
 		public void RemoveDeck(Deck deck)
 		{
-			if(deck == null) return;
+			if(deck == null)
+				return;
 			var hsClass = _hsClasses.FirstOrDefault(c => c.Decks.Contains(deck));
 			if(hsClass != null)
 				hsClass.Decks.Remove(deck);
@@ -235,10 +257,12 @@ namespace Hearthstone_Deck_Tracker
 
 		private void ListboxPicker_SelectionChanged(object sender, SelectionChangedEventArgs e)
 		{
-			if(ListboxPicker.SelectedIndex == -1) return;
-			if(!_initialized) return;
-			
-			var selectedClass = ListboxPicker.SelectedItem as HsClass;
+			if(e.AddedItems == null || e.AddedItems.Count == 0)
+				return;
+			if(!_initialized)
+				return;
+			ChangedSelection = true;
+			var selectedClass = e.AddedItems[0] as HsClass;
 			if(selectedClass != null)
 			{
 				if(_inClassSelect)
@@ -281,24 +305,30 @@ namespace Hearthstone_Deck_Tracker
 			}
 			else
 			{
-				var newSelectedDeck = ListboxPicker.SelectedItem as Deck;
-				if(Equals(newSelectedDeck, SelectedDeck))
+				var newSelectedDeck = e.AddedItems[0] as Deck;
+				if(newSelectedDeck == null)
 				{
+					ChangedSelection = false;
 					return;
 				}
-				if(newSelectedDeck != null)
+
+				if(Equals(newSelectedDeck, SelectedDeck))
 				{
-					if(SelectedDeck != null)
-						SelectedDeck.IsSelectedInGui = false;
-					newSelectedDeck.IsSelectedInGui = true;
-					ListboxPicker.Items.Refresh();
-
-					if(OnSelectedDeckChanged != null)
-						OnSelectedDeckChanged(this, newSelectedDeck);
-
-					SelectedDeck = newSelectedDeck;
+					ChangedSelection = false;
+					return;
 				}
+
+				if(OnSelectedDeckChanged != null)
+					OnSelectedDeckChanged(this, newSelectedDeck);
+				if(SelectedDeck != null)
+					SelectedDeck.IsSelectedInGui = false;
+				newSelectedDeck.IsSelectedInGui = true;
+				ListboxPicker.Items.Refresh();
+
+
+				SelectedDeck = newSelectedDeck;
 			}
+			ChangedSelection = false;
 		}
 
 		internal void SetSelectedTags(List<string> tags)
@@ -357,7 +387,8 @@ namespace Hearthstone_Deck_Tracker
 
 		public void SortDecks()
 		{
-			if(_inClassSelect) return;
+			if(_inClassSelect)
+				return;
 			var returnButton = ListboxPicker.Items.GetItemAt(0);
 			var orderedDecks = ListboxPicker.Items.OfType<Deck>().ToList();
 
@@ -388,8 +419,18 @@ namespace Hearthstone_Deck_Tracker
 				ListboxPicker.Items.Add(deck);
 		}
 
-		private void DeckPickerItem_OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
+		private async void DeckPickerItem_OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
 		{
+			if(_wasClicked)
+				return;
+			_wasClicked = true;
+			await Task.Delay(SystemInformation.DoubleClickTime);
+			_wasClicked = false;
+			if(_wasDoubleClicked)
+			{
+				_wasDoubleClicked = false;
+				return;
+			}
 			var deckPickerItem = (sender as DeckPickerItem);
 			if(deckPickerItem == null)
 				return;
@@ -401,6 +442,18 @@ namespace Hearthstone_Deck_Tracker
 				Helper.MainWindow.DeselectDeck();
 				e.Handled = true;
 			}
+		}
+
+		internal Deck GetSelectedDeckVersion()
+		{
+			return SelectedDeck != null ? SelectedDeck.GetSelectedDeckVersion() : null;
+		}
+
+		private void Control_OnPreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
+		{
+			_wasDoubleClicked = true;
+			if(OnDoubleClick != null)
+				OnDoubleClick(this, SelectedDeck);
 		}
 	}
 }

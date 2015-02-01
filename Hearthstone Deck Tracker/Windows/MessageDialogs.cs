@@ -1,10 +1,17 @@
-﻿using System.Diagnostics;
+﻿#region
+
+using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.Stats;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Win32;
+
+#endregion
 
 namespace Hearthstone_Deck_Tracker.Windows
 {
@@ -25,8 +32,7 @@ namespace Hearthstone_Deck_Tracker.Windows
 			var settings = new MetroDialogSettings {AffirmativeButtonText = "Yes", NegativeButtonText = "No"};
 			return
 				await
-				window.ShowMessageAsync("Delete Games",
-				                        "This will delete the selected games (" + count + ").\n\nAre you sure?",
+				window.ShowMessageAsync("Delete Games", "This will delete the selected games (" + count + ").\n\nAre you sure?",
 				                        MessageDialogStyle.AffirmativeAndNegative, settings);
 		}
 
@@ -56,11 +62,11 @@ namespace Hearthstone_Deck_Tracker.Windows
 			if(result == MessageDialogResult.Negative)
 			{
 				var dialog = new OpenFileDialog
-					{
-						Title = "Select Hearthstone.exe",
-						DefaultExt = "Hearthstone.exe",
-						Filter = "Hearthstone.exe|Hearthstone.exe"
-					};
+				{
+					Title = "Select Hearthstone.exe",
+					DefaultExt = "Hearthstone.exe",
+					Filter = "Hearthstone.exe|Hearthstone.exe"
+				};
 				var dialogResult = dialog.ShowDialog();
 
 				if(dialogResult == true)
@@ -70,6 +76,60 @@ namespace Hearthstone_Deck_Tracker.Windows
 					await Helper.MainWindow.Restart();
 				}
 			}
+		}
+
+		public static async void ShowMissingCardsMessage(this MetroWindow window, Deck deck)
+		{
+			if(!deck.MissingCards.Any())
+			{
+				await
+					window.ShowMessageAsync("No missing cards",
+					                        "No cards were missing when you last exported this deck. (or you have not recently exported this deck)",
+					                        MessageDialogStyle.Affirmative, new MetroDialogSettings {AffirmativeButtonText = "OK"});
+				return;
+			}
+			var message = "The following cards were not found:\n";
+			var totalDust = 0;
+			var promo = "";
+			var nax = "";
+			foreach(var card in deck.MissingCards)
+			{
+				message += "\n• " + card.LocalizedName;
+
+				int dust;
+				switch(card.Rarity)
+				{
+					case "Common":
+						dust = 40;
+						break;
+					case "Rare":
+						dust = 100;
+						break;
+					case "Epic":
+						dust = 400;
+						break;
+					case "Legendary":
+						dust = 1600;
+						break;
+					default:
+						dust = 0;
+						break;
+				}
+
+				if(card.Count == 2)
+					message += " x2";
+
+				if(card.Set.Equals("CURSE OF NAXXRAMAS", StringComparison.CurrentCultureIgnoreCase))
+					nax = "and the Naxxramas DLC ";
+				else if(card.Set.Equals("PROMOTION", StringComparison.CurrentCultureIgnoreCase))
+					promo = "and Promotion cards ";
+				else
+					totalDust += dust * card.Count;
+			}
+			message += string.Format("\n\nYou need {0} dust {1}{2}to craft the missing cards.", totalDust, nax, promo);
+			await
+				window.ShowMessageAsync("Export incomplete", message, MessageDialogStyle.Affirmative,
+				                        new MetroDialogSettings {AffirmativeButtonText = "OK"});
 		}
 	}
 }
