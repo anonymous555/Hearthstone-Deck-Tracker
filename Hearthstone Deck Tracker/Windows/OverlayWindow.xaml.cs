@@ -704,6 +704,13 @@ namespace Hearthstone_Deck_Tracker
                 Helper.MainWindow.PlayerWindow.Update();
             if (Helper.MainWindow.OpponentWindow.Visibility == Visibility.Visible)
                 Helper.MainWindow.OpponentWindow.Update();
+
+            PredictedCards.Text = Stats.DeckStatsList.predictionText;
+
+            int mana_advantage = Game.playermanaspent - Game.opponentmanaspent;
+            String manastring = "Mana Adv.= " + mana_advantage.ToString();
+            ManaAdvantage.Text = manastring;
+
         }
 
         private void UpdateGoldProgress()
@@ -1069,6 +1076,10 @@ namespace Hearthstone_Deck_Tracker
                         break;
                 }
             }
+            StackPanelOpponent.Children.Add(ManaAdvantage);
+            StackPanelOpponent.Children.Add(PredictedCards);
+            StackPanelOpponent.Children.Add(ListViewPrediction);
+
         }
 
         public void ShowSecrets(bool force = false, HeroClass? heroClass = null)

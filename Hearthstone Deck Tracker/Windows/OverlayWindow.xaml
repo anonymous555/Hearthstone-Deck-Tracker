@@ -101,6 +101,27 @@
                     <local:HearthstoneTextBlock x:Name="LblOpponentHandChance2" FontSize="18" Text="0%" Canvas.Left="149" Canvas.Top="39" TextAlignment="Right" Width="55" />
                 </Canvas>
                     <local:HearthstoneTextBlock x:Name="LblOpponentFatigue" FontSize="14" Text="" Margin="4,0,0,0" TextAlignment="Center"/>
+                <local:HearthstoneTextBlock x:Name="ManaAdvantage" FontSize="14" Text="" Margin="5,0"/>
+                <local:HearthstoneTextBlock x:Name="PredictedCards" FontSize="14" Text="" Margin="5,0"/>
+                <controls:DeckListView x:Name="ListViewPrediction" Height="auto" Canvas.Left="5" Canvas.Top="147"
+                                    Width="218" Background="{x:Null}" Foreground="White" BorderThickness="0"
+                                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                    ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                    ScrollViewer.CanContentScroll="False" FontWeight="Bold" FontFamily="Arial">
+                    <ListView.Resources>
+                        <Style TargetType="GridViewColumnHeader">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </Style>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="Foreground" Value="{Binding ColorOpponent}" />
+                            <Setter Property="Background" Value="{Binding Background}" />
+                            <Setter Property="Height" Value="{Binding OpponentHeight}" />
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="Margin" Value="0,-2,0,0" />
+                        </Style>
+                    </ListView.Resources>
+                </controls:DeckListView>
+
             </StackPanel>
 
             <StackPanel Name="StackPanelSecrets" Width="auto" Height="auto" Visibility="Collapsed" />

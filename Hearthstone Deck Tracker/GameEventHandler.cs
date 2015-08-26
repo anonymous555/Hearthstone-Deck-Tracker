@@ -160,6 +160,8 @@ namespace Hearthstone_Deck_Tracker
             _game.CurrentGameStats.WasConceded = true;
         }
 
+        static int last_opponent_turn = 0;
+
         public void SetOpponentHero(string hero)
         {
             if (string.IsNullOrEmpty(hero))
@@ -169,6 +171,8 @@ namespace Hearthstone_Deck_Tracker
             if (_game.CurrentGameStats != null)
                 _game.CurrentGameStats.OpponentHero = hero;
             Logger.WriteLine("Playing against " + hero, "GameEventHandler");
+
+            DeckStatsList.doPrediction(_game.PlayingAgainst, 1);
 
             HeroClass heroClass;
             if (Enum.TryParse(hero, true, out heroClass))
@@ -245,6 +249,25 @@ namespace Hearthstone_Deck_Tracker
 
                 if (Config.Instance.BringHsToForeground)
                     User32.BringHsToForeground();
+            }
+
+            if (player == ActivePlayer.Opponent)
+            {
+                // DeckStatsList.doPrediction(Game.PlayingAgainst, turnNumber + 1);
+                last_opponent_turn = turnNumber + 1;
+                ///
+            }
+            else if (player == ActivePlayer.Player)
+            {
+                if (last_opponent_turn == 0)
+                {
+                    DeckStatsList.doPredictionLastCard(API.Core.Game.PlayingAgainst, 1, GameV2.lastOpponentPlays);
+                }
+                else
+                {
+                    DeckStatsList.doPredictionLastCard(API.Core.Game.PlayingAgainst, last_opponent_turn + 1, GameV2.lastOpponentPlays);
+                }
+                GameV2.lastOpponentPlays.Clear();
             }
             GameEvents.OnTurnStart.Execute(player);
         }

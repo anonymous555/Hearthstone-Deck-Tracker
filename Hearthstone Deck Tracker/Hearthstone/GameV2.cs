@@ -86,7 +86,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		public void Reset(bool resetStats = true)
 		{
 			Logger.WriteLine(">>>>>>>>>>> Reset <<<<<<<<<<<", "Game");
-
+            last_turn_num = 0;
 			ReplayMaker.Reset();
 			PlayerDrawn.Clear();
 			PlayerDrawnIdsTotal.Clear();
@@ -636,6 +636,17 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
 
 			LogOpponentHand();
+
+            if (turn != last_turn_num)
+            {
+                lastOpponentPlays.Clear();
+            }
+            if (!string.IsNullOrEmpty(id))
+            {
+                lastOpponentPlays.Add(id);
+            }
+            last_turn_num = turn;
+
 		}
 
 		public void OpponentMulligan(int pos)
@@ -763,6 +774,9 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
 			LogOpponentHand();
 		}
+
+        public static List<string> lastOpponentPlays = new List<string>();
+        private static int last_turn_num = 0;
 
 		#endregion
 

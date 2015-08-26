@@ -109,6 +109,7 @@
     <Compile Include="API\GameEvents.cs" />
     <Compile Include="API\LogEvents.cs" />
     <Compile Include="API\Overlay.cs" />
+    <Compile Include="ArchetypeDetector.cs" />
     <Compile Include="Controls\Card.xaml.cs">
       <DependentUpon>Card.xaml</DependentUpon>
     </Compile>

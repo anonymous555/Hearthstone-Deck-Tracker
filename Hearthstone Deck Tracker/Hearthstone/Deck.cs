@@ -599,6 +599,18 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			return string.Format("deckname:{0}, class:{1}, cards:{2}", Name.Replace("{", "").Replace("}", ""), Class, Cards.Sum(x => x.Count));
 		}
 
+        public int GetTotalNumCards()
+        {
+            int count = 0;
+            foreach (var card in Cards)
+            {
+                count += card.Count;
+            }
+            return count;
+
+        }
+
+
 		/// returns the number of cards in the deck with mechanics matching the newmechanic.
 		/// The mechanic attribute, such as windfury or taunt, comes from the cardDB json file
 		public int GetMechanicCount(string newmechanic)

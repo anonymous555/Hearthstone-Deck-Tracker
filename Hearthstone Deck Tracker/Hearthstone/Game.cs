@@ -46,6 +46,10 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			LoadCardDb(Helper.LanguageDict.ContainsValue(Config.Instance.SelectedLanguage) ? Config.Instance.SelectedLanguage : "enUS");
 		}
 
+        public static int playermanaspent = 0;
+        public static int opponentmanaspent = 0;
+
+
 		public static bool IsMulliganDone
 		{
 			get
@@ -948,5 +952,31 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 				}
 			}
 		}
+
+ 
+//        private static int last_turn_num = 0;
+
+
+        public static bool OppopentPlayedMaxNumCards(string cardid)
+        {
+            Card card = OpponentCards.FirstOrDefault(c => c.Id == cardid);
+
+
+            if (card == null)
+            {
+                return false;
+            }
+            if (card.Rarity == "Legendary" || card.Id == "GAME_005") /// on legendary or coin
+            {
+                return card.Count == 1;
+            }
+            else
+            {
+                return card.Count == 2;
+            }
+        }
+
 	}
+
+
 }
