@@ -267,7 +267,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 
             }
             //////// archetype 
-            var enemycards = Game.OpponentCards;
+            var enemycards = API.Core.Game.OpponentCards;
             string archetypestring = ArchetypeDetector.getIngameArchetypeString(enemycards);
 
             //// archetype

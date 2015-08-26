@@ -707,7 +707,7 @@ namespace Hearthstone_Deck_Tracker
 
             PredictedCards.Text = Stats.DeckStatsList.predictionText;
 
-            int mana_advantage = Game.playermanaspent - Game.opponentmanaspent;
+            int mana_advantage = GameV2.playermanaspent - GameV2.opponentmanaspent;
             String manastring = "Mana Adv.= " + mana_advantage.ToString();
             ManaAdvantage.Text = manastring;
 

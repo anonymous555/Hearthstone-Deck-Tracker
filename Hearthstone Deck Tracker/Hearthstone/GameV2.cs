@@ -183,6 +183,32 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			if(CurrentGameStats == null)
 				return;
 			CurrentGameStats.AddPlay(play, turn, cardId);
+
+            if (play == PlayType.OpponentHeroPower)
+            {
+                if (turn != last_turn_num)
+                {
+                    lastOpponentPlays.Clear();
+                }
+                lastOpponentPlays.Add(cardId);
+                last_turn_num = turn;
+                opponentmanaspent += 2;
+            }
+            else if (play == PlayType.PlayerHeroPower)
+            {
+                playermanaspent += 2;
+            }
+            else if (play == PlayType.OpponentSecretPlayed)
+            {
+                if (turn != last_turn_num)
+                {
+                    lastOpponentPlays.Clear();
+                }
+                lastOpponentPlays.Add("Secret Played");
+                last_turn_num = turn;
+
+            }
+
 		}
 
 		public static bool IsActualCard(Card card)
@@ -418,6 +444,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 				card.InHandCount--;
 				if(Config.Instance.HighlightCardsInHand && CanRemoveCard(card))
 					PlayerDeck.Remove(card);
+                playermanaspent += card.Cost;
 			}
 
 			var drawnCard = PlayerDrawn.FirstOrDefault(c => c.Id == cardId);
@@ -618,6 +645,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 				}
 
 				LogDeckChange(true, card, false);
+                opponentmanaspent += card.Cost;
 
 				if(card.IsStolen)
 					Logger.WriteLine("Opponent played stolen card from " + from, "Game");
@@ -777,6 +805,9 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
         public static List<string> lastOpponentPlays = new List<string>();
         private static int last_turn_num = 0;
+        public static int playermanaspent = 0;
+        public static int opponentmanaspent = 0;
+
 
 		#endregion
 

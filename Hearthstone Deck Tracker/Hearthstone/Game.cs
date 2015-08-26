@@ -46,8 +46,6 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			LoadCardDb(Helper.LanguageDict.ContainsValue(Config.Instance.SelectedLanguage) ? Config.Instance.SelectedLanguage : "enUS");
 		}
 
-        public static int playermanaspent = 0;
-        public static int opponentmanaspent = 0;
 
 
 		public static bool IsMulliganDone
