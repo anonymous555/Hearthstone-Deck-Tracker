@@ -406,6 +406,36 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			get { return ClassImage; }
 		}
 
+        private String lastachetype = null;
+        [XmlIgnore]
+        public String Archetype
+        {
+            get
+            {
+                if (lastachetype == null)
+                {
+
+                    lastachetype = ArchetypeDetector.getBestArchetypeString(this, true);
+                }
+                return lastachetype;
+            }
+        }
+
+        [XmlIgnore]
+        public String ArchetypeNoCounts
+        {
+            get
+            {
+                if (lastachetype == null)
+                {
+
+                    lastachetype = ArchetypeDetector.getBestArchetypeString(this, false);
+                }
+                return lastachetype;
+            }
+        }
+
+
 		public DeckStats DeckStats
 		{
 			get
@@ -782,5 +812,33 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			OnPropertyChanged("WinPercent");
 			OnPropertyChanged("WinPercentString");
 		}
+
+        private bool isDeckContainingSet(string setname)
+        {
+            foreach (Card newcard in Cards)
+            {
+                if (newcard.Set.Equals(setname))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool IsNaxxDeck()
+        {
+            return isDeckContainingSet("Curse of Naxxramas"); ;
+        }
+
+        public bool IsGvgDeck()
+        {
+            return isDeckContainingSet("Goblins vs Gnomes");
+        }
+
+        public bool IsBrmDeck()
+        {
+            return isDeckContainingSet("Blackrock Mountain");
+        }
+
 	}
 }
