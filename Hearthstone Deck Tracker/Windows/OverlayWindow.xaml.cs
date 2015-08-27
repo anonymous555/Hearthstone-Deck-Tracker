@@ -766,6 +766,7 @@ namespace Hearthstone_Deck_Tracker
             var pos = User32.GetMousePos();
             var relativePlayerDeckPos = ListViewPlayer.PointFromScreen(new Point(pos.X, pos.Y));
             var relativeOpponentDeckPos = ListViewOpponent.PointFromScreen(new Point(pos.X, pos.Y));
+            var relativePredictDeckPos = ListViewPrediction.PointFromScreen(new Point(pos.X, pos.Y));
             var relativeSecretsPos = StackPanelSecrets.PointFromScreen(new Point(pos.X, pos.Y));
             var relativeCardMark = _cardMarks.Select(x => new { Label = x, Pos = x.PointFromScreen(new Point(pos.X, pos.Y)) });
             var visibility = (Config.Instance.OverlayCardToolTips && !Config.Instance.OverlaySecretToolTipsOnly)
@@ -814,6 +815,31 @@ namespace Hearthstone_Deck_Tracker
 
                 ToolTipCard.Visibility = visibility;
             }
+            //prediction card tooltips
+            else if (
+                     PointInsideControl(relativePredictDeckPos, ListViewPrediction.ActualWidth, ListViewPrediction.ActualHeight))
+            {
+                //card size = card list height / ammount of cards
+                var cardSize = ListViewPrediction.ActualHeight / ListViewPrediction.Items.Count;
+                var cardIndex = (int)(relativePredictDeckPos.Y / cardSize);
+                if (cardIndex < 0 || cardIndex >= ListViewPrediction.Items.Count)
+                    return;
+
+                ToolTipCard.SetValue(DataContextProperty, ListViewPrediction.Items[cardIndex]);
+
+                //offset is affected by scaling
+                var topOffset = Canvas.GetTop(ListViewPrediction) + GetListViewOffset(StackPanelOpponent)
+                                + cardIndex * cardSize * Config.Instance.OverlayPlayerScaling / 100;
+
+                //prevent tooltip from going outside of the overlay
+                if (topOffset + ToolTipCard.ActualHeight > Height)
+                    topOffset = Height - ToolTipCard.ActualHeight;
+
+                SetTooltipPosition(topOffset, StackPanelOpponent);
+
+                ToolTipCard.Visibility = visibility;
+            }
+
             //opponent card tooltips
             else if (ListViewOpponent.Visibility == Visibility.Visible && StackPanelOpponent.Visibility == Visibility.Visible
                     && PointInsideControl(relativeOpponentDeckPos, ListViewOpponent.ActualWidth, ListViewOpponent.ActualHeight))

@@ -140,6 +140,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 				};
 			}
 			hsLogLines = new List<string>();
+            opponentmanaspent = 0;
+            playermanaspent = 0;
 		}
 
 		public void SetPremadeDeck(Deck deck)
