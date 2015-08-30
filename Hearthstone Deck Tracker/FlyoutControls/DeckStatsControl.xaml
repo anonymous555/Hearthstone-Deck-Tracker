@@ -5,6 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:system="clr-namespace:System;assembly=mscorlib"
              xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+             xmlns:my="clr-namespace:System.Windows.Controls.DataVisualization.Charting;assembly=System.Windows.Controls.DataVisualization.Toolkit"            
+             xmlns:chartingprimitives="clr-namespace:System.Windows.Controls.DataVisualization.Charting.Primitives;assembly=System.Windows.Controls.DataVisualization.Toolkit"             
              xmlns:local="clr-namespace:Hearthstone_Deck_Tracker"
              xmlns:enums="clr-namespace:Hearthstone_Deck_Tracker.Enums"
              xmlns:utility="clr-namespace:Hearthstone_Deck_Tracker.Utility"
@@ -67,6 +69,7 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="auto" />
                                     <RowDefinition Height="*" />
+                                    <RowDefinition Height="*" MinHeight="400" />
                                 </Grid.RowDefinitions>
                                 <GroupBox Name="GroupboxClassOverview" Header="Overview Class:  wins - losses"
                               VerticalAlignment="Top"
@@ -198,7 +201,8 @@
                                 </GroupBox>
                                 <GroupBox Name="GroupboxDeckOverview" Header="Overview Deck:  wins - losses"
                               VerticalAlignment="Top"
-                              Height="450" Grid.Row="1"
+                              Height="auto"
+                              Grid.Row="1"
                               PreviewMouseLeftButtonDown="GroupBoxDeckOverview_PreviewMouseLeftButtonDown"
                                     >
                                         <DataGrid IsReadOnly="True" Name="DataGridWinLoss" AutoGenerateColumns="False"
@@ -332,6 +336,36 @@
                                             </DataGrid.Columns>
                                         </DataGrid>
                                 </GroupBox>
+                                <GroupBox Name="GroupboxDeckPlots" Header="Plots"
+                                          VerticalAlignment="Stretch"
+                                          Height="Auto" Grid.Row="3" Grid.ColumnSpan="2" >
+                                    <my:Chart Name="DeckWinRateChart" Title="Deck and Class Win Rate" Grid.Column="0" ToolTip="Deck Win Rate">
+                                        <my:Chart.Series>
+                                            <my:ColumnSeries Title="Deck"
+                                                 IndependentValueBinding="{Binding Path=Key}"
+                                                 DependentValueBinding="{Binding Path=Value}">
+                                            </my:ColumnSeries>
+                                            <my:ColumnSeries Title="Class"
+                                                 IndependentValueBinding="{Binding Path=Key}"
+                                                 DependentValueBinding="{Binding Path=Value}">
+                                            </my:ColumnSeries>
+
+                                        </my:Chart.Series>
+                                        <my:Chart.Axes>
+                                            <my:LinearAxis Orientation="Y" Interval="25" Minimum="-25" Maximum="100" ShowGridLines="True"/>
+                                        </my:Chart.Axes>
+                                        <!--
+                                        <my:Chart.LegendStyle>
+                                            <Style TargetType="Control">
+                                                <Setter Property="Width" Value="0"/>
+                                                <Setter Property="Height" Value="0"/>
+                                            </Style>
+                                        </my:Chart.LegendStyle>
+                                        -->
+
+                                    </my:Chart>
+                                </GroupBox>
+
                             </Grid>
                         </TabItem>
                         <TabItem Header="Games">
@@ -473,11 +507,12 @@
                         <TabItem Header="Stats" Height="41" VerticalAlignment="Bottom">
                             <Grid>
                                 <Grid.RowDefinitions>
-                                    <RowDefinition Height="auto" />
-                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="1*" />
+                                    <RowDefinition Height="50*" />
+                                    <RowDefinition Height="50*" />
                                 </Grid.RowDefinitions>
                                 <GroupBox Name="GroupboxOverallDetailOverview" Header="Overview Detail: wins - losses"
-                                          VerticalAlignment="Top"
+                                          VerticalAlignment="Stretch"
                                           Height="auto" Grid.Row="1" Grid.ColumnSpan="2">
                                     <DockPanel>
                                         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
@@ -642,6 +677,17 @@
                                         </DataGrid>
                                     </DockPanel>
                                 </GroupBox>
+                                <GroupBox Name="GroupboxOverallMeta" Header="Meta"
+                                          VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                                          Height="auto" Width="auto" Grid.Row="2" Margin="5,0,5,10" ClipToBounds="True" >
+                                    <TextBox Name="MetaText" controls:TextBoxHelper.Watermark="Meta" Margin="3" Height="auto"
+                          Width="auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" AcceptsReturn="True" MinLines="10" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                             ScrollViewer.CanContentScroll="True"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Auto" TextWrapping="Wrap" IsReadOnly="True"/>
+
+                                </GroupBox>
+
+
                             </Grid>
                         </TabItem>
                         <TabItem Header="Games">

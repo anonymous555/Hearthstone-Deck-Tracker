@@ -19,6 +19,8 @@ using Hearthstone_Deck_Tracker.Utility;
 using Hearthstone_Deck_Tracker.Windows;
 using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
+using System.Windows.Controls.DataVisualization.Charting;
+
 
 #endregion
 
@@ -230,6 +232,9 @@ namespace Hearthstone_Deck_Tracker
 			DataGridWinLoss.Items.Clear();
 			DataGridWinLoss.Items.Add(new WinLoss(filteredGames, "%"));
 			DataGridWinLoss.Items.Add(new WinLoss(filteredGames, "Win - Loss"));
+
+            WinLoss winloss_for_plots = new WinLoss(filteredGames, true, "hero");
+
 			//current version
 			var games = filteredGames.Where(g => g.BelongsToDeckVerion(deck)).ToList();
 			DataGridWinLoss.Items.Add(new WinLoss(games, "%", deck.Version));
@@ -254,6 +259,40 @@ namespace Hearthstone_Deck_Tracker
 			DataGridWinLossClass.Items.Add(new WinLoss(allGames, "%"));
 			DataGridWinLossClass.Items.Add(new WinLoss(allGames, "Win - Loss"));
 			DataGridGames.Items.Refresh();
+
+            WinLoss winloss_for_plots_class = new WinLoss(allGames, true, "hero");
+
+            /// plots
+            /// 
+
+            List<KeyValuePair<string, double>> deckwinlist = new List<KeyValuePair<string, double>>();
+            List<KeyValuePair<string, double>> deckwinlistclass = new List<KeyValuePair<string, double>>();
+
+            ////////////////////
+            String[] classnames = { "Druid", "Hunter", "Paladin", "Priest", "Mage", "Rogue", "Shaman", "Warlock", "Warrior" };
+
+            deckwinlist.Add(new KeyValuePair<string, double>("Overall",
+                winloss_for_plots.GetWinPercentDouble(null
+            )));
+
+            deckwinlistclass.Add(new KeyValuePair<string, double>("Overall",
+                winloss_for_plots_class.GetWinPercentDouble(null
+            )));
+
+
+            foreach (String classnamestring in classnames)
+            {
+                deckwinlist.Add(new KeyValuePair<string, double>(classnamestring,
+                    winloss_for_plots.GetWinPercentDouble(classnamestring
+                )));
+                deckwinlistclass.Add(new KeyValuePair<string, double>(classnamestring,
+                    winloss_for_plots_class.GetWinPercentDouble(classnamestring
+                )));
+
+            }
+            ((ColumnSeries)DeckWinRateChart.Series[0]).ItemsSource = deckwinlist;
+            ((ColumnSeries)DeckWinRateChart.Series[1]).ItemsSource = deckwinlistclass;
+
 		}
 
 		private IEnumerable<GameStats> FilterGames(IEnumerable<GameStats> games)
@@ -634,6 +673,13 @@ namespace Hearthstone_Deck_Tracker
 			return modifiedHero;
 		}
 
+        struct heropercent
+        {
+            public string heroid;
+            public float percent;
+        };
+
+
 		public void LoadOverallStats()
 		{
 			var needToSaveDeckStats = false;
@@ -674,6 +720,83 @@ namespace Hearthstone_Deck_Tracker
 						DataGridOverallGames.Items.Add(game);
 				}
 			}
+
+            ///////////
+            Dictionary<string, int> oppcounts = new Dictionary<string, int>();
+            int totalnumgames = 0;
+            foreach (var game in total)
+            {
+                if (oppcounts.ContainsKey(game.OpponentHero))
+                {
+                    oppcounts[game.OpponentHero]++;
+                }
+                else
+                {
+                    oppcounts[game.OpponentHero] = 1;
+                }
+                totalnumgames++;
+            }
+
+            List<heropercent> heropercentlist = new List<heropercent>();
+            foreach (var mykey in oppcounts.Keys)
+            {
+                heropercent newheropercent = new heropercent();
+                newheropercent.heroid = mykey;
+                newheropercent.percent = (float)oppcounts[mykey] / (float)totalnumgames;
+                heropercentlist.Add(newheropercent);
+            }
+
+            List<heropercent> SortedList = heropercentlist.OrderBy(o => (1.0 - o.percent)).ToList();
+            string metaheropercent = "";
+
+            foreach (var newheroprecent in SortedList)
+            {
+                int percentint = (int)(newheroprecent.percent * 100.0);
+                metaheropercent += newheroprecent.heroid + " " + percentint.ToString() + " %\n";
+            }
+
+            ///// archetypes
+
+            Dictionary<string, int> archteytpecounts = new Dictionary<string, int>();
+            int total_games_with_archetypes = 0;
+
+            foreach (var game in total)
+            {
+                Deck deck = GameStats.GameStatsToDeck(game);
+                if (deck != null)
+                {
+                    String bestarchetype = deck.ArchetypeNoCounts;
+                    if (bestarchetype != null && bestarchetype.Length > 0)
+                    {
+                        total_games_with_archetypes += 1;
+                        if (archteytpecounts.ContainsKey(bestarchetype))
+                        {
+                            archteytpecounts[bestarchetype] += 1;
+                        }
+                        else
+                        {
+                            archteytpecounts.Add(bestarchetype, 1);
+                        }
+                    }
+                }
+            }
+
+            var sortedDict = from entry in archteytpecounts orderby entry.Value descending select entry;
+            string archetypetext = "Archetype encounters:\n";
+            foreach (var entry in sortedDict)
+            {
+                float percent = 100.0f * (float)entry.Value / (float)total_games_with_archetypes;
+                if (percent >= 1.0)
+                {
+                    archetypetext += entry.Key + " " + entry.Value + " " + percent.ToString("F2") + "%\n";
+                }
+            }
+            ////
+
+
+            MetaText.Text = metaheropercent + "\n" + archetypetext;
+
+            ///////////		
 			if(needToSaveDeckStats || modified)
 				DeckStatsList.Save();
 			DataGridOverallWinLoss.Items.Add(new WinLoss(total, CheckboxPercent.IsChecked ?? true, "Total"));
@@ -1020,6 +1143,23 @@ namespace Hearthstone_Deck_Tracker
 			{
 				return _percent ? GetPercent(hsClass) : GetWinLoss(hsClass);
 			}
+            public double GetWinPercentDouble(string hsClass = null)
+            {
+                if (_stats == null)
+                    return 0.0;
+                var wins = _stats.Count(s => s.Result == GameResult.Win && (hsClass == null || s.OpponentHero == hsClass));
+                var losses = _stats.Count(s => s.Result == GameResult.Loss && (hsClass == null || s.OpponentHero == hsClass));
+                var total = _stats.Count(s => s.Result != GameResult.None && (hsClass == null || s.OpponentHero == hsClass));
+                if (wins > 0)
+                {
+                    return total > 0 ? Math.Round(100.0 * wins / total, 1) : 0.0;
+                }
+                else
+                {
+                    return total > 0 ? Math.Round(-100.0 * losses / total, 1) : 0.0;
+                }
+
+            }
 		}
 	}
 }
