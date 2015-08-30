@@ -815,6 +815,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
         private bool isDeckContainingSet(string setname)
         {
+            if (Cards == null)
+                return false;
             foreach (Card newcard in Cards)
             {
                 if (newcard.Set.Equals(setname))
@@ -827,7 +829,9 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
         public bool IsNaxxDeck()
         {
-            return isDeckContainingSet("Curse of Naxxramas"); ;
+            bool result;
+            result = isDeckContainingSet("Curse of Naxxramas");
+            return result;
         }
 
         public bool IsGvgDeck()
@@ -839,6 +843,35 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
         {
             return isDeckContainingSet("Blackrock Mountain");
         }
+
+        public bool IsTgtDeck()
+        {
+            bool result;
+            result = isDeckContainingSet("The Grand Tournament");
+            return result;
+        }
+
+        public Visibility NaxxVisibility
+        {
+            get { return IsNaxxDeck() ? Visibility.Visible : Visibility.Collapsed; }
+        }
+
+        public Visibility BrmVisibility
+        {
+            get { return IsBrmDeck() ? Visibility.Visible : Visibility.Collapsed; }
+        }
+
+        public Visibility GvgVisibility
+        {
+            get { return IsGvgDeck() ? Visibility.Visible : Visibility.Collapsed; }
+        }
+
+        public Visibility TgtVisibility
+        {
+            get { return IsTgtDeck() ? Visibility.Visible : Visibility.Collapsed; }
+        }
+
+
 
 	}
 }

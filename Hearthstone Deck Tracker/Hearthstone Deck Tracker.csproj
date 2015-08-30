@@ -3631,6 +3631,7 @@
     <Resource Include="Resources\brmicon.png" />
     <Resource Include="Resources\gvgicon.png" />
     <Resource Include="Resources\naxicon.png" />
+    <Resource Include="Resources\tgticon.png" />
     <Content Include="Version.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>

@@ -79,8 +79,7 @@ namespace Hearthstone_Deck_Tracker.Controls.DeckPicker
 			if(handler != null)
 				handler(this, new PropertyChangedEventArgs(propertyName));
 		}
-
-		#region sorting properties
+        #region sorting properties
 
 		public string Class
 		{
