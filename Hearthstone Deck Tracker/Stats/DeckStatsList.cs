@@ -340,7 +340,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 
                                     if (isSecret(play))
                                     {
-                                        if (cardid == "")
+                                        if (cardid == "" || cardid == null)
                                         {
                                             cardid = "Secret Played";
                                         }
@@ -421,7 +421,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 
                                 if (isSecret(play))
                                 {
-                                    if (cardid == "")
+                                    if (cardid == "" || cardid == null)
                                     {
                                         cardid = "Secret Played";
                                     }

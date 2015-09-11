@@ -280,7 +280,7 @@ namespace Hearthstone_Deck_Tracker
 				{
 					Config.Instance.Reset("ExportAllSetsButtonY");
 					converted = true;
-				}
+                }
 				if(configVersion <= new Version(0, 11, 1, 0))
 				{
 					if(Config.Instance.GoldProgressLastReset.Length < 5)
