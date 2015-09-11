@@ -158,6 +158,7 @@
     <Compile Include="Controls\DeckPicker\MarginConverter.cs" />
     <Compile Include="Enums\ArenaImportingBehaviour.cs" />
     <Compile Include="Enums\DeckLayout.cs" />
+    <Compile Include="Enums\Hearthstone\TAG_CLASS.cs" />
     <Compile Include="Enums\IconStyle.cs" />
     <Compile Include="Errors\ErrorItem.xaml.cs">
       <DependentUpon>ErrorItem.xaml</DependentUpon>
@@ -242,13 +243,17 @@
     <Compile Include="FlyoutControls\Options\Overlay\OverlayPlayer.xaml.cs">
       <DependentUpon>OverlayPlayer.xaml</DependentUpon>
     </Compile>
+    <Compile Include="FlyoutControls\UpdateNotes.xaml.cs">
+      <DependentUpon>UpdateNotes.xaml</DependentUpon>
+    </Compile>
     <Compile Include="HearthStats\Controls\DuplicateMatchesWindow.xaml.cs">
       <DependentUpon>DuplicateMatchesWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Hearthstone\Game.cs" />
+    <Compile Include="Hearthstone\Database.cs" />
     <Compile Include="Hearthstone\GameV2.cs" />
     <Compile Include="Hearthstone\IGame.cs" />
     <Compile Include="Hearthstone\Mechanic.cs" />
+    <Compile Include="Hearthstone\Player.cs" />
     <Compile Include="LogReader\Handlers\ArenaHandler.cs" />
     <Compile Include="LogReader\Handlers\AssetHandler.cs" />
     <Compile Include="LogReader\Handlers\BobHandler.cs" />
@@ -260,7 +265,12 @@
     <Compile Include="LogReader\Handlers\PowerHandler.cs" />
     <Compile Include="LogReader\Handlers\RachelleHandler.cs" />
     <Compile Include="LogReader\Handlers\TagChangeHandler.cs" />
-    <Compile Include="LogReader\IHsGameState.cs" />
+    <Compile Include="LogReader\Interfaces\IHsGameState.cs" />
+    <Compile Include="LogReader\Interfaces\IHSLogReader.cs" />
+    <Compile Include="LogReader\LogLineItem.cs" />
+    <Compile Include="LogReader\LogReader.cs" />
+    <Compile Include="LogReader\LogReaderInfo.cs" />
+    <Compile Include="LogReader\LogReaderManager.cs" />
     <Compile Include="Plugins\IPlugin.cs" />
     <Compile Include="Hearthstone\CardDb.cs" />
     <Compile Include="Plugins\PluginManager.cs" />
@@ -278,6 +288,8 @@
     <Compile Include="Protocol\PipeServer.cs" />
     <Compile Include="Utility\ImageCache.cs" />
     <Compile Include="Utility\Imgur.cs" />
+    <Compile Include="Utility\Markdown.Xaml\Markdown.cs" />
+    <Compile Include="Utility\Markdown.Xaml\TextToFlowDocumentConverter.cs" />
     <Compile Include="Windows\AddGameDialog.xaml.cs">
       <DependentUpon>AddGameDialog.xaml</DependentUpon>
     </Compile>
@@ -371,7 +383,6 @@
     </Compile>
     <Compile Include="DeckList.cs" />
     <Compile Include="Utility\Helper.cs" />
-    <Compile Include="HsLogReader.cs" />
     <Compile Include="MainWindow\MainWindow_Edit.cs" />
     <Compile Include="MainWindow\MainWindow_Export.cs" />
     <Compile Include="MainWindow\MainWindow_Import.cs" />
@@ -548,6 +559,10 @@
     <Page Include="FlyoutControls\Options\Overlay\OverlayPlayer.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="FlyoutControls\UpdateNotes.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="HearthStats\Controls\DuplicateMatchesWindow.xaml">
       <SubType>Designer</SubType>
@@ -3632,6 +3647,7 @@
     <Resource Include="Resources\gvgicon.png" />
     <Resource Include="Resources\naxicon.png" />
     <Resource Include="Resources\tgticon.png" />
+    <Resource Include="Utility\Markdown.Xaml\License.txt" />
     <Content Include="Version.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
@@ -3680,7 +3696,9 @@
       <Name>HDTHelper</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="LogReader\LogFileReader\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>if "$(ConfigurationName)" == "Release" (

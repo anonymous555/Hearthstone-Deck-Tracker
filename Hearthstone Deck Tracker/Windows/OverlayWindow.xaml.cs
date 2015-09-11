@@ -4,13 +4,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Data.SqlTypes;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
 using System.Windows.Media;
+using Hearthstone_Deck_Tracker.Annotations;
 using Hearthstone_Deck_Tracker.Controls;
 using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Hearthstone;
@@ -23,7 +26,7 @@ namespace Hearthstone_Deck_Tracker
     /// <summary>
     ///     Interaction logic for OverlayWindow.xaml
     /// </summary>
-    public partial class OverlayWindow
+    public partial class OverlayWindow : Window, INotifyPropertyChanged
     {
         private readonly GameV2 _game;
         private readonly int _customHeight;
@@ -55,8 +58,8 @@ namespace Hearthstone_Deck_Tracker
             if (Config.Instance.ExtraFeatures && Config.Instance.ForceMouseHook)
                 HookMouse();
 
-            ListViewPlayer.ItemsSource = _game.IsUsingPremade ? _game.PlayerDeck : _game.PlayerDrawn;
-            ListViewOpponent.ItemsSource = _game.OpponentCards;
+            //ListViewPlayer.ItemsSource = _game.IsUsingPremade ? _game.PlayerDeck : _game.PlayerDrawn;
+            //ListViewOpponent.ItemsSource = _game.OpponentCards;
             Scaling = 1.0;
             OpponentScaling = 1.0;
             ShowInTaskbar = Config.Instance.ShowInTaskbar;
@@ -168,7 +171,17 @@ namespace Hearthstone_Deck_Tracker
         public static double OpponentScaling { get; set; }
         public Visibility WarningVisibility { get; set; }
 
-        private void MouseInputOnLmbUp(object sender, EventArgs eventArgs)
+	    public List<Card> PlayerDeck
+	    {
+		    get { return _game.Player.DisplayCards; }
+	    }
+
+	    public List<Card> OpponentDeck
+	    {
+			get { return _game.Opponent.DisplayRevealedCards; }
+		}
+
+		private void MouseInputOnLmbUp(object sender, EventArgs eventArgs)
         {
             if (Visibility != Visibility.Visible)
                 return;
@@ -393,17 +406,8 @@ namespace Hearthstone_Deck_Tracker
             ShowSecrets();
         }
 
-        public void SortViews()
-        {
-            Helper.SortCardCollection(ListViewPlayer.ItemsSource, Config.Instance.CardSortingClassFirst);
-            Helper.SortCardCollection(ListViewOpponent.ItemsSource, Config.Instance.CardSortingClassFirst);
-        }
-
         private void SetOpponentCardCount(int cardCount, int cardsLeftInDeck)
         {
-            //previous cardcout > current -> opponent played -> resort list
-            if (_opponentCardCount > cardCount)
-                Helper.SortCardCollection(ListViewOpponent.ItemsSource, Config.Instance.CardSortingClassFirst);
             _opponentCardCount = cardCount;
 
             LblOpponentCardCount.Text = cardCount.ToString();
@@ -411,7 +415,7 @@ namespace Hearthstone_Deck_Tracker
 
             if (cardsLeftInDeck <= 0)
             {
-                LblOpponentFatigue.Text = "Next draw fatigues for: " + (_game.OpponentFatigueCount + 1);
+                LblOpponentFatigue.Text = "Next draw fatigues for: " + (_game.Opponent.Fatigue + 1);
 
                 LblOpponentDrawChance2.Text = "0%";
                 LblOpponentDrawChance1.Text = "0%";
@@ -421,7 +425,7 @@ namespace Hearthstone_Deck_Tracker
             }
             LblOpponentFatigue.Text = "";
 
-            var handWithoutCoin = cardCount - (_game.OpponentHasCoin ? 1 : 0);
+            var handWithoutCoin = cardCount - (_game.Opponent.HasCoin ? 1 : 0);
 
             var holdingNextTurn2 = Math.Round(100.0f * Helper.DrawProbability(2, (cardsLeftInDeck + handWithoutCoin), handWithoutCoin + 1), 1);
             var drawNextTurn2 = Math.Round(200.0f / cardsLeftInDeck, 1);
@@ -436,9 +440,6 @@ namespace Hearthstone_Deck_Tracker
 
         private void SetCardCount(int cardCount, int cardsLeftInDeck)
         {
-            //previous < current -> draw
-            if (_cardCount < cardCount)
-                Helper.SortCardCollection(ListViewPlayer.ItemsSource, Config.Instance.CardSortingClassFirst);
             _cardCount = cardCount;
 
             LblCardCount.Text = cardCount.ToString();
@@ -446,7 +447,7 @@ namespace Hearthstone_Deck_Tracker
 
             if (cardsLeftInDeck <= 0)
             {
-                LblPlayerFatigue.Text = "Next draw fatigues for: " + (_game.PlayerFatigueCount + 1);
+                LblPlayerFatigue.Text = "Next draw fatigues for: " + (_game.Player.Fatigue + 1);
 
                 LblDrawChance2.Text = "0%";
                 LblDrawChance1.Text = "0%";
@@ -542,7 +543,7 @@ namespace Hearthstone_Deck_Tracker
             Canvas.SetLeft(LblPlayerTurnTime, Width * Config.Instance.TimersHorizontalPosition / 100 + Config.Instance.TimersHorizontalSpacing);
 
             //Canvas.SetTop(LblGrid, Height * 0.03);
-            var handCount = _game.OpponentHandCount;
+            var handCount = _game.Opponent.HandCount;
             if (handCount < 0)
                 handCount = 0;
             if (handCount > 10)
@@ -591,7 +592,7 @@ namespace Hearthstone_Deck_Tracker
             }
 
 
-            var handCount = _game.OpponentHandCount;
+            var handCount = _game.Opponent.HandCount;
             if (handCount < 0)
                 handCount = 0;
             if (handCount > 10)
@@ -602,7 +603,7 @@ namespace Hearthstone_Deck_Tracker
             {
                 if (!Config.Instance.HideOpponentCardAge)
                 {
-                    _cardMarks[i].Text = _game.OpponentHandAge[i].ToString();
+                    _cardMarks[i].Text = _game.Opponent.Hand[i].Turn.ToString();
                 }
                 else
                 {
@@ -611,8 +612,8 @@ namespace Hearthstone_Deck_Tracker
 
                 if (!Config.Instance.HideOpponentCardMarks)
                 {
-                    _cardMarks[i].Mark = _game.OpponentHandMarks[i];
-                }
+                    _cardMarks[i].Mark = _game.Opponent.Hand[i].CardMark;
+				}
                 else
                 {
                     _cardMarks[i].Mark = CardMark.None;
@@ -659,20 +660,21 @@ namespace Hearthstone_Deck_Tracker
             DebugViewer.Visibility = Config.Instance.Debug ? Visibility.Visible : Visibility.Hidden;
             DebugViewer.Width = (Width * Config.Instance.TimerLeft / 100);
 
-            SetCardCount(_game.PlayerHandCount, _game.PlayerDeckSize - _game.PlayerDrawn.Where(c => !c.IsStolen).Sum(c => c.Count));
+            SetCardCount(_game.Player.HandCount, _game.Player.DeckCount);
 
-            SetOpponentCardCount(_game.OpponentHandCount, _game.OpponentDeckCount);
+            SetOpponentCardCount(_game.Opponent.HandCount, _game.Opponent.DeckCount);
 
 
             LblWins.Visibility = Config.Instance.ShowDeckWins && _game.IsUsingPremade ? Visibility.Visible : Visibility.Collapsed;
             LblDeckTitle.Visibility = Config.Instance.ShowDeckTitle && _game.IsUsingPremade ? Visibility.Visible : Visibility.Collapsed;
             LblWinRateAgainst.Visibility = Config.Instance.ShowWinRateAgainst && _game.IsUsingPremade ? Visibility.Visible : Visibility.Collapsed;
 
-            var showWarning = !_game.IsInMenu && _game.NoMatchingDeck;
+            var showWarning = !_game.IsInMenu && !_game.Player.DrawnCardsMatchDeck;
             StackPanelWarning.Visibility = showWarning ? Visibility.Visible : Visibility.Collapsed;
             if (showWarning)
             {
-                var drawn = new Deck { Cards = new ObservableCollection<Card>(_game.PlayerDrawn.Where(c => !c.IsStolen)) };
+				
+                var drawn = new Deck { Cards = new ObservableCollection<Card>(_game.Player.DrawnCards.Where(c => !c.IsCreated)) };
                 var diff = (drawn - DeckList.Instance.ActiveDeckVersion).Where(c => c.Count > 0).ToList();
                 if (diff.Count > 0)
                 {
@@ -718,8 +720,18 @@ namespace Hearthstone_Deck_Tracker
             var region = (int)_game.CurrentRegion - 1;
             if (region >= 0)
             {
-                LblGoldProgress.Text = string.Format("Wins: {0}/3 ({1}/100G)", Config.Instance.GoldProgress[region],
-                                                     Config.Instance.GoldProgressTotal[region]);
+                int wins = Config.Instance.GoldProgress[region];
+                if (wins < 3)
+                {
+                    LblGoldProgress.Text = string.Format("Wins: {0}/3 ({1}/100G)", wins,
+                        Config.Instance.GoldProgressTotal[region]);
+                }
+                else
+                {
+                    LblGoldProgress.Text = string.Format("At least {2} wins did not get gold reward , Wins: {0}/3 ({1}/100G) , ",
+                        wins,
+                        Config.Instance.GoldProgressTotal[region], wins - 2);
+                }
             }
         }
 
@@ -731,12 +743,12 @@ namespace Hearthstone_Deck_Tracker
 
             LblWins.Text = string.Format("{0} ({1})", selectedDeck.WinLossString, selectedDeck.WinPercentString);
 
-            if (_game.PlayingAgainst != string.Empty)
+            if (!string.IsNullOrEmpty(_game.Opponent.Class))
             {
-                var winsVS = selectedDeck.GetRelevantGames().Count(g => g.Result == GameResult.Win && g.OpponentHero == _game.PlayingAgainst);
-                var lossesVS = selectedDeck.GetRelevantGames().Count(g => g.Result == GameResult.Loss && g.OpponentHero == _game.PlayingAgainst);
+                var winsVS = selectedDeck.GetRelevantGames().Count(g => g.Result == GameResult.Win && g.OpponentHero == _game.Opponent.Class);
+                var lossesVS = selectedDeck.GetRelevantGames().Count(g => g.Result == GameResult.Loss && g.OpponentHero == _game.Opponent.Class);
                 var percent = (winsVS + lossesVS) > 0 ? Math.Round(winsVS * 100.0 / (winsVS + lossesVS), 0).ToString() : "-";
-                LblWinRateAgainst.Text = string.Format("VS {0}: {1} - {2} ({3}%)", _game.PlayingAgainst, winsVS, lossesVS, percent);
+                LblWinRateAgainst.Text = string.Format("VS {0}: {1} - {2} ({3}%)", _game.Opponent.Class, winsVS, lossesVS, percent);
             }
         }
 
@@ -780,7 +792,7 @@ namespace Hearthstone_Deck_Tracker
             if (!Config.Instance.HideOpponentCardMarks && cardMark != null)
             {
                 var index = _cardMarks.IndexOf(cardMark.Label);
-                var card = _game.OpponentStolenCardsInformation[index];
+                var card = Database.GetCardFromId(_game.Opponent.Hand[index].CardId);
                 if (card != null)
                 {
                     ToolTipCard.SetValue(DataContextProperty, card);
@@ -1118,7 +1130,7 @@ namespace Hearthstone_Deck_Tracker
             foreach (var id in secrets)
             {
                 var cardObj = new Controls.Card();
-                var card = GameV2.GetCardFromId(id.CardId);
+                var card = Database.GetCardFromId(id.CardId);
                 card.Count = id.AdjustedCount(_game);
                 cardObj.SetValue(DataContextProperty, card);
                 StackPanelSecrets.Children.Add(cardObj);
@@ -1144,7 +1156,7 @@ namespace Hearthstone_Deck_Tracker
             foreach (var id in CardIds.SubCardIds[card.Id])
             {
                 var tooltip = new CardToolTip();
-                tooltip.SetValue(DataContextProperty, GameV2.GetCardFromId(id));
+                tooltip.SetValue(DataContextProperty, Database.GetCardFromId(id));
                 StackPanelAdditionalTooltips.Children.Add(tooltip);
             }
 
@@ -1303,6 +1315,36 @@ namespace Hearthstone_Deck_Tracker
                 Helper.DpiScalingX = presentationsource.CompositionTarget.TransformToDevice.M11;
                 Helper.DpiScalingY = presentationsource.CompositionTarget.TransformToDevice.M22;
             }
-        }
+		}
+
+	    private DateTime _lastPlayerUpdateReqest = DateTime.MinValue;
+		public async void UpdatePlayerCards()
+		{
+			_lastPlayerUpdateReqest = DateTime.Now;
+			await Task.Delay(50);
+			if((DateTime.Now - _lastPlayerUpdateReqest).Milliseconds < 50)
+				return;
+			OnPropertyChanged("PlayerDeck");
+		}
+
+		private DateTime _lastOpponentUpdateReqest = DateTime.MinValue;
+		public async void UpdateOpponentCards()
+		{
+			_lastOpponentUpdateReqest = DateTime.Now;
+			await Task.Delay(50);
+			if((DateTime.Now - _lastOpponentUpdateReqest).Milliseconds < 50)
+				return;
+			OnPropertyChanged("OpponentDeck");
+		}
+
+		public event PropertyChangedEventHandler PropertyChanged;
+
+	    [NotifyPropertyChangedInvocator]
+	    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	    {
+		    var handler = PropertyChanged;
+		    if(handler != null)
+			    handler(this, new PropertyChangedEventArgs(propertyName));	
+	    }
     }
 }

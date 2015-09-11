@@ -144,7 +144,7 @@ namespace Hearthstone_Deck_Tracker
 					var splitEntry = entry.Split(':');
 					if(splitEntry.Length != 2)
 						continue;
-					var card = GameV2.GetCardFromId(splitEntry[0]);
+					var card = Database.GetCardFromId(splitEntry[0]);
 					if(card.Id == "UNKNOWN")
 						continue;
 					int count;
@@ -222,7 +222,7 @@ namespace Hearthstone_Deck_Tracker
 						cardName = match.Groups["cardname"].Value.Trim();
 					}
 
-					var card = GameV2.GetCardFromName(cardName, localizedNames);
+					var card = Database.GetCardFromName(cardName, localizedNames);
 					if(card == null || string.IsNullOrEmpty(card.Name))
 						continue;
 					card.Count = count;
@@ -290,7 +290,7 @@ namespace Hearthstone_Deck_Tracker
 			var deck = new Deck();
 			foreach(var card in _game.DrawnLastGame)
 			{
-				if(card.IsStolen)
+				if(card.IsCreated)
 					continue;
 
 				deck.Cards.Add(card);
@@ -494,7 +494,10 @@ namespace Hearthstone_Deck_Tracker
 
 
 			var deck = new Deck();
-			deck.Class = _game.PossibleConstructedCards.Last(c => !string.IsNullOrEmpty(c.PlayerClass)).PlayerClass;
+			var lastNonNeutralCard = _game.PossibleConstructedCards.LastOrDefault(c => !string.IsNullOrEmpty(c.PlayerClass));
+			if(lastNonNeutralCard == null)
+				return;
+            deck.Class = lastNonNeutralCard.PlayerClass;
 
 			var legendary = _game.PossibleConstructedCards.Where(c => c.Rarity == "Legendary").ToList();
 			var remaining =
@@ -513,7 +516,7 @@ namespace Hearthstone_Deck_Tracker
 					deck.Class = card.GetPlayerClass;
 			}
 			SetNewDeck(deck);
-			HsLogReaderV2.Instance.ClearLog();
+			//HsLogReaderV2.Instance.ClearLog();
 		}
 	}
 }

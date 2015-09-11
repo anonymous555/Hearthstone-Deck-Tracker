@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using Hearthstone_Deck_Tracker.Hearthstone;
+using Hearthstone_Deck_Tracker.LogReader.Interfaces;
 
 namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 {
@@ -24,7 +25,7 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
                     match = HsLogReaderConstants.NewChoiceRegex.Match(logLine);
                     if (match.Success)
                     {
-	                    if(GameV2.GetHeroNameFromId(match.Groups["id"].Value, false) != null)
+	                    if(Database.GetHeroNameFromId(match.Groups["id"].Value, false) != null)
 		                    game.NewArenaDeck(match.Groups["id"].Value);
 	                    else
 	                    {

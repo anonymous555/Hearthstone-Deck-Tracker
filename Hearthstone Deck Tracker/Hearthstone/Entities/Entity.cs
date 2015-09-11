@@ -77,7 +77,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone.Entities
 			{
 				return _cachedCard
 				       ?? (_cachedCard =
-				           (GameV2.GetCardFromId(CardId)
+				           (Database.GetCardFromId(CardId)
 				            ?? new Card(string.Empty, null, "unknown", "unknown", "unknown", 0, "unknown", 0, 1, "", "", 0, 0, "unknown", null, 0, "",
 				                        "")));
 			}
@@ -190,6 +190,11 @@ namespace Hearthstone_Deck_Tracker.Hearthstone.Entities
 			get { return string.IsNullOrEmpty(Effects) ? Visibility.Collapsed : Visibility.Visible; }
 		}
 
+		public bool IsSecret
+		{
+			get { return HasTag(GAME_TAG.SECRET); }
+		}
+
 		public bool IsInZone(TAG_ZONE zone)
 		{
 			return HasTag(GAME_TAG.ZONE) && GetTag(GAME_TAG.ZONE) == (int)zone;
@@ -214,20 +219,24 @@ namespace Hearthstone_Deck_Tracker.Hearthstone.Entities
 
 		public void SetTag(GAME_TAG tag, int value)
 		{
-			var prevVal = 0;
 			if(!Tags.ContainsKey(tag))
 				Tags.Add(tag, value);
 			else
 			{
-				prevVal = Tags[tag];
 				Tags[tag] = value;
 			}
-			//Logger.WriteLine(string.Format("[id={0} cardId={1} name={2} TAG={3}] {4} -> {5}", Id, CardId, Name, tag, prevVal, value));
 		}
 
 		public void SetCardCount(int count)
 		{
 			Card.Count = count;
+		}
+
+		public override string ToString()
+		{
+			var card = Database.GetCardFromId(CardId);
+			var cardName = card != null ? card.Name : "";
+			return string.Format("id={0}, cardId={1}, cardName={2}", Id, CardId,cardName);
 		}
 	}
 }

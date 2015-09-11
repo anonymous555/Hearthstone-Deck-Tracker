@@ -358,7 +358,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 				TurnStats.Add(turnStats);
 			}
 			turnStats.AddPlay(type, cardId);
-			Logger.WriteLine(string.Format("New play: {0} ({1}, turn: {2})", type, cardId, turn), "GameStats");
+			Logger.WriteLine(string.Format("New play: {0} ({1}, turn: {2})", type, cardId, turn), "GameStats", 2);
 		}
 
 		public override string ToString()
@@ -384,8 +384,8 @@ namespace Hearthstone_Deck_Tracker.Stats
 					if(play.Type == PlayType.OpponentPlay || play.Type == PlayType.OpponentDeckDiscard || play.Type == PlayType.OpponentHandDiscard
 					   || play.Type == PlayType.OpponentSecretTriggered)
 					{
-						var card = GameV2.GetCardFromId(play.CardId);
-						if(GameV2.IsActualCard(card) && (card.PlayerClass == null || card.PlayerClass == OpponentHero))
+						var card = Database.GetCardFromId(play.CardId);
+						if(Database.IsActualCard(card) && (card.PlayerClass == null || card.PlayerClass == OpponentHero))
 						{
 							if(ignoreCards.Contains(card))
 							{
@@ -401,8 +401,8 @@ namespace Hearthstone_Deck_Tracker.Stats
 					}
 					else if(play.Type == PlayType.OpponentBackToHand)
 					{
-						var card = GameV2.GetCardFromId(play.CardId);
-						if(GameV2.IsActualCard(card))
+						var card = Database.GetCardFromId(play.CardId);
+						if(Database.IsActualCard(card))
 							ignoreCards.Add(card);
 					}
 				}
@@ -422,8 +422,8 @@ namespace Hearthstone_Deck_Tracker.Stats
                     if (play.Type == PlayType.OpponentPlay || play.Type == PlayType.OpponentDeckDiscard || play.Type == PlayType.OpponentHandDiscard
                        || play.Type == PlayType.OpponentSecretTriggered)
                     {
-                        var card = Game.GetCardFromId(play.CardId);
-                        if (Game.IsActualCard(card))
+                        var card = Hearthstone.Database.GetCardFromId(play.CardId);
+                        if (Hearthstone.Database.IsActualCard(card))
                         {
                             if (ignoreCards.Contains(card))
                             {
@@ -439,8 +439,8 @@ namespace Hearthstone_Deck_Tracker.Stats
                     }
                     else if (play.Type == PlayType.OpponentBackToHand)
                     {
-                        var card = Game.GetCardFromId(play.CardId);
-                        if (Game.IsActualCard(card))
+                        var card = Hearthstone.Database.GetCardFromId(play.CardId);
+                        if (Hearthstone.Database.IsActualCard(card))
                             ignoreCards.Add(card);
                     }
                 }

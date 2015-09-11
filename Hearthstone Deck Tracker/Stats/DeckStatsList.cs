@@ -152,7 +152,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 
             foreach (String cardid in innerhash.Keys)
             {
-                if (!Hearthstone.Game.OppopentPlayedMaxNumCards(cardid))
+                if (!Hearthstone.GameV2.OppopentPlayedMaxNumCards(cardid))
                 {
                     numpossiblecards += innerhash[cardid];
                 }
@@ -160,7 +160,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 
             foreach (String cardid in innerhash.Keys)
             {
-                if (!Hearthstone.Game.OppopentPlayedMaxNumCards(cardid))
+                if (!Hearthstone.GameV2.OppopentPlayedMaxNumCards(cardid))
                 {
                     float thiscardcount = (float)innerhash[cardid];
                     newcardpercent.cardid = cardid;
@@ -181,7 +181,7 @@ namespace Hearthstone_Deck_Tracker.Stats
             int i;
             for (i = 0; i < MAX_PREDICTIONS && i < SortedList.Count; i++)
             {
-                Hearthstone.Card card = Hearthstone.Game.GetCardFromId(SortedList[i].cardid);
+                Hearthstone.Card card = Hearthstone.Database.GetCardFromId(SortedList[i].cardid);
                 if (card == null)
                 {
                     string percentstring = (SortedList[i].percent * 100.0).ToString("0.0");
@@ -210,7 +210,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 
             ///////////////////// archetype
 
-            var enemycards = API.Core.Game.OpponentCards;
+            var enemycards = GameV2.getOpponentCards();
 
             string archetypestring = ArchetypeDetector.getIngameArchetypeString(enemycards);
             ///////////////////////
@@ -259,7 +259,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 
             for (i = 0; i < MAX_PREDICTIONS && i < SortedList.Count; i++)
             {
-                Hearthstone.Card card = Hearthstone.Game.GetCardFromId(SortedList[i].cardid);
+                Hearthstone.Card card = Hearthstone.Database.GetCardFromId(SortedList[i].cardid);
                 string percentstring = (SortedList[i].percent * 100.0).ToString("0.0");
 /////                predictionstring += card.Name + " " + percentstring + "%" + "\n";
                 card.LocalizedName = card.LocalizedName + " " + percentstring;
@@ -267,7 +267,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 
             }
             //////// archetype 
-            var enemycards = API.Core.Game.OpponentCards;
+            var enemycards = GameV2.getOpponentCards();
             string archetypestring = ArchetypeDetector.getIngameArchetypeString(enemycards);
 
             //// archetype
@@ -281,7 +281,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 
         private static bool isSpell(TurnStats.Play play)
         {
-            Hearthstone.Card card = Hearthstone.Game.GetCardFromId(play.CardId);
+            Hearthstone.Card card = Hearthstone.Database.GetCardFromId(play.CardId);
             return play.Type == PlayType.OpponentHandDiscard && (card != null && card.Type == "Spell");
         }
 

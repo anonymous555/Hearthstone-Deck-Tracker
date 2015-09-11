@@ -1,15 +1,16 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Enums.Hearthstone;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.LogReader.Handlers;
+using Hearthstone_Deck_Tracker.LogReader.Interfaces;
 
 namespace Hearthstone_Deck_Tracker.LogReader
 {
+	[Obsolete("")]
     public class HsLogReaderV2 : IHsLogReader
     {
         //should be about 180,000 lines
@@ -189,7 +190,7 @@ namespace Hearthstone_Deck_Tracker.LogReader
                 if (logLine.StartsWith("["))
                 {
                     GameV2.AddHSLogLine(logLine);
-                    API.LogEvents.OnLogLine.Execute(logLine);
+                    //API.LogEvents.OnLogLine.Execute(logLine);
                 }
 
                 if (logLine.StartsWith("[Power] GameState."))
@@ -255,6 +256,11 @@ namespace Hearthstone_Deck_Tracker.LogReader
                     Enum.TryParse(rawValue, out type);
                     value = (int)type;
                     break;
+				case GAME_TAG.CLASS:
+		            TAG_CLASS @class;
+		            Enum.TryParse(rawValue, out @class);
+		            value = (int)@class;
+		            break;
                 default:
                     int.TryParse(rawValue, out value);
                     break;
@@ -303,7 +309,8 @@ namespace Hearthstone_Deck_Tracker.LogReader
             _gameState.AddToTurn = -1;
             _gameState.GameEnded = false;
             _gameState.FoundSpectatorStart = false;
-            _gameState.NextUpdatedEntityIsJoust = false;
+            _gameState.JoustReveals = 0;
+			_gameState.KnownCardIds.Clear();
         }
 
         public async Task<bool> RankedDetection(int timeoutInSeconds = 3)
@@ -323,7 +330,7 @@ namespace Hearthstone_Deck_Tracker.LogReader
             return _gameState.FoundRanked;
         }
 
-        public async void GetCurrentRegion()
+        public static void GetCurrentRegion(GameV2 game)
         {
             try
             {
@@ -343,7 +350,7 @@ namespace Hearthstone_Deck_Tracker.LogReader
                             Region region;
                             if (Enum.TryParse(match.Groups["region"].Value, out region))
                             {
-                                _game.CurrentRegion = region;
+								game.CurrentRegion = region;
                                 Logger.WriteLine("Current region: " + region, "LogReader");
                                 break;
                             }

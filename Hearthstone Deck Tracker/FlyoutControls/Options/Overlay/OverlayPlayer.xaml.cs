@@ -74,7 +74,6 @@ namespace Hearthstone_Deck_Tracker.FlyoutControls.Options.Overlay
 			if(!_initialized)
 				return;
 			Config.Instance.HighlightCardsInHand = true;
-			_game.HighlightCardsInHand = true;
 			SaveConfig(true);
 		}
 
@@ -83,7 +82,6 @@ namespace Hearthstone_Deck_Tracker.FlyoutControls.Options.Overlay
 			if(!_initialized)
 				return;
 			Config.Instance.HighlightCardsInHand = false;
-			_game.HighlightCardsInHand = false;
 			SaveConfig(true);
 		}
 
@@ -108,7 +106,7 @@ namespace Hearthstone_Deck_Tracker.FlyoutControls.Options.Overlay
 				Helper.OptionsMain.OptionsOverlayOpponent.SliderOverlayOpponentScaling.Value = scaling;
 		}
 
-		private void CheckboxRemoveCards_Checked(object sender, RoutedEventArgs e)
+		private async void CheckboxRemoveCards_Checked(object sender, RoutedEventArgs e)
 		{
 			if(!_initialized || !_game.IsUsingPremade)
 				return;
@@ -117,11 +115,11 @@ namespace Hearthstone_Deck_Tracker.FlyoutControls.Options.Overlay
 			_game.Reset();
 			if(DeckList.Instance.ActiveDeck != null)
 				_game.SetPremadeDeck((Deck)DeckList.Instance.ActiveDeck.Clone());
-			HsLogReaderV2.Instance.Reset(true);
+			await LogReaderManager.Restart();
 			Helper.MainWindow.Overlay.Update(true);
 		}
 
-		private void CheckboxRemoveCards_Unchecked(object sender, RoutedEventArgs e)
+		private async void CheckboxRemoveCards_Unchecked(object sender, RoutedEventArgs e)
 		{
 			if(!_initialized || !_game.IsUsingPremade)
 				return;
@@ -130,7 +128,7 @@ namespace Hearthstone_Deck_Tracker.FlyoutControls.Options.Overlay
 			_game.Reset();
 			if(DeckList.Instance.ActiveDeck != null)
 				_game.SetPremadeDeck((Deck)DeckList.Instance.ActiveDeck.Clone());
-			HsLogReaderV2.Instance.Reset(true);
+			await LogReaderManager.Restart();
 			Helper.MainWindow.Overlay.Update(true);
 		}
 

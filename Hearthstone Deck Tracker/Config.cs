@@ -31,9 +31,6 @@ namespace Hearthstone_Deck_Tracker
 		public bool AdditionalOverlayTooltips = true;
 
 		[DefaultValue(true)]
-		public bool AdvancedWindowSearch = true;
-
-		[DefaultValue(true)]
 		public bool AlwaysOverwriteLogConfig = true;
 
 		[DefaultValue(false)]
@@ -226,16 +223,20 @@ namespace Hearthstone_Deck_Tracker
 		[DefaultValue(0.075)]
 		public double GoldProgessY = 0.93;
 
-		[DefaultValue(new[] {0, 0, 0})]
-		//move this to some data file
-		public int[] GoldProgress = {0, 0, 0};
+        [DefaultValue(new[] { 0, 0, 0, 0, 0 })]
+        //move this to some data file
+        public int[] GoldProgress = { 0, 0, 0, 0, 0 };
 
-		//move this to some data file
-		public DateTime[] GoldProgressLastReset = {DateTime.MinValue, DateTime.MinValue, DateTime.MinValue};
+        //move this to some data file
+        public DateTime[] GoldProgressLastReset =
+        {
+            DateTime.MinValue, DateTime.MinValue, DateTime.MinValue,
+            DateTime.MinValue, DateTime.MinValue,
+        };
 
-		[DefaultValue(new[] {0, 0, 0})]
-		//move this to some data file
-		public int[] GoldProgressTotal = {0, 0, 0};
+        [DefaultValue(new[] { 0, 0, 0, 0, 0 })]
+        //move this to some data file
+        public int[] GoldProgressTotal = { 0, 0, 0, 0, 0 };
 
 		[DefaultValue(null)]
 		public bool? HearthStatsAutoDeleteDecks = null;
@@ -257,6 +258,9 @@ namespace Hearthstone_Deck_Tracker
 
 		[DefaultValue("")]
 		public string HearthstoneDirectory = "";
+
+		[DefaultValue("Hearthstone")]
+		public string HearthstoneWindowName = "Hearthstone";
 
 		[DefaultValue(false)]
 		public bool HideDecksInOverlay = false;
@@ -342,6 +346,9 @@ namespace Hearthstone_Deck_Tracker
 
 		[DefaultValue(0L)]
 		public long LastHearthStatsGamesSync = 0L;
+
+		[DefaultValue(false)]
+		public bool LogConfigConsolePrinting = false;
 
 		[DefaultValue(0)]
 		public int LogLevel = 0;
@@ -736,6 +743,9 @@ namespace Hearthstone_Deck_Tracker
 		public int UpdateDelay = 100;
 
 		[DefaultValue(false)]
+		public bool UseAnyUnityWindow = false;
+
+		[DefaultValue(false)]
 		public bool UseFullTextSearch = false;
 
 		[DefaultValue(false)]
@@ -900,8 +910,7 @@ namespace Hearthstone_Deck_Tracker
 			{
 				if(Instance.ConfigDir != string.Empty)
 					Directory.CreateDirectory(Instance.ConfigDir);
-				using(var sr = new StreamWriter(Instance.ConfigPath, false))
-					sr.WriteLine("<Config></Config>");
+				Save();
 			}
 			else if(Instance.SaveConfigInAppData != null)
 			{

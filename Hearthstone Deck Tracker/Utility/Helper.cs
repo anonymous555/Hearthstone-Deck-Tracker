@@ -24,6 +24,7 @@ using Hearthstone_Deck_Tracker.FlyoutControls;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Win32;
+using Card = Hearthstone_Deck_Tracker.Hearthstone.Card;
 using Color = System.Drawing.Color;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
 using Point = System.Drawing.Point;
@@ -93,13 +94,14 @@ namespace Hearthstone_Deck_Tracker
 			return null;
 		}
 
+		private static Version _currentVersion;
 		// A bug in the SerializableVersion.ToString() method causes this to load Version.xml incorrectly.
 		// The build and revision numbers are swapped (i.e. a Revision of 21 in Version.xml loads to Version.Build == 21).
 		public static Version GetCurrentVersion()
 		{
 			try
 			{
-				return new Version(XmlManager<SerializableVersion>.Load("Version.xml").ToString());
+				return _currentVersion ?? (_currentVersion = new Version(XmlManager<SerializableVersion>.Load("Version.xml").ToString()));
 			}
 			catch(Exception e)
 			{
@@ -221,6 +223,11 @@ namespace Hearthstone_Deck_Tracker
 			view1.SortDescriptions.Add(new SortDescription("LocalizedName", ListSortDirection.Ascending));
 		}
 
+		public static List<Card> ToSortedCardList(this IEnumerable<Card> cards)
+		{
+			return cards.OrderBy(x => x.Cost).ThenByDescending(x => x.Type).ThenBy(x => x.LocalizedName).ToArray().ToList();
+		}
+
 		public static string DeckToIdString(Deck deck)
 		{
 			return deck.GetSelectedDeckVersion().Cards.Aggregate("", (current, card) => current + (card.Id + ":" + card.Count + ";"));
@@ -302,10 +309,10 @@ namespace Hearthstone_Deck_Tracker
 				MainWindow.Overlay.Update(false);
 
 			if(MainWindow.PlayerWindow.IsVisible)
-				MainWindow.PlayerWindow.SetCardCount(game.PlayerHandCount, 30 - game.PlayerDrawn.Sum(card => card.Count));
+				MainWindow.PlayerWindow.SetCardCount(game.Player.HandCount, game.Player.DeckCount);
 
 			if(MainWindow.OpponentWindow.IsVisible)
-				MainWindow.OpponentWindow.SetOpponentCardCount(game.OpponentHandCount, game.OpponentDeckCount, game.OpponentHasCoin);
+				MainWindow.OpponentWindow.SetOpponentCardCount(game.Opponent.HandCount, game.Opponent.DeckCount, game.Opponent.HasCoin);
 
 
 			if(MainWindow.NeedToIncorrectDeckMessage && !MainWindow.IsShowingIncorrectDeckMessage && game.CurrentGameMode != GameMode.Spectator)
@@ -463,6 +470,18 @@ namespace Hearthstone_Deck_Tracker
 				}
 				file.ExtractToFile(completeFileName, true);
 			}
+		}
+
+		public static void UpdatePlayerCards()
+		{
+			MainWindow.Overlay.UpdatePlayerCards();
+			MainWindow.PlayerWindow.UpdatePlayerCards();
+		}
+
+		public static void UpdateOpponentCards()
+		{
+			MainWindow.Overlay.UpdateOpponentCards();
+			MainWindow.OpponentWindow.UpdateOpponentCards();
 		}
 	}
 }
