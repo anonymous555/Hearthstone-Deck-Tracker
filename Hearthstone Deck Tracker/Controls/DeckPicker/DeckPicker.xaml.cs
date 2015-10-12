@@ -325,6 +325,8 @@ namespace Hearthstone_Deck_Tracker.Controls.DeckPicker
 				SelectDeck(selectedDeck);
 			if(ActiveDeck != null)
 				ActiveDeck.StatsUpdated();
+            /// EGB
+            Core.MainWindow.DeckPickerList.RefreshDisplayedDecks();
 		}
 
 		private DeckPickerItem GetDeckPickerItemFromCache(Deck deck)

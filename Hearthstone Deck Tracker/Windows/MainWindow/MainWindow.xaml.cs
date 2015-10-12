@@ -933,6 +933,9 @@ namespace Hearthstone_Deck_Tracker.Windows
 		private void DeckPickerList_OnSelectedDeckChanged(DeckPicker sender, Deck deck)
 		{
 			SelectDeck(deck, Config.Instance.AutoUseDeck);
+            /// EGB
+            DeckPickerList.UpdateDecks();
+            Core.MainWindow.DeckPickerList.RefreshDisplayedDecks();
 		}
 
 		public void SelectDeck(Deck deck, bool setActive)
