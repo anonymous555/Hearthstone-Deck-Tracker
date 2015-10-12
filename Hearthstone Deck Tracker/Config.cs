@@ -39,6 +39,18 @@ namespace Hearthstone_Deck_Tracker
 		[DefaultValue(true)]
 		public bool AskBeforeDiscardingGame = true;
 
+		[DefaultValue(71.67)]
+		public double AttackIconPlayerVerticalPosition = 71.67;
+
+		[DefaultValue(67.5)]
+		public double AttackIconPlayerHorizontalPosition = 67.5;
+
+		[DefaultValue(19.91)]
+		public double AttackIconOpponentVerticalPosition = 19.91;
+
+		[DefaultValue(67.5)]
+		public double AttackIconOpponentHorizontalPosition = 67.5;
+
 		[DefaultValue(true)]
 		public bool AutoClearDeck = true;
 
@@ -205,6 +217,9 @@ namespace Hearthstone_Deck_Tracker
 		[DefaultValue(1)]
 		public int ExportStartDelay = 1;
 
+		[DefaultValue(true)]
+		public bool EnableExportAutoFilter = true;
+
 		[DefaultValue(false)]
 		public bool ExtraFeatures = false;
 
@@ -274,6 +289,9 @@ namespace Hearthstone_Deck_Tracker
 		[DefaultValue(false)]
 		public bool HideInMenu = false;
 
+		[DefaultValue(true)]
+		public bool HideOpponentAttackIcon = true;
+
 		[DefaultValue(false)]
 		public bool HideOpponentCardAge = false;
 
@@ -297,6 +315,9 @@ namespace Hearthstone_Deck_Tracker
 
 		[DefaultValue(false)]
 		public bool HideOverlayInSpectator = false;
+
+		[DefaultValue(true)]
+		public bool HidePlayerAttackIcon = true;
 
 		[DefaultValue(false)]
 		public bool HidePlayerCardCount = false;
@@ -459,6 +480,9 @@ namespace Hearthstone_Deck_Tracker
 		public bool RarityCardFrames = true;
 
 		[DefaultValue(true)]
+		public bool RarityCardGems = true;
+
+		[DefaultValue(true)]
 		public bool RecordArena = true;
 
 		[DefaultValue(true)]
@@ -583,6 +607,10 @@ namespace Hearthstone_Deck_Tracker
 
 		[DefaultValue("enUS")]
 		public string SelectedLanguage = "enUS";
+
+		[XmlArray(ElementName = "AlternativeLanguages")]
+		[XmlArrayItem(ElementName = "Language")]
+		public List<string> AlternativeLanguages = new List<string>();
 
 		[DefaultValue(GameMode.All)]
 		public GameMode SelectedStatsFilterGameMode = GameMode.All;

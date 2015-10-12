@@ -819,6 +819,10 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                 return false;
             foreach (Card newcard in Cards)
             {
+                if (newcard.Set == null)
+                {
+                    return false;
+                }
                 if (newcard.Set.Equals(setname))
                 {
                     return true;
