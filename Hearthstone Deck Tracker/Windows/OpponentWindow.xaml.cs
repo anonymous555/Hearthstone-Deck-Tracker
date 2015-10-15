@@ -59,7 +59,28 @@ namespace Hearthstone_Deck_Tracker
 
 		public List<Card> OpponentDeck
 		{
-			get { return _game.Opponent.DisplayRevealedCards; }
+            /// EGB return archetype deck here
+            /// get { return _game.Opponent.DisplayRevealedCards; }
+            
+        
+
+            get {
+                if (ArchetypeDetector.best_archetype_deck != null)
+                {
+                    List<Card> cardlist = new List<Card>();
+                    foreach(Card card in ArchetypeDetector.best_archetype_deck.deck.Cards)
+                    {
+                        cardlist.Add(card);
+                    }
+                    LblWinRateAgainst.Text = ArchetypeDetector.best_archetype_deck.archetypename;
+                    return cardlist.ToSortedCardList();
+                }
+                else
+                {
+                    return _game.Opponent.DisplayRevealedCards;
+                }
+        
+            }
 		}
 
 		public bool ShowToolTip
@@ -82,7 +103,8 @@ namespace Hearthstone_Deck_Tracker
 				var winsVs = selectedDeck.GetRelevantGames().Count(g => g.Result == GameResult.Win && g.OpponentHero == _game.Opponent.Class);
 				var lossesVs = selectedDeck.GetRelevantGames().Count(g => g.Result == GameResult.Loss && g.OpponentHero == _game.Opponent.Class);
 				var percent = (winsVs + lossesVs) > 0 ? Math.Round(winsVs * 100.0 / (winsVs + lossesVs), 0).ToString(CultureInfo.InvariantCulture) : "-";
-				LblWinRateAgainst.Text = string.Format("VS {0}: {1} - {2} ({3}%)", _game.Opponent.Class, winsVs, lossesVs, percent);
+				//LblWinRateAgainst.Text = string.Format("VS {0}: {1} - {2} ({3}%)", _game.Opponent.Class, winsVs, lossesVs, percent);
+                ListViewOpponent.ItemsSource = OpponentDeck; 
 			}
 		}
 

@@ -14,7 +14,7 @@ using Hearthstone_Deck_Tracker.Hearthstone;
 
 namespace Hearthstone_Deck_Tracker
 {
-    class ArchetypeDeck
+    public class ArchetypeDeck
     {
         public Deck deck;
         public string archetypename;
@@ -111,6 +111,8 @@ namespace Hearthstone_Deck_Tracker
         }
 
 
+        public static ArchetypeDeck best_archetype_deck = null;
+
         // returns the single best archetype
         public String getArchetypeString(Deck otherdeck, bool concatcount )
         {
@@ -141,6 +143,7 @@ namespace Hearthstone_Deck_Tracker
         {
             public int percent;
             public string name;
+            public ArchetypeDeck archetype;
         }
 
         public String getArchetypeStringInGame(Deck otherdeck)
@@ -167,6 +170,7 @@ namespace Hearthstone_Deck_Tracker
                     ArchetypeResult newresult;
                     newresult.percent = intpercent;
                     newresult.name = archetype.archetypename;
+                    newresult.archetype = archetype;
 
                     archresults.Add(newresult);
                     
@@ -181,6 +185,12 @@ namespace Hearthstone_Deck_Tracker
             {
                 if (count < 5 && archetyperesult.percent > 40)
                 {
+                    if (count == 0)
+                    {
+                        /// assign the global
+                        /// 
+                        best_archetype_deck = archetyperesult.archetype;
+                    }
                     returnstring += archetyperesult.name + " %" + archetyperesult.percent + "\n";
                 }
                 count += 1;
