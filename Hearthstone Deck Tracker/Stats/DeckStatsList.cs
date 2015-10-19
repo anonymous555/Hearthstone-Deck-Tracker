@@ -440,7 +440,7 @@ namespace Hearthstone_Deck_Tracker.Stats
                         cards_played_last_turn.Clear();
                         foreach (TurnStats.Play play in turn.Plays)
                         {
-                            if (play.Type == PlayType.OpponentPlay || isSpell(play))
+                            if (play.Type == PlayType.OpponentPlay || isSpell(play) || play.Type == PlayType.OpponentHeroPower)
                             {
                                 cards_played_last_turn.Add(play.CardId);
                             }
