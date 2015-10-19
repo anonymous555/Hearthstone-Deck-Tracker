@@ -460,7 +460,6 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			}
 		}
 
-
         public ImageSource FullCardImage
         {
             get
@@ -496,7 +495,9 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
         }
 
 
+		[XmlIgnore]
 		public bool HighlightDraw { get; set; }
+		[XmlIgnore]
 		public bool HighlightInHand { get; set; }
 
 
