@@ -263,8 +263,10 @@ namespace Hearthstone_Deck_Tracker
                 }
                 else
                 {
-                    DeckStatsList.doPredictionLastCard(API.Core.Game.Opponent.Class, last_opponent_turn + 1, GameV2.lastOpponentPlays);
+                    DeckStatsList.doPrediction2away(API.Core.Game.Opponent.Class, last_opponent_turn + 1,
+                        GameV2.lastOpponentPlays, GameV2.lastOpponentPlays2nd);
                 }
+                GameV2.lastOpponentPlays2nd = GameV2.lastOpponentPlays;
                 GameV2.lastOpponentPlays.Clear();
             }
             GameEvents.OnTurnStart.Execute(player);

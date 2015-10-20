@@ -134,6 +134,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
             {
                 if (turn != last_turn_num)
                 {
+                    GameV2.lastOpponentPlays2nd = GameV2.lastOpponentPlays;
                     lastOpponentPlays.Clear();
                 }
                 lastOpponentPlays.Add(cardId);
@@ -148,6 +149,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
             {
                 if (turn != last_turn_num)
                 {
+                    GameV2.lastOpponentPlays2nd = GameV2.lastOpponentPlays;
                     lastOpponentPlays.Clear();
                 }
                 lastOpponentPlays.Add("Secret Played");
@@ -160,6 +162,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                 if (turn != last_turn_num)
                 {
                     lastOpponentPlays.Clear();
+                    GameV2.lastOpponentPlays2nd = GameV2.lastOpponentPlays;
                 }
                 if (!string.IsNullOrEmpty(cardId))
                 {
@@ -304,6 +307,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		#endregion
 
         public static List<string> lastOpponentPlays = new List<string>();
+        public static List<string> lastOpponentPlays2nd = new List<string>();
         private static int last_turn_num = 0;
         public static int playermanaspent = 0;
         public static int opponentmanaspent = 0;
