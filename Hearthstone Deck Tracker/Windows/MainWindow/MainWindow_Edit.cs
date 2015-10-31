@@ -7,6 +7,7 @@ using System.Windows;
 using Hearthstone_Deck_Tracker.API;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.HearthStats.API;
+using Hearthstone_Deck_Tracker.Importing;
 using Hearthstone_Deck_Tracker.Stats;
 using MahApps.Metro.Controls.Dialogs;
 
@@ -29,7 +30,7 @@ namespace Hearthstone_Deck_Tracker.Windows
 			if(!decks.Any())
 				return;
 
-			var settings = new MetroDialogSettings {AffirmativeButtonText = "Yes", NegativeButtonText = "No"};
+			var settings = new MessageDialogs.Settings {AffirmativeButtonText = "Yes", NegativeButtonText = "No"};
 			var keepStatsInfo = Config.Instance.KeepStatsWhenDeletingDeck
 				                    ? "The stats will be kept (can be changed in options)"
 				                    : "The stats will be deleted (can be changed in options)";
@@ -61,7 +62,9 @@ namespace Hearthstone_Deck_Tracker.Windows
 				{
 					if(Config.Instance.KeepStatsWhenDeletingDeck)
 					{
-						DefaultDeckStats.Instance.GetDeckStats(deck.Class).Games.AddRange(deckStats.Games);
+						var defaultDeck = DefaultDeckStats.Instance.GetDeckStats(deck.Class);
+						if(defaultDeck != null)
+							defaultDeck.Games.AddRange(deckStats.Games);
 						DefaultDeckStats.Save();
 						Logger.WriteLine(string.Format("Moved deckstats for deck {0} to default stats", deck.Name), "Edit");
 					}
@@ -177,7 +180,7 @@ namespace Hearthstone_Deck_Tracker.Windows
 				(await
 				 this.ShowMessageAsync("Clone game history?", "(Cloned games do not count towards class or overall stats.)",
 				                       MessageDialogStyle.AffirmativeAndNegative,
-				                       new MetroDialogSettings
+				                       new MessageDialogs.Settings
 				                       {
 					                       AffirmativeButtonText = "clone history",
 					                       NegativeButtonText = "do not clone history"
@@ -228,7 +231,7 @@ namespace Hearthstone_Deck_Tracker.Windows
 				(await
 				 this.ShowMessageAsync("Clone game history?", "(Cloned games do not count towards class or overall stats.)",
 				                       MessageDialogStyle.AffirmativeAndNegative,
-				                       new MetroDialogSettings
+				                       new MessageDialogs.Settings
 				                       {
 					                       AffirmativeButtonText = "clone history",
 					                       NegativeButtonText = "do not clone history"
@@ -353,7 +356,7 @@ namespace Hearthstone_Deck_Tracker.Windows
 			var deck = DeckPickerList.SelectedDecks.FirstOrDefault();
 			if(deck == null)
 				return;
-			var settings = new MetroDialogSettings {AffirmativeButtonText = "set", NegativeButtonText = "cancel", DefaultText = deck.Name};
+			var settings = new MessageDialogs.Settings {AffirmativeButtonText = "set", NegativeButtonText = "cancel", DefaultText = deck.Name};
 			var newName = await this.ShowInputAsync("Set deck name", "", settings);
 			if(!string.IsNullOrEmpty(newName) && deck.Name != newName)
 			{

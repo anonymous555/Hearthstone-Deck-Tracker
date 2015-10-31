@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Hearthstone_Deck_Tracker.Enums;
+using Hearthstone_Deck_Tracker.Stats.CompiledStats;
 using Hearthstone_Deck_Tracker.Windows;
 using MahApps.Metro;
 
@@ -34,7 +35,9 @@ namespace Hearthstone_Deck_Tracker.FlyoutControls.Options.Tracker
 			ComboboxLanguages.ItemsSource = Helper.LanguageDict.Keys;
 			ComboBoxDeckLayout.ItemsSource = Enum.GetValues(typeof(DeckLayout));
 			ComboBoxIconSet.ItemsSource = Enum.GetValues(typeof(IconStyle));
+			ComboBoxClassColors.ItemsSource = Enum.GetValues(typeof(ClassColorScheme));
 			CheckboxDeckPickerCaps.IsChecked = Config.Instance.DeckPickerCaps;
+			CheckboxUseAnimations.IsChecked = Config.Instance.UseAnimations;
 
 			if(Helper.LanguageDict.Values.Contains(Config.Instance.SelectedLanguage))
 				ComboboxLanguages.SelectedItem = Helper.LanguageDict.First(x => x.Value == Config.Instance.SelectedLanguage).Key;
@@ -48,6 +51,8 @@ namespace Hearthstone_Deck_Tracker.FlyoutControls.Options.Tracker
 
 			ComboBoxIconSet.SelectedItem = Config.Instance.ClassIconStyle;
 			ComboBoxDeckLayout.SelectedItem = Config.Instance.DeckPickerItemLayout;
+			ComboBoxClassColors.SelectedItem = Config.Instance.ClassColorScheme;
+			CheckBoxArenaStatsTextColoring.IsChecked = Config.Instance.ArenaStatsTextColoring;
 
 			_initialized = true;
 		}
@@ -180,6 +185,50 @@ namespace Hearthstone_Deck_Tracker.FlyoutControls.Options.Tracker
 			Config.Instance.DeckPickerCaps = false;
 			Config.Save();
 			Core.MainWindow.ShowMessage("Restart required.", "Please restart HDT for this setting to take effect.");
+		}
+
+		private void CheckboxUseAnimations_Unchecked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized)
+				return;
+			Config.Instance.UseAnimations = false;
+			Core.MainWindow.UpdateFlyoutAnimationsEnabled();
+			Config.Save();
+		}
+
+		private void CheckboxUseAnimations_Checked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized)
+				return;
+			Config.Instance.UseAnimations = true;
+			Core.MainWindow.UpdateFlyoutAnimationsEnabled();
+			Config.Save();
+		}
+
+		private void ComboBoxClassColors_SelectionChanged(object sender, SelectionChangedEventArgs e)
+		{
+			if(!_initialized)
+				return;
+			Config.Instance.ClassColorScheme = (ClassColorScheme)ComboBoxClassColors.SelectedItem;
+			Config.Save();
+		}
+
+		private void CheckBoxArenaStatsTextColoring_Checked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized)
+				return;
+			Config.Instance.ArenaStatsTextColoring = true;
+			Config.Save();
+			ArenaStats.Instance.UpdateArenaStatsHighlights();
+		}
+
+		private void CheckBoxArenaStatsTextColoring_Unchecked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized)
+				return;
+			Config.Instance.ArenaStatsTextColoring = false;
+			Config.Save();
+			ArenaStats.Instance.UpdateArenaStatsHighlights();
 		}
 	}
 }

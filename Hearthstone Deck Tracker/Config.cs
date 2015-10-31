@@ -18,7 +18,7 @@ namespace Hearthstone_Deck_Tracker
 
 		private static Config _config;
 
-		public readonly string AppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
+		public static readonly string AppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
 		                                     + @"\HearthstoneDeckTracker";
 
 		[DefaultValue("Blue")]
@@ -33,11 +33,35 @@ namespace Hearthstone_Deck_Tracker
 		[DefaultValue(true)]
 		public bool AlwaysOverwriteLogConfig = true;
 
+		[DefaultValue(true)]
+		public bool ArenaRewardDialog = true;
+
 		[DefaultValue(false)]
 		public bool AlwaysShowGoldProgress = false;
 
+		[DefaultValue(DisplayedTimeFrame.AllTime)]
+		public DisplayedTimeFrame ArenaStatsTimeFrameFilter = DisplayedTimeFrame.AllTime;
+
+		[DefaultValue(null)]
+		public DateTime? ArenaStatsTimeFrameCustomStart = null;
+
+		[DefaultValue(null)]
+		public DateTime? ArenaStatsTimeFrameCustomEnd = null;
+
+		[DefaultValue(RegionAll.ALL)]
+		public RegionAll ArenaStatsRegionFilter = RegionAll.ALL;
+
+		[DefaultValue(true)]
+		public bool ArenaStatsShowLegends = true;
+		
+		[DefaultValue(true)]
+		public bool ArenaStatsTextColoring = true;
+
 		[DefaultValue(true)]
 		public bool AskBeforeDiscardingGame = true;
+
+		[DefaultValue(true)]
+		public bool ArenaStatsIncludeArchived = true;
 
 		[DefaultValue(71.67)]
 		public double AttackIconPlayerVerticalPosition = 71.67;
@@ -86,6 +110,9 @@ namespace Hearthstone_Deck_Tracker
 
 		[DefaultValue(true)]
 		public bool CheckForUpdates = true;
+
+		[DefaultValue(ClassColorScheme.Classic)]
+		public ClassColorScheme ClassColorScheme = ClassColorScheme.Classic;
 
 		[DefaultValue(IconStyle.Round)]
 		public IconStyle ClassIconStyle = IconStyle.Round;
@@ -153,6 +180,9 @@ namespace Hearthstone_Deck_Tracker
 
 		[DefaultValue(0.915)]
 		public double ExportAllButtonY = 0.915;
+
+		[DefaultValue(false)]
+		public bool ExportAddDeckVersionToName = false;
 
 		[DefaultValue(0.118)]
 		public double ExportZeroButtonX = 0.118;
@@ -223,6 +253,12 @@ namespace Hearthstone_Deck_Tracker
 		[DefaultValue(false)]
 		public bool ExtraFeatures = false;
 
+		[DefaultValue(true)]
+		public bool ExtraFeaturesFriendslist = true;
+
+		[DefaultValue(false)]
+		public bool ExtraFeaturesSecrets = false;
+
 		[DefaultValue(false)]
 		public bool FixedDuplicateMatches = false;
 
@@ -253,6 +289,9 @@ namespace Hearthstone_Deck_Tracker
         //move this to some data file
         public int[] GoldProgressTotal = { 0, 0, 0, 0, 0 };
 
+		[DefaultValue(true)]
+		public bool GoogleAnalytics = true;
+
 		[DefaultValue(null)]
 		public bool? HearthStatsAutoDeleteDecks = null;
 
@@ -276,6 +315,9 @@ namespace Hearthstone_Deck_Tracker
 
 		[DefaultValue("Hearthstone")]
 		public string HearthstoneWindowName = "Hearthstone";
+
+		[DefaultValue(HeroClassStatsFilter.All)]
+		public HeroClassStatsFilter ArenaStatsClassFilter = HeroClassStatsFilter.All;
 
 		[DefaultValue(false)]
 		public bool HideDecksInOverlay = false;
@@ -653,6 +695,9 @@ namespace Hearthstone_Deck_Tracker
 		[DefaultValue(true)]
 		public bool ShowLoginDialog = true;
 
+		[DefaultValue(true)]
+		public bool ShowSplashScreen = true;
+
 		[DefaultValue(false)]
 		public bool ShowLogTab = false;
 
@@ -775,6 +820,9 @@ namespace Hearthstone_Deck_Tracker
 
 		[DefaultValue(false)]
 		public bool UseAnyUnityWindow = false;
+ 
+		[DefaultValue(true)]
+		public bool UseAnimations = true;
 
 		[DefaultValue(false)]
 		public bool UseFullTextSearch = false;
@@ -920,9 +968,9 @@ namespace Hearthstone_Deck_Tracker
 					_config = XmlManager<Config>.Load("config.xml");
 					foundConfig = true;
 				}
-				else if(File.Exists(Instance.AppDataPath + @"\config.xml"))
+				else if(File.Exists(AppDataPath + @"\config.xml"))
 				{
-					_config = XmlManager<Config>.Load(Instance.AppDataPath + @"\config.xml");
+					_config = XmlManager<Config>.Load(AppDataPath + @"\config.xml");
 					foundConfig = true;
 				}
 				else if(!Directory.Exists(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)))
@@ -955,10 +1003,10 @@ namespace Hearthstone_Deck_Tracker
 						Logger.WriteLine("Moved config to appdata", "Config");
 					}
 				}
-				else if(File.Exists(Instance.AppDataPath + @"\config.xml"))
+				else if(File.Exists(AppDataPath + @"\config.xml"))
 				{
 					SaveBackup(true); //backup in case the file already exists
-					File.Move(Instance.AppDataPath + @"\config.xml", Instance.ConfigPath);
+					File.Move(AppDataPath + @"\config.xml", Instance.ConfigPath);
 					Logger.WriteLine("Moved config to local", "Config");
 				}
 			}

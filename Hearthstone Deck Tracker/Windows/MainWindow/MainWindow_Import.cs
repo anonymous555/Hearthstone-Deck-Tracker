@@ -6,7 +6,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Hearthstone;
+using Hearthstone_Deck_Tracker.Importing;
 using Hearthstone_Deck_Tracker.Utility;
 using MahApps.Metro.Controls.Dialogs;
 using Microsoft.Win32;
@@ -17,12 +19,17 @@ namespace Hearthstone_Deck_Tracker.Windows
 {
 	public partial class MainWindow
 	{
-		private async void BtnWeb_Click(object sender, RoutedEventArgs e)
+		private void BtnWeb_Click(object sender, RoutedEventArgs e)
 		{
-			var url = await InputDeckURL();
+			ImportDeck();
+		}
+
+		public async void ImportDeck(string url = null)
+		{
+			if(url == null)
+				url = await InputDeckURL();
 			if(url == null)
 				return;
-
 			var deck = await ImportDeckFromURL(url);
 			if(deck != null)
 			{
@@ -42,7 +49,7 @@ namespace Hearthstone_Deck_Tracker.Windows
 
 		private async Task<string> InputDeckURL()
 		{
-			var settings = new MetroDialogSettings();
+			var settings = new MessageDialogs.Settings();
 			var clipboard = Clipboard.ContainsText() ? Clipboard.GetText() : "";
 			var validUrls = new[]
 			{
@@ -72,7 +79,7 @@ namespace Hearthstone_Deck_Tracker.Windows
 					this.ShowMessageAsync("NetDeck",
 					                      "For easier (one-click!) web importing check out the NetDeck Chrome Extension!\n\n(This message will not be displayed again, no worries.)",
 					                      MessageDialogStyle.AffirmativeAndNegative,
-					                      new MetroDialogSettings {AffirmativeButtonText = "Show me!", NegativeButtonText = "No thanks"});
+					                      new MessageDialogs.Settings {AffirmativeButtonText = "Show me!", NegativeButtonText = "No thanks"});
 
 				if(result == MessageDialogResult.Affirmative)
 				{
@@ -82,7 +89,7 @@ namespace Hearthstone_Deck_Tracker.Windows
 						this.ShowMessageAsync("Enable one-click importing?",
 						                      "Would you like to enable one-click importing via NetDeck?\n(options > other > importing)",
 						                      MessageDialogStyle.AffirmativeAndNegative,
-						                      new MetroDialogSettings {AffirmativeButtonText = "Yes", NegativeButtonText = "No"});
+						                      new MessageDialogs.Settings {AffirmativeButtonText = "Yes", NegativeButtonText = "No"});
 					if(enableOptionResult == MessageDialogResult.Affirmative)
 					{
 						Options.OptionsTrackerImporting.CheckboxImportNetDeck.IsChecked = true;
@@ -120,7 +127,7 @@ namespace Hearthstone_Deck_Tracker.Windows
 		{
 			try
 			{
-				var settings = new MetroDialogSettings();
+				var settings = new MessageDialogs.Settings();
 				var clipboard = Clipboard.ContainsText() ? Clipboard.GetText() : "";
 				if(clipboard.Count(c => c == ':') > 0 && clipboard.Count(c => c == ';') > 0)
 					settings.DefaultText = clipboard;
@@ -285,7 +292,7 @@ namespace Hearthstone_Deck_Tracker.Windows
 			}
 			else
 			{
-				if(Core.Game.TempArenaDeck == null)
+				if(!Core.Game.TempArenaDeck.Cards.Any())
 				{
 					await this.ShowMessageAsync("No arena deck found", "Please enter the arena screen (and build your deck).");
 				}
@@ -410,7 +417,13 @@ namespace Hearthstone_Deck_Tracker.Windows
 			ActivateWindow();
 		}
 
-		private async void BtnConstructed_Click(object sender, RoutedEventArgs e)
+		private void BtnConstructed_Click(object sender, RoutedEventArgs e)
+		{
+			ImportConstructedDeck();
+			//HsLogReaderV2.Instance.ClearLog();
+		}
+
+		public async Task ImportConstructedDeck()
 		{
 			if(Config.Instance.ShowConstructedImportMessage || Core.Game.PossibleConstructedCards.Count < 10)
 			{
@@ -419,9 +432,9 @@ namespace Hearthstone_Deck_Tracker.Windows
 					var result =
 						await
 						this.ShowMessageAsync("Setting up",
-						                      "This functionality requires a quick semi-automatic setup. HDT needs to know whichs cards on the first page for each class exist as golden and normal.\n\nYou may have to run the setup again if those cards change: 'options > tracker > importing'",
-						                      MessageDialogStyle.AffirmativeAndNegative,
-						                      new MetroDialogSettings {AffirmativeButtonText = "start", NegativeButtonText = "cancel"});
+											  "This functionality requires a quick semi-automatic setup. HDT needs to know whichs cards on the first page for each class exist as golden and normal.\n\nYou may have to run the setup again if those cards change: 'options > tracker > importing'",
+											  MessageDialogStyle.AffirmativeAndNegative,
+											  new MessageDialogs.Settings { AffirmativeButtonText = "start", NegativeButtonText = "cancel" });
 					if(result != MessageDialogResult.Affirmative)
 						return;
 					await Helper.SetupConstructedImporting(Core.Game);
@@ -430,7 +443,7 @@ namespace Hearthstone_Deck_Tracker.Windows
 				}
 				await
 					this.ShowMessageAsync("How this works:",
-					                      "0) Build your deck\n\n1) Go to the main menu (always start from here)\n\n2) Open \"My Collection\" and open the deck you want to import (do not edit the deck at this point)\n\n3) Go straight back to the main menu\n\n4) Press \"IMPORT > FROM GAME: CONSTRUCTED\"\n\n5) Adjust the numbers\n\nWhy the last step? Because this is not perfect. It is only detectable which cards are in the deck but NOT how many of each. Depening on what requires less clicks, non-legendary cards will default to 1 or 2. There may issues importing druid cards that exist as normal and golden on your first page.\n\nYou can see this information again in 'options > tracker > importing'");
+										  "0) Build your deck\n\n1) Go to the main menu (always start from here)\n\n2) Open \"My Collection\" and open the deck you want to import (do not edit the deck at this point)\n\n3) Go straight back to the main menu\n\n4) Press \"IMPORT > FROM GAME: CONSTRUCTED\"\n\n5) Adjust the numbers\n\nWhy the last step? Because this is not perfect. It is only detectable which cards are in the deck but NOT how many of each. Depening on what requires less clicks, non-legendary cards will default to 1 or 2. There may issues importing druid cards that exist as normal and golden on your first page.\n\nYou can see this information again in 'options > tracker > importing'");
 				if(Core.Game.PossibleConstructedCards.Count(c => c.PlayerClass == "Druid" || c.PlayerClass == null) < 10
 				   && Core.Game.PossibleConstructedCards.Count(c => c.PlayerClass != "Druid") < 10)
 					return;
@@ -441,26 +454,25 @@ namespace Hearthstone_Deck_Tracker.Windows
 			var lastNonNeutralCard = Core.Game.PossibleConstructedCards.LastOrDefault(c => !string.IsNullOrEmpty(c.PlayerClass));
 			if(lastNonNeutralCard == null)
 				return;
-            deck.Class = lastNonNeutralCard.PlayerClass;
+			deck.Class = lastNonNeutralCard.PlayerClass;
 
-			var legendary = Core.Game.PossibleConstructedCards.Where(c => c.Rarity == "Legendary").ToList();
+			var legendary = Core.Game.PossibleConstructedCards.Where(c => c.Rarity == Rarity.Legendary).ToList();
 			var remaining =
-                Core.Game.PossibleConstructedCards.Where(
-				                                    c =>
-				                                    c.Rarity != "Legendary" && (string.IsNullOrEmpty(c.PlayerClass) || c.PlayerClass == deck.Class))
-				    .ToList();
+				Core.Game.PossibleConstructedCards.Where(
+													c =>
+													c.Rarity != Rarity.Legendary && (string.IsNullOrEmpty(c.PlayerClass) || c.PlayerClass == deck.Class))
+					.ToList();
 			var count = Math.Abs(30 - (2 * remaining.Count + legendary.Count)) < Math.Abs(30 - (remaining.Count + legendary.Count)) ? 2 : 1;
 			foreach(var card in Core.Game.PossibleConstructedCards)
 			{
 				if(!string.IsNullOrEmpty(card.PlayerClass) && card.PlayerClass != deck.Class)
 					continue;
-				card.Count = card.Rarity == "Legendary" ? 1 : count;
+				card.Count = card.Rarity == Rarity.Legendary ? 1 : count;
 				deck.Cards.Add(card);
 				if(deck.Class == null && card.GetPlayerClass != "Neutral")
 					deck.Class = card.GetPlayerClass;
 			}
 			SetNewDeck(deck);
-			//HsLogReaderV2.Instance.ClearLog();
 		}
 	}
 }

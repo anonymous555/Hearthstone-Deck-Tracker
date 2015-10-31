@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Forms;
 using Hearthstone_Deck_Tracker.Annotations;
 using Hearthstone_Deck_Tracker.API;
@@ -24,6 +25,7 @@ using Hearthstone_Deck_Tracker.Plugins;
 using Hearthstone_Deck_Tracker.Replay;
 using Hearthstone_Deck_Tracker.Stats;
 using Hearthstone_Deck_Tracker.Utility;
+using MahApps.Metro.Controls;
 using MahApps.Metro.Controls.Dialogs;
 using Application = System.Windows.Application;
 using Card = Hearthstone_Deck_Tracker.Hearthstone.Card;
@@ -414,7 +416,7 @@ namespace Hearthstone_Deck_Tracker.Windows
 			var result =
 				await
 				this.ShowMessageAsync("Full sync", "This may take a while, are you sure?", MessageDialogStyle.AffirmativeAndNegative,
-				                      new MetroDialogSettings {AffirmativeButtonText = "start full sync", NegativeButtonText = "cancel"});
+				                      new MessageDialogs.Settings {AffirmativeButtonText = "start full sync", NegativeButtonText = "cancel"});
 			if(result == MessageDialogResult.Affirmative)
 				HearthStatsManager.SyncAsync(true);
 		}
@@ -424,7 +426,7 @@ namespace Hearthstone_Deck_Tracker.Windows
 			var result =
 				await
 				this.ShowMessageAsync("Logout?", "Are you sure you want to logout?", MessageDialogStyle.AffirmativeAndNegative,
-				                      new MetroDialogSettings {AffirmativeButtonText = "logout", NegativeButtonText = "cancel"});
+				                      new MessageDialogs.Settings {AffirmativeButtonText = "logout", NegativeButtonText = "cancel"});
 			if(result == MessageDialogResult.Affirmative)
 			{
 				var deletedFile = HearthStatsAPI.Logout();
@@ -452,7 +454,7 @@ namespace Hearthstone_Deck_Tracker.Windows
 				this.ShowMessageAsync("Delete " + decks.Count + " deck(s) on HearthStats?",
 				                      "This will delete the deck(s) and all associated games ON HEARTHSTATS, as well as reset all stored IDs. The decks or games in the tracker (this) will NOT be deleted.\n\n Are you sure?",
 				                      MessageDialogStyle.AffirmativeAndNegative,
-				                      new MetroDialogSettings {AffirmativeButtonText = "delete", NegativeButtonText = "cancel"});
+				                      new MessageDialogs.Settings {AffirmativeButtonText = "delete", NegativeButtonText = "cancel"});
 
 			if(dialogResult == MessageDialogResult.Affirmative)
 			{
@@ -489,28 +491,13 @@ namespace Hearthstone_Deck_Tracker.Windows
 				await
 				this.ShowMessageAsync("Delete deck on HearthStats?", "You can change this setting at any time in the HearthStats menu.",
 				                      MessageDialogStyle.AffirmativeAndNegative,
-				                      new MetroDialogSettings {AffirmativeButtonText = "yes (always)", NegativeButtonText = "no (never)"});
+				                      new MessageDialogs.Settings {AffirmativeButtonText = "yes (always)", NegativeButtonText = "no (never)"});
 			Config.Instance.HearthStatsAutoDeleteDecks = dialogResult == MessageDialogResult.Affirmative;
 			MenuItemCheckBoxAutoDeleteDecks.IsChecked = Config.Instance.HearthStatsAutoDeleteDecks;
 			Config.Save();
 			return Config.Instance.HearthStatsAutoDeleteDecks != null && Config.Instance.HearthStatsAutoDeleteDecks.Value;
 		}
-
-		public async Task<bool> CheckHearthStatsMatchDeletion()
-		{
-			if(Config.Instance.HearthStatsAutoDeleteMatches.HasValue)
-				return Config.Instance.HearthStatsAutoDeleteMatches.Value;
-			var dialogResult =
-				await
-				this.ShowMessageAsync("Delete match(es) on HearthStats?", "You can change this setting at any time in the HearthStats menu.",
-				                      MessageDialogStyle.AffirmativeAndNegative,
-				                      new MetroDialogSettings {AffirmativeButtonText = "yes (always)", NegativeButtonText = "no (never)"});
-			Config.Instance.HearthStatsAutoDeleteMatches = dialogResult == MessageDialogResult.Affirmative;
-			MenuItemCheckBoxAutoDeleteGames.IsChecked = Config.Instance.HearthStatsAutoDeleteMatches;
-			Config.Save();
-			return Config.Instance.HearthStatsAutoDeleteMatches != null && Config.Instance.HearthStatsAutoDeleteMatches.Value;
-		}
-
+		
 		private void MenuItemCheckBoxAutoDeleteDecks_OnChecked(object sender, RoutedEventArgs e)
 		{
 			if(!_initialized)
@@ -670,7 +657,7 @@ namespace Hearthstone_Deck_Tracker.Windows
 		                    this.ShowMessageAsync("WARNING! Sync with HearthStats in progress!",
 		                        "Closing Hearthstone Deck Tracker now can cause data inconsistencies. Are you sure?",
 		                        MessageDialogStyle.AffirmativeAndNegative,
-		                        new MetroDialogSettings
+		                        new MessageDialogs.Settings
 		                        {
 		                            AffirmativeButtonText = "close anyway",
 		                            NegativeButtonText = "wait"
@@ -730,13 +717,6 @@ namespace Hearthstone_Deck_Tracker.Windows
 		        Config.Instance.TimerWindowHeight = (int) Core.Windows.TimerWindow.Height;
 		        Config.Instance.TimerWindowWidth = (int) Core.Windows.TimerWindow.Width;
 
-		        if (!double.IsNaN(Core.Windows.StatsWindow.Left))
-		            Config.Instance.StatsWindowLeft = (int) Core.Windows.StatsWindow.Left;
-		        if (!double.IsNaN(Core.Windows.StatsWindow.Top))
-		            Config.Instance.StatsWindowTop = (int) Core.Windows.StatsWindow.Top;
-		        Config.Instance.StatsWindowHeight = (int) Core.Windows.StatsWindow.Height;
-		        Config.Instance.StatsWindowWidth = (int) Core.Windows.StatsWindow.Width;
-
                 Core.TrayIcon.NotifyIcon.Visible = false;
 		        Core.Overlay.Close();
 		        await LogReaderManager.Stop();
@@ -778,7 +758,31 @@ namespace Hearthstone_Deck_Tracker.Windows
 
 		private void BtnDonate_OnClick(object sender, RoutedEventArgs e)
 		{
-			Process.Start("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=PZDMUT88NLFYJ");
+			BtnDonateContextMenu.Placement = PlacementMode.Bottom;
+			BtnDonateContextMenu.PlacementTarget = BtnDonate;
+			BtnDonateContextMenu.IsOpen = true;
+		}
+
+		private void BtnPaypal_OnClick(object sender, RoutedEventArgs e)
+		{
+			try
+			{
+				Process.Start("https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=PZDMUT88NLFYJ");
+			}
+			catch
+			{
+			}
+		}
+
+		private void BtnPatreon_OnClick(object sender, RoutedEventArgs e)
+		{
+			try
+			{
+				Process.Start("https://www.patreon.com/HearthstoneDeckTracker");
+			}
+			catch
+			{
+			}
 		}
 
 		#endregion
@@ -915,6 +919,12 @@ namespace Hearthstone_Deck_Tracker.Windows
 
 		private void BtnDeckStats_Click(object sender, RoutedEventArgs e)
 		{
+			ShowStats();
+		}
+
+		public void ShowStats()
+		{
+
 			var deck = DeckPickerList.SelectedDecks.FirstOrDefault() ?? DeckList.Instance.ActiveDeck;
 			if(Config.Instance.StatsInWindow)
 			{
@@ -927,6 +937,26 @@ namespace Hearthstone_Deck_Tracker.Windows
 			{
 				DeckStatsFlyout.SetDeck(deck);
 				FlyoutDeckStats.IsOpen = true;
+			}
+		}
+
+		private void BtnDeckNewStats_Click(object sender, RoutedEventArgs e)
+		{
+			if(Config.Instance.StatsInWindow)
+			{
+				StatsFlyoutContentControl.Content = null;
+				Core.Windows.NewStatsWindow.ContentControl.Content = Core.StatsOverview;
+				Core.Windows.NewStatsWindow.WindowState = WindowState.Normal;
+				Core.Windows.NewStatsWindow.Show();
+				Core.Windows.NewStatsWindow.Activate();
+				Core.StatsOverview.UpdateStats();
+			}
+			else
+			{
+				Core.Windows.NewStatsWindow.ContentControl.Content = null;
+				StatsFlyoutContentControl.Content = Core.StatsOverview;
+				FlyoutNewStats.IsOpen = true;
+				Core.StatsOverview.UpdateStats();
 			}
 		}
 
@@ -1080,5 +1110,23 @@ namespace Hearthstone_Deck_Tracker.Windows
 			Helper.StartHearthstoneAsync();
 		}
 
+		private void ButtonCloseStatsFlyout_OnClick(object sender, RoutedEventArgs e)
+		{
+			FlyoutNewStats.IsOpen = false;
+		}
+
+		private async void ButtonSwitchStatsToNewWindow_OnClick(object sender, RoutedEventArgs e)
+		{
+			Config.Instance.StatsInWindow = true;
+			Config.Save();
+			StatsFlyoutContentControl.Content = null;
+			Core.Windows.NewStatsWindow.ContentControl.Content = Core.StatsOverview;
+			Core.Windows.NewStatsWindow.WindowState = WindowState.Normal;
+			Core.Windows.NewStatsWindow.Show();
+			Core.StatsOverview.UpdateStats();
+			FlyoutNewStats.IsOpen = false;
+			await Task.Delay(100);
+			Core.Windows.NewStatsWindow.Activate();
+		}
 	}
 }
