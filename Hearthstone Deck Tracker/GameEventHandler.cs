@@ -180,6 +180,10 @@ namespace Hearthstone_Deck_Tracker
             if (_game.CurrentGameMode == GameMode.Spectator)
                 SetGameMode(GameMode.None);
             GameEvents.OnInMenu.Execute();
+
+            GameV2.lastOpponentPlays2nd.Clear();
+            GameV2.lastOpponentPlays.Clear();
+
         }
 
         public void HandleConcede()
