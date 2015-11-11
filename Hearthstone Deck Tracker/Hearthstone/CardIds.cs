@@ -50,10 +50,16 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
             {
                 public static List<string> All
                 {
-                    get { return new List<string> { BearTrap, ExplosiveTrap, FreezingTrap, Misdirection, Snipe, SnakeTrap }; }
+	                get
+	                {
+						if(DateTime.UtcNow < new DateTime(2015, 12, 3)) //LOE wing 3 release date
+							return new List<string> { BearTrap, ExplosiveTrap, FreezingTrap, Misdirection, Snipe, SnakeTrap };
+						return new List<string> { BearTrap, DartTrap, ExplosiveTrap, FreezingTrap, Misdirection, Snipe, SnakeTrap };
+	                }
                 }
 
                 public static string BearTrap { get { return "AT_060"; } }
+				public static string DartTrap { get { return "LOE_021"; } }
                 public static string ExplosiveTrap { get { return "EX1_610"; } }
                 public static string FreezingTrap { get { return "EX1_611"; } }
                 public static string Misdirection { get { return "EX1_533"; } }
@@ -79,7 +85,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
             {
                 public static List<string> All
                 {
-                    get { return new List<string> { Avenge, CompetitiveSpirit, EyeForAnEye, NobleSacrifice, Redemption, Repentance }; }
+                    get { return new List<string> { Avenge, CompetitiveSpirit, EyeForAnEye, NobleSacrifice, Redemption, Repentance, SacredTrial }; }
                 }
                 public static string Avenge { get { return "FP1_020"; } }
                 public static string CompetitiveSpirit { get { return "AT_073"; } }
@@ -87,6 +93,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                 public static string NobleSacrifice { get { return "EX1_130"; } }
                 public static string Redemption { get { return "EX1_136"; } }
                 public static string Repentance { get { return "EX1_379"; } }
+				public static string SacredTrial { get { return "LOE_027"; } }
             }
 
             public static List<string> FastCombat = new List<string> {

@@ -451,13 +451,14 @@ namespace Hearthstone_Deck_Tracker
 #pragma warning disable 4014
         public async void HandleGameEnd()
         {
-            Core.Overlay.HideTimers();
 	        if(_game.CurrentGameStats == null || _handledGameEnd)
 	        {
 				Logger.WriteLine("HandleGameEnd was already called.", "HandleGameEnd");
 		        return;
 			}
 			_handledGameEnd = true;
+			TurnTimer.Instance.Stop();
+			Core.Overlay.HideTimers();
 			Logger.WriteLine("Game ended...", "HandleGameEnd");
             if (_game.CurrentGameMode == GameMode.Spectator && !Config.Instance.RecordSpectator)
             {
@@ -624,9 +625,9 @@ namespace Hearthstone_Deck_Tracker
                 await Task.Delay(100);
 		}
 
-        private void LogEvent(string type, string id = "", int turn = 0, int from = -1)
+        private void LogEvent(string type, string id = "", int turn = 0, int from = -1, int logLevel = 1)
         {
-            Logger.WriteLine(string.Format("{0} (id:{1} turn:{2} from:{3})", type, id, turn, from), "GameEventHandler", 1);
+            Logger.WriteLine(string.Format("{0} (id:{1} turn:{2} from:{3})", type, id, turn, from), "GameEventHandler", logLevel);
         }
 
         public void HandleWin()
@@ -709,28 +710,36 @@ namespace Hearthstone_Deck_Tracker
 
         public void HandlePlayerHeroPower(string cardId, int turn)
         {
-            LogEvent("PlayerHeroPower", cardId, turn);
+	        LogEvent("PlayerHeroPower", cardId, turn, logLevel: 0);
             _game.AddPlayToCurrentGame(PlayType.PlayerHeroPower, turn, cardId);
             GameEvents.OnPlayerHeroPower.Execute();
-        }
+
+			if(Config.Instance.AutoGrayoutSecrets)
+			{
+				_game.OpponentSecrets.SetZero(CardIds.Secrets.Hunter.DartTrap);
+
+				if(Core.MainWindow != null)
+					Core.Overlay.ShowSecrets();
+			}
+		}
 
         public void HandleOpponentHeroPower(string cardId, int turn)
         {
-            LogEvent("OpponentHeroPower", cardId, turn);
+            LogEvent("OpponentHeroPower", cardId, turn, logLevel: 0);
             _game.AddPlayToCurrentGame(PlayType.OpponentHeroPower, turn, cardId);
             GameEvents.OnOpponentHeroPower.Execute();
         }
 
         public void HandlePlayerFatigue(int currentDamage)
         {
-            LogEvent("PlayerFatigue", "", currentDamage);
+            LogEvent("PlayerFatigue", "", currentDamage, logLevel: 0);
             _game.Player.Fatigue = currentDamage;
             GameEvents.OnPlayerFatigue.Execute(currentDamage);
         }
 
         public void HandleOpponentFatigue(int currentDamage)
         {
-            LogEvent("OpponentFatigue", "", currentDamage);
+            LogEvent("OpponentFatigue", "", currentDamage, logLevel: 0);
             _game.Opponent.Fatigue = currentDamage;
             GameEvents.OnOpponentFatigue.Execute(currentDamage);
         }
@@ -855,6 +864,14 @@ namespace Hearthstone_Deck_Tracker
 
             _game.AddPlayToCurrentGame(PlayType.PlayerPlay, turn, cardId);
             GameEvents.OnPlayerPlay.Execute(Database.GetCardFromId(cardId));
+
+	        if(Config.Instance.AutoGrayoutSecrets && entity.IsMinion && _game.PlayerMinionCount > 3)
+	        {
+		        _game.OpponentSecrets.SetZero(CardIds.Secrets.Paladin.SacredTrial);
+
+				if(Core.MainWindow != null)
+					Core.Overlay.ShowSecrets();
+			}
         }
 
         public void HandlePlayerDeckDiscard(Entity entity, string cardId, int turn)
