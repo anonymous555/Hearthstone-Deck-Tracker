@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Enums.Hearthstone;
 using Hearthstone_Deck_Tracker.Hearthstone;
@@ -198,114 +199,79 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
                     if (game.Entities.TryGetValue(actionStartingEntityId, out actionEntity))
                         actionStartingCardId = actionEntity.CardId;
                 }
-                if (game.Entities.TryGetValue(actionStartingEntityId, out actionEntity))
-                {
-                    // spell owned by the player
-                    if (actionEntity.HasTag(GAME_TAG.CONTROLLER) && 
-                        actionEntity.GetTag(GAME_TAG.CONTROLLER) == game.Player.Id &&
-                        actionEntity.GetTag(GAME_TAG.CARDTYPE) == (int)TAG_CARDTYPE.SPELL)
-                    {
-                        int targetEntityId = actionEntity.GetTag(GAME_TAG.CARD_TARGET);
-                        Entity targetEntity;
-
-                        bool targetsMinion = false;
-
-                        if (game.Entities.TryGetValue(targetEntityId, out targetEntity))
-                            targetsMinion = true;
-
-                        gameState.GameHandler.HandlePlayerSpellPlayed(targetsMinion);
-                    }
-                }
-                if (!string.IsNullOrEmpty(actionStartingCardId))
-                {
-                    if (actionStartingCardId == "BRM_007") //Gang Up
-                    {
-                        //if (playerEntity.Value != null && playerEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) == 1)
-                        //{
-                            var target = match.Groups["target"].Value.Trim();
-                            if (target.StartsWith("[") && HsLogReaderConstants.PowerTaskList.EntityRegex.IsMatch(target))
-                            {
-                                var cardIdMatch = HsLogReaderConstants.PowerTaskList.CardIdRegex.Match(target);
-	                            if(cardIdMatch.Success)
-	                            {
-		                            var targetCardId = cardIdMatch.Groups["cardId"].Value.Trim();
-
-		                            for(int i = 0; i < 3; i++)
-									{
-										var id = game.Entities.Count + i + 1;
-			                            if(!gameState.KnownCardIds.ContainsKey(id))
-				                            gameState.KnownCardIds.Add(id, targetCardId);
-		                            }
-	                            }
-                            }
-                        //}
-                    }
-                    else if (actionStartingCardId == "GVG_056") //Iron Juggernaut
-                    {
-	                    // burrowing mine will be the entity created next
-                        int id = game.Entities.Count + 1;
-	                    //if(playerEntity.Value == null || playerEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) != 1)
-	                    //{
-		                    if(!gameState.KnownCardIds.ContainsKey(id))
-			                    gameState.KnownCardIds.Add(id, "GVG_056t");
-	                    //}
-                    }
-                    else if (actionStartingCardId == "GVG_031") //Recycle
-                    {
-	                    // Recycled card will be the entity created next
-                        int id = game.Entities.Count + 1;
-	                    //if(playerEntity.Value == null || playerEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) != 1)
-	                    //{
-		                    gameState.ProposeKeyPoint(KeyPointType.CreateToDeck, id, ActivePlayer.Player);
-		                    var target = match.Groups["target"].Value.Trim();
-		                    if(target.StartsWith("[") && HsLogReaderConstants.PowerTaskList.EntityRegex.IsMatch(target))
-		                    {
-			                    var cardIdMatch = HsLogReaderConstants.PowerTaskList.CardIdRegex.Match(target);
-			                    if(cardIdMatch.Success)
-			                    {
-				                    var targetCardId = cardIdMatch.Groups["cardId"].Value.Trim();
-				                    if(!gameState.KnownCardIds.ContainsKey(id))
-					                    gameState.KnownCardIds.Add(id, targetCardId);
-			                    }
-		                    }
-	                    //}
-                    }
-                    else if (actionStartingCardId == "GVG_035") //Malorne
-                    {
-	                    // Malorne will be the entity created next
-                        int id = game.Entities.Count + 1;
-	                    //if(playerEntity.Value == null || playerEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) != 1)
-	                    //{
-							if(!gameState.KnownCardIds.ContainsKey(id))
-			                    gameState.KnownCardIds.Add(id, "GVG_035");
-	                   // }
-                    }
-
-
-                    else
-                    {
-                        if (playerEntity.Value != null && playerEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) == 1
-                            && !gameState.PlayerUsedHeroPower
-                            || opponentEntity.Value != null && opponentEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) == 1
-                            && !gameState.OpponentUsedHeroPower)
-                        {
-                            var card = Database.GetCardFromId(actionStartingCardId);
-                            if (card.Type == "Hero Power")
-                            {
-                                if (playerEntity.Value != null && playerEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) == 1)
-                                {
-                                    gameState.GameHandler.HandlePlayerHeroPower(actionStartingCardId, gameState.GetTurnNumber());
-                                    gameState.PlayerUsedHeroPower = true;
-                                }
-                                else if (opponentEntity.Value != null)
-                                {
-                                    gameState.GameHandler.HandleOpponentHeroPower(actionStartingCardId, gameState.GetTurnNumber());
-                                    gameState.OpponentUsedHeroPower = true;
-                                }
-                            }
-                        }
-                    }
-                }
+	            if(game.Entities.TryGetValue(actionStartingEntityId, out actionEntity))
+	            {
+		            // spell owned by the player
+		            if(actionEntity.HasTag(GAME_TAG.CONTROLLER) && actionEntity.GetTag(GAME_TAG.CONTROLLER) == game.Player.Id
+		               && actionEntity.GetTag(GAME_TAG.CARDTYPE) == (int)TAG_CARDTYPE.SPELL)
+		            {
+			            int targetEntityId = actionEntity.GetTag(GAME_TAG.CARD_TARGET);
+			            Entity targetEntity;
+			            var targetsMinion = game.Entities.TryGetValue(targetEntityId, out targetEntity);
+			            gameState.GameHandler.HandlePlayerSpellPlayed(targetsMinion);
+		            }
+	            }
+	            if(!string.IsNullOrEmpty(actionStartingCardId))
+	            {
+		            switch(actionStartingCardId)
+		            {
+			            case CardIds.Rogue.GangUp:
+							AddTargetAsKnownCardId(gameState, game, match, 3);
+							break;
+			            case CardIds.Warrior.IronJuggernaut:
+				            AddKnownCardId(gameState, game, CardIds.Warrior.BurrowingMine);
+				            break;
+			            case CardIds.Druid.Recycle:
+							AddTargetAsKnownCardId(gameState, game, match, 1);
+				            break;
+			            case CardIds.Druid.Malorne:
+				            AddKnownCardId(gameState, game, CardIds.Druid.Malorne);
+				            break;
+						case CardIds.Mage.ForgottenTorch:
+							AddKnownCardId(gameState, game, CardIds.Mage.RoaringTorch);
+							break;
+						case CardIds.Warlock.CurseOfRafaam:
+							AddKnownCardId(gameState, game, CardIds.Warlock.Cursed);
+							break;
+						case CardIds.Neutral.AncientShade:
+							AddKnownCardId(gameState, game, CardIds.Neutral.AncientCurse);
+				            break;
+						case CardIds.Priest.Entomb:
+							AddTargetAsKnownCardId(gameState, game, match, 1);
+				            break;
+						case CardIds.Priest.ExcavatedEvil:
+				            AddKnownCardId(gameState, game, CardIds.Priest.ExcavatedEvil);
+				            break;
+						case CardIds.Neutral.EliseStarseeker:
+							AddKnownCardId(gameState, game, CardIds.Neutral.MapToTheGoldenMonkey);
+							break;
+						case CardIds.Neutral.MapToTheGoldenMonkey:
+							AddKnownCardId(gameState, game, CardIds.Neutral.GoldenMonkey);
+							break;
+						default:
+				            if(playerEntity.Value != null && playerEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) == 1
+				               && !gameState.PlayerUsedHeroPower
+				               || opponentEntity.Value != null && opponentEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) == 1
+				               && !gameState.OpponentUsedHeroPower)
+				            {
+					            var card = Database.GetCardFromId(actionStartingCardId);
+					            if(card.Type == "Hero Power")
+					            {
+						            if(playerEntity.Value != null && playerEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) == 1)
+						            {
+							            gameState.GameHandler.HandlePlayerHeroPower(actionStartingCardId, gameState.GetTurnNumber());
+							            gameState.PlayerUsedHeroPower = true;
+						            }
+						            else if(opponentEntity.Value != null)
+						            {
+							            gameState.GameHandler.HandleOpponentHeroPower(actionStartingCardId, gameState.GetTurnNumber());
+							            gameState.OpponentUsedHeroPower = true;
+						            }
+					            }
+				            }
+				            break;
+		            }
+	            }
             }
             else if (logLine.Contains("BlockType=JOUST"))
             {
@@ -313,5 +279,30 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
             }
         }
 
+	    private static void AddTargetAsKnownCardId(IHsGameState gameState, IGame game, Match match, int count)
+	    {
+		    var target = match.Groups["target"].Value.Trim();
+		    if(target.StartsWith("[") && HsLogReaderConstants.PowerTaskList.EntityRegex.IsMatch(target))
+		    {
+			    var cardIdMatch = HsLogReaderConstants.PowerTaskList.CardIdRegex.Match(target);
+			    if(cardIdMatch.Success)
+			    {
+				    var targetCardId = cardIdMatch.Groups["cardId"].Value.Trim();
+				    for(var i = 0; i < count; i++)
+					{
+						var id = game.Entities.Count + i + 1;
+						if(!gameState.KnownCardIds.ContainsKey(id))
+							gameState.KnownCardIds.Add(id, targetCardId);
+					}
+			    }
+		    }
+		}
+
+	    private static void AddKnownCardId(IHsGameState gameState, IGame game, string cardId)
+	    {
+		    var id = game.Entities.Count + 1;
+		    if(!gameState.KnownCardIds.ContainsKey(id))
+			    gameState.KnownCardIds.Add(id, cardId);
+	    }
     }
 }

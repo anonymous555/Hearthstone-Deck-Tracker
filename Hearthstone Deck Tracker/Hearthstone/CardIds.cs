@@ -188,5 +188,49 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			{"EX1_323", "Jaraxxus"},
 			{"BRM_027", "Ragnaros the Firelord"}
 		};
+		
+		public class Druid
+		{
+			public const string Malorne = "GVG_035";
+			public const string Recycle = "GVG_031";
+		}
+
+		public class Mage
+		{
+			public const string ForgottenTorch = "LOE_002";
+			public const string RoaringTorch = "LOE_002t";
+		}
+
+		public class Priest
+		{
+			public const string Entomb = "LOE_104";
+			public const string ExcavatedEvil = "LOE_111";
+		}
+
+		public class Rogue
+		{
+			public const string GangUp = "BRM_007";
+		}
+
+		public class Warlock
+		{
+			public const string Cursed = "LOE_007t";
+			public const string CurseOfRafaam = "LOE_007";
+		}
+
+		public class Warrior
+		{
+			public const string IronJuggernaut = "GVG_056";
+			public const string BurrowingMine = "GVG_056t";
+		}
+
+		public class Neutral
+		{
+			public const string AncientCurse = "LOE_110t";
+			public const string AncientShade = "LOE_110";
+			public const string EliseStarseeker = "LOE_079";
+			public const string MapToTheGoldenMonkey = "LOE_019t";
+			public const string GoldenMonkey = "LOE_019t2";
+		}
 	}
 }
