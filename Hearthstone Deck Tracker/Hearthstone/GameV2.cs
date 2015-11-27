@@ -63,6 +63,16 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		public bool SavedReplay { get; set; }
 		public GameTime GameTime { get { return _gameTime; } }
 
+		public Entity PlayerEntity
+		{
+			get { return Entities.FirstOrDefault(x => x.Value.IsPlayer).Value; }
+		}
+
+		public Entity OpponentEntity
+		{
+			get { return Entities.FirstOrDefault(x => x.Value.HasTag(GAME_TAG.PLAYER_ID) && !x.Value.IsPlayer).Value; }
+		}
+
 		public bool IsMulliganDone
 		{
 			get
@@ -101,8 +111,11 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			get { return _currentGameMode; }
 			set
 			{
-				_currentGameMode = value;
-				Logger.WriteLine("Set CurrentGameMode to " + value, "Game");
+				if(_currentGameMode != value)
+				{
+					_currentGameMode = value;
+					Logger.WriteLine("Set CurrentGameMode to " + value, "Game");
+				}
 			}
 		}
 
@@ -123,8 +136,11 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
 			if(!IsInMenu && resetStats)
 			{
-				if(CurrentGameMode != GameMode.Spectator)
-					CurrentGameMode = GameMode.None;
+				if(CurrentGameMode == GameMode.Ranked)
+				{
+					Logger.WriteLine("Resetting gamemode to casual", "Game");
+					CurrentGameMode = GameMode.Casual;
+				}
 				CurrentGameStats = new GameStats(GameResult.None, "", "") {PlayerName = "", OpponentName = "", Region = CurrentRegion};
 				_gameModeDetectionComplete = false;
 			}

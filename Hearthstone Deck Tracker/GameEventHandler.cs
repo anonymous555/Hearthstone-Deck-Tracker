@@ -351,51 +351,76 @@ namespace Hearthstone_Deck_Tracker
 				Core.Overlay.ShowSecrets();
         }
 
-        public void HandleOpponentMinionDeath(Entity entity, int turn)
-        {
-            if (!Config.Instance.AutoGrayoutSecrets)
-                return;
+	    public void HandleOpponentMinionDeath(Entity entity, int turn)
+	    {
+		    if(!Config.Instance.AutoGrayoutSecrets)
+			    return;
 
-            _game.OpponentSecrets.SetZero(CardIds.Secrets.Mage.Duplicate);
+		    _game.OpponentSecrets.SetZero(CardIds.Secrets.Mage.Duplicate);
 
-			HandleAvengeAsync();
 
-            int numDeathrattleMinions = 0;
+		    var numDeathrattleMinions = 0;
 
-            if (entity.IsActiveDeathrattle)
-                CardIds.DeathrattleSummonCardIds.TryGetValue(entity.CardId, out numDeathrattleMinions);
+		    if(entity.IsActiveDeathrattle)
+		    {
+			    if(!CardIds.DeathrattleSummonCardIds.TryGetValue(entity.CardId, out numDeathrattleMinions))
+			    {
+				    if(entity.CardId == HearthDb.CardIds.Collectible.Neutral.Stalagg
+				       && _game.Opponent.Graveyard.Any(x => x.CardId == HearthDb.CardIds.Collectible.Neutral.Feugen)
+				       || entity.CardId == HearthDb.CardIds.Collectible.Neutral.Feugen
+				       && _game.Opponent.Graveyard.Any(x => x.CardId == HearthDb.CardIds.Collectible.Neutral.Stalagg))
+					    numDeathrattleMinions = 1;
+				}
+				if(_game.Entities.Any(x => x.Value.CardId == HearthDb.CardIds.NonCollectible.Druid.SoulOfTheForestEnchantment
+										&& x.Value.GetTag(GAME_TAG.ATTACHED) == entity.Id))
+					numDeathrattleMinions++;
+				if(_game.Entities.Any(x => x.Value.CardId == HearthDb.CardIds.NonCollectible.Shaman.AncestralSpiritEnchantment
+										&& x.Value.GetTag(GAME_TAG.ATTACHED) == entity.Id))
+					numDeathrattleMinions++;
+			}
 
-            // redemption never triggers if a deathrattle effect fills up the board
-            // effigy can trigger ahead of the deathrattle effect, but only if effigy was played before the deathrattle minion
-            if (_game.OpponentMinionCount < 7 - numDeathrattleMinions)
-            {
-                _game.OpponentSecrets.SetZero(CardIds.Secrets.Paladin.Redemption);
-                _game.OpponentSecrets.SetZero(CardIds.Secrets.Mage.Effigy);
-            }
-            else
-            {
-                // todo: need to properly break ties when effigy + deathrattle played in same turn
-                int minionTurnPlayed = turn - entity.GetTag(GAME_TAG.NUM_TURNS_IN_PLAY);
-                SecretHelper secret = _game.OpponentSecrets.Secrets.FirstOrDefault(x => x.TurnPlayed >= minionTurnPlayed);
-                int secretOffset = secret != null ? _game.OpponentSecrets.Secrets.IndexOf(secret) : 0;
-                _game.OpponentSecrets.SetZeroOlder(CardIds.Secrets.Mage.Effigy, secretOffset);
-            }
+		    if(_game.OpponentEntity != null && _game.OpponentEntity.HasTag(GAME_TAG.EXTRA_DEATHRATTLES))
+			    numDeathrattleMinions *= (_game.OpponentEntity.GetTag(GAME_TAG.EXTRA_DEATHRATTLES) + 1);
 
-            if (Core.MainWindow != null)
-				Core.Overlay.ShowSecrets();
-        }
+		    HandleAvengeAsync(numDeathrattleMinions);
+
+		    // redemption never triggers if a deathrattle effect fills up the board
+		    // effigy can trigger ahead of the deathrattle effect, but only if effigy was played before the deathrattle minion
+		    if(_game.OpponentMinionCount < 7 - numDeathrattleMinions)
+		    {
+			    _game.OpponentSecrets.SetZero(CardIds.Secrets.Paladin.Redemption);
+			    _game.OpponentSecrets.SetZero(CardIds.Secrets.Mage.Effigy);
+		    }
+		    else
+		    {
+			    // todo: need to properly break ties when effigy + deathrattle played in same turn
+			    int minionTurnPlayed = turn - entity.GetTag(GAME_TAG.NUM_TURNS_IN_PLAY);
+			    SecretHelper secret = _game.OpponentSecrets.Secrets.FirstOrDefault(x => x.TurnPlayed >= minionTurnPlayed);
+			    int secretOffset = secret != null ? _game.OpponentSecrets.Secrets.IndexOf(secret) : 0;
+			    _game.OpponentSecrets.SetZeroOlder(CardIds.Secrets.Mage.Effigy, secretOffset);
+		    }
+
+		    if(Core.MainWindow != null)
+			    Core.Overlay.ShowSecrets();
+	    }
 
 	    private bool _awaitingAvenge;
 	    private const int AvengeDelay = 50;
-	    public async void HandleAvengeAsync()
+	    private int _avengeDeathRattleCount;
+
+	    public async void HandleAvengeAsync(int deathRattleCount)
 	    {
+		    _avengeDeathRattleCount += deathRattleCount;
 		    if(_awaitingAvenge)
 			    return;
 		    _awaitingAvenge = true;
+		    if(_game.OpponentMinionCount == 0)
+			    return;
 		    await _game.GameTime.WaitForDuration(AvengeDelay);
-			if(_game.OpponentMinionCount > 0)
-				_game.OpponentSecrets.SetZero(CardIds.Secrets.Paladin.Avenge);
+		    if(_game.OpponentMinionCount - _avengeDeathRattleCount > 0)
+			    _game.OpponentSecrets.SetZero(CardIds.Secrets.Paladin.Avenge);
 		    _awaitingAvenge = false;
+		    _avengeDeathRattleCount = 0;
 	    }
 
         public void HandleOpponentDamage(Entity entity)
@@ -448,7 +473,19 @@ namespace Hearthstone_Deck_Tracker
             _game.Reset();
 
             var selectedDeck = DeckList.Instance.ActiveDeckVersion;
-            if (selectedDeck != null)
+
+            if (Config.Instance.SpectatorUseNoDeck && _game.CurrentGameMode == GameMode.Spectator)
+            {
+                Logger.WriteLine("SpectatorUseNoDeck is " + Config.Instance.SpectatorUseNoDeck, "GameEventHandler");
+                if(selectedDeck != null)
+                {
+                    Config.Instance.ReselectLastDeckUsed = true;
+                    Logger.WriteLine("ReselectLastUsedDeck set to true", "GameEventHandler");
+                    Config.Save();
+                }
+                Core.MainWindow.SelectDeck(null, true);
+            }
+			else if (selectedDeck != null)
                 _game.SetPremadeDeck((Deck)selectedDeck.Clone());
             GameEvents.OnGameStart.Execute();
         }
@@ -465,10 +502,17 @@ namespace Hearthstone_Deck_Tracker
 			Core.Overlay.HideTimers();
 			Logger.WriteLine("Game ended...", "HandleGameEnd");
             if (_game.CurrentGameMode == GameMode.Spectator && !Config.Instance.RecordSpectator)
-            {
-                Logger.WriteLine("Game is in Spectator mode, discarded. (Record Spectator disabled)", "HandleGameEnd");
+			{
+				if(Config.Instance.ReselectLastDeckUsed && DeckList.Instance.ActiveDeck == null)
+				{
+					Core.MainWindow.SelectLastUsedDeck();
+					Config.Instance.ReselectLastDeckUsed = false;
+					Logger.WriteLine("ReselectLastUsedDeck set to false", "HandleGameEnd");
+					Config.Save();
+				}
+				Logger.WriteLine("Game is in Spectator mode, discarded. (Record Spectator disabled)", "HandleGameEnd");
                 _assignedDeck = null;
-                return;
+				return;
             }
             var player = _game.Entities.FirstOrDefault(e => e.Value.IsPlayer);
             var opponent = _game.Entities.FirstOrDefault(e => e.Value.HasTag(GAME_TAG.PLAYER_ID) && !e.Value.IsPlayer);
@@ -612,6 +656,14 @@ namespace Hearthstone_Deck_Tracker
 	            }
                 _assignedDeck = null;
             }
+
+            if(Config.Instance.ReselectLastDeckUsed && selectedDeck == null)
+            {
+                Core.MainWindow.SelectLastUsedDeck();
+                Config.Instance.ReselectLastDeckUsed = false;
+                Logger.WriteLine("ReselectLastUsedDeck set to false", "HandleGameEnd");
+                Config.Save();
+            }
         }
 #pragma warning restore 4014
         private async Task RankDetection(int timeoutInSeconds)
@@ -749,11 +801,6 @@ namespace Hearthstone_Deck_Tracker
         }
 
         #region Player
-
-        public void HandlePlayerName(string name)
-        {
-            _game.Player.Name = name;
-        }
 
         public void HandlePlayerGetToDeck(Entity entity, string cardId, int turn)
         {
@@ -910,11 +957,6 @@ namespace Hearthstone_Deck_Tracker
         #endregion
 
         #region Opponent
-
-        public void HandleOpponentName(string name)
-        {
-            _game.Opponent.Name = name;
-        }
 
         public void HandleOpponentGetToDeck(Entity entity, int turn)
         {
