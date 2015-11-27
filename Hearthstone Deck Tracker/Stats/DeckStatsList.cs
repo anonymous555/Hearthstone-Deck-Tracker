@@ -499,7 +499,7 @@ namespace Hearthstone_Deck_Tracker.Stats
                     int bias = nummonths;
 
 
-                    string enemyname = game.OpponentHero;
+                    string enemyname = fixupEnemyHeroName(game);
                     foreach (TurnStats turn in game.TurnStats)
                     {
                         int turnnumbner = turn.Turn;
@@ -573,9 +573,69 @@ namespace Hearthstone_Deck_Tracker.Stats
             }
         }
 
+        public static string fixupEnemyHeroName(GameStats gamestats)
+        {
+            String [] bossnames = {
+"Coren Direbrew",
+"High Justice Grimstone",
+"Emperor Thaurissan",
+"Garr",
+"Baron Geddon",
+"Majordomo Executus",
+"Highlord Omokk",
+"General Drakkisath",
+"Rend Blackhand",
+"Razorgore the Untamed",
+"Vaelastrasz the Corrupt",
+"Chromaggus",
+"Lord Victor Nefarius",
+"Omnotron Defense System",
+"Maloriak",
+"Atramedes",
+"Nefarian",
+"Anub'Rekhan",
+"Grand Widow Faerlina",
+"Maexxna", 
+"Noth the Plaguebringer",
+"Heigan the Unclean",
+"Loatheb",
+"Instructor Razuvious",
+"Gothik the Harvester",
+"The Four Horsemen",
+"Patchwerk" ,
+"Grobbulus" ,
+"Gluth" ,
+"Thaddius", 
+"Sapphiron" ,
+"Kel'Thuzad",
+"Zinaar",
+"Sun Raider Phaerix",
+"Temple Escape",
+"Chieftain Scarvash",
+"Mine Cart Rush",
+"Archaedas"
+
+
+
+        };
+
+
+
+            if (gamestats.GameMode == GameMode.None && gamestats.OpponentName != null &&
+                bossnames.Contains(gamestats.OpponentName)
+                )
+            {
+                return gamestats.OpponentName;
+            }
+            else
+            {
+                return gamestats.OpponentHero;
+            }
+        }
 
         public static void analyzeAllGamesPriorTurn()
         {
+ 
             predictiondictionary_priorturn = new Dictionary<String, Dictionary<String, int>>();
 
             List<DeckStats> mydeckstats = DeckStatsList.Instance.DeckStats;
@@ -590,7 +650,9 @@ namespace Hearthstone_Deck_Tracker.Stats
                     int bias = nummonths;
 
 
-                    string enemyname = game.OpponentHero;
+                    string enemyname = fixupEnemyHeroName(game);
+
+
                     foreach (TurnStats turn in game.TurnStats)
                     {
                         int turnnumbner = turn.Turn;
@@ -671,7 +733,7 @@ namespace Hearthstone_Deck_Tracker.Stats
             {
                 foreach (GameStats game in deckstats.Games)
                 {
-                    string enemyname = game.OpponentHero;
+                    string enemyname = fixupEnemyHeroName(game);
 
                     TimeSpan timespan = game.EndTime.Subtract(new DateTime(2014, 3, 11));
                     int nummonths = timespan.Days / 30;

@@ -814,6 +814,14 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
             result = isDeckContainingSet("The Grand Tournament");
             return result;
         }
+        
+        public bool IsLoeDeck()
+        {
+            bool result;
+            result = isDeckContainingSet("League of Explorers");
+            return result;
+        }
+
 
         public Visibility NaxxVisibility
         {
@@ -835,6 +843,10 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
             get { return IsTgtDeck() ? Visibility.Visible : Visibility.Collapsed; }
         }
 
+        public Visibility LoeVisibility
+        {
+            get { return IsLoeDeck() ? Visibility.Visible : Visibility.Collapsed; }
+        }
 
 
 	}
