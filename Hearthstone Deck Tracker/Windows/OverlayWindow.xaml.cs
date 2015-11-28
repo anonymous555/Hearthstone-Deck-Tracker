@@ -824,6 +824,10 @@ namespace Hearthstone_Deck_Tracker
                 var lossesVS = selectedDeck.GetRelevantGames().Count(g => g.Result == GameResult.Loss && g.OpponentHero == _game.Opponent.Class);
                 var percent = (winsVS + lossesVS) > 0 ? Math.Round(winsVS * 100.0 / (winsVS + lossesVS), 0).ToString() : "-";
                 LblWinRateAgainst.Text = string.Format("VS {0}: {1} - {2} ({3}%)", _game.Opponent.Class, winsVS, lossesVS, percent);
+
+                ///egb  a hack to get a good enemy name.  Other ways seem corrupted
+                ///
+                Hearthstone_Deck_Tracker.Stats.DeckStatsList.prediction_enemy_class = _game.Opponent.Class;
             }
         }
 

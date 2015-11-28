@@ -163,6 +163,7 @@ namespace Hearthstone_Deck_Tracker.Stats
             public float percent;
         };
 
+        static public string prediction_enemy_class;
 
         static public void printAllPredictionsToFile(string filename)
         {
@@ -188,6 +189,28 @@ namespace Hearthstone_Deck_Tracker.Stats
         }
         const int MAX_PREDICTIONS = 10;
 
+        static string fixupInPlayEnemyName(string oldenemy, int turnnumber)
+        {
+            /**
+            if (String.IsNullOrEmpty(oldenemy))
+            {
+                if (API.Core.Game.CurrentGameStats != null)
+                {
+                    if (!String.IsNullOrEmpty(API.Core.Game.CurrentGameStats.OpponentHero))
+                    {
+                        return API.Core.Game.CurrentGameStats.OpponentHero; 
+                    }
+                }
+            }
+            return oldenemy;
+             */
+            if (turnnumber == 0 || turnnumber == 1)
+            {
+                return oldenemy;
+            }
+            return prediction_enemy_class;
+        }
+
         static public void doPrediction2away(String enemy, int turnnumber, List<string> lastplays, List<string> lastplays2away)
         {
             List<Dictionary<String, int>> possibledictionaries = new List<Dictionary<String, int>>();
@@ -195,6 +218,7 @@ namespace Hearthstone_Deck_Tracker.Stats
             cardpercent newcardpercent;
             List<cardpercent> cardpredictions = new List<cardpercent>();
 
+            enemy = fixupInPlayEnemyName(enemy, turnnumber);
 
             foreach (String playstring in lastplays)
             {
@@ -254,7 +278,7 @@ namespace Hearthstone_Deck_Tracker.Stats
             }
 
             List<cardpercent> SortedList = cardpredictions.OrderBy(o => (1.0 - o.percent)).ToList();
-            String predictionstring = "\nPrediction for Turn " + turnnumber + "\nbased on 2nd last card\n\n";
+            String predictionstring = "\n\"" + enemy + "\" Turn " + turnnumber + "\n2nd last card\n\n";
 
             Hearthstone.Deck tempdeck = new Hearthstone.Deck();
             int i;
@@ -307,6 +331,7 @@ namespace Hearthstone_Deck_Tracker.Stats
             cardpercent newcardpercent;
             List<cardpercent> cardpredictions = new List<cardpercent>();
 
+            enemy = fixupInPlayEnemyName(enemy, turnnumber);
 
             foreach (String playstring in lastplays)
             {
@@ -414,6 +439,8 @@ namespace Hearthstone_Deck_Tracker.Stats
             List<cardpercent> cardpredictions = new List<cardpercent>();
             Hearthstone.Deck tempdeck;
 
+            enemy = fixupInPlayEnemyName(enemy, turnnumber);
+
             if (!predictiondictionary.ContainsKey(enemy + turnnumber))
             {
                 predictionText = "";
@@ -439,7 +466,8 @@ namespace Hearthstone_Deck_Tracker.Stats
                 cardpredictions.Add(newcardpercent);
             }
             List<cardpercent> SortedList = cardpredictions.OrderBy(o => (1.0 - o.percent)).ToList();
-            String predictionstring = "\nPrediction for Turn " + turnnumber + "\n\n";
+
+            String predictionstring = "\n\"" + enemy + "\" Turn " + turnnumber + "\n\n";
             int i;
 
             tempdeck = new Hearthstone.Deck();
