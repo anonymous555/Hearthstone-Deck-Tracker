@@ -265,12 +265,12 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 					            break;
 				            default:
 					            if(playerEntity.Value != null && playerEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) == 1
-					               && !gameState.PlayerUsedHeroPower
-					               || opponentEntity.Value != null && opponentEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) == 1
-					               && !gameState.OpponentUsedHeroPower)
+					               //// EGB && !gameState.PlayerUsedHeroPower
+					               || opponentEntity.Value != null && opponentEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) == 1)
+					               //// EGB && !gameState.OpponentUsedHeroPower)
 					            {
 						            var card = Database.GetCardFromId(actionStartingCardId);
-						            if(card.Type == "Hero Power")
+						            if(card.Type == "Heropower")
 						            {
 							            if(playerEntity.Value != null && playerEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) == 1)
 							            {

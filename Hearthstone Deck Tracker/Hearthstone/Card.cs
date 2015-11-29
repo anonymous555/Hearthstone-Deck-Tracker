@@ -171,7 +171,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		[XmlIgnore]
 		public Visibility ShowIconsInTooltip
 		{
-			get { return Type == "Spell" || Type == "Enchantment" || Type == "Hero Power" ? Visibility.Hidden : Visibility.Visible; }
+			get { return Type == "Spell" || Type == "Enchantment" || Type == "Heropower" ? Visibility.Hidden : Visibility.Visible; }
 		}
 
 		[XmlIgnore]
