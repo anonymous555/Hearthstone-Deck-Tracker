@@ -315,7 +315,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 
             var enemycards = GameV2.getOpponentCards();
 
-            string archetypestring = ArchetypeDetector.getIngameArchetypeString(enemycards);
+            string archetypestring = ArchetypeDetector.getIngameArchetypeString(enemycards, enemy);
             ///////////////////////
 
             predictionText = /* predictionText + */ predictionstring + archetypestring;
@@ -424,7 +424,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 
             var enemycards = GameV2.getOpponentCards();
 
-            string archetypestring = ArchetypeDetector.getIngameArchetypeString(enemycards);
+            string archetypestring = ArchetypeDetector.getIngameArchetypeString(enemycards, enemy);
             ///////////////////////
 
             predictionText = /* predictionText + */ predictionstring + archetypestring;
@@ -483,7 +483,7 @@ namespace Hearthstone_Deck_Tracker.Stats
             }
             //////// archetype 
             var enemycards = GameV2.getOpponentCards();
-            string archetypestring = ArchetypeDetector.getIngameArchetypeString(enemycards);
+            string archetypestring = ArchetypeDetector.getIngameArchetypeString(enemycards, enemy);
 
             //// archetype
 

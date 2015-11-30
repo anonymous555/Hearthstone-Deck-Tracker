@@ -96,14 +96,11 @@ namespace Hearthstone_Deck_Tracker
 
         }
 
-        public static String getIngameArchetypeString(ObservableCollection<Card> OpponentCards)
+        public static String getIngameArchetypeString(ObservableCollection<Card> OpponentCards, String enemyclass)
         {
             Deck newdeck = new Deck();
-            if (API.Core.Game.CurrentGameStats == null)
-            {
-                return API.Core.Game.Opponent.Class;
-            }
-            newdeck.Class = API.Core.Game.CurrentGameStats.OpponentHero;
+
+            newdeck.Class = enemyclass;
 
             newdeck.Cards = OpponentCards;
             if (instance == null)
