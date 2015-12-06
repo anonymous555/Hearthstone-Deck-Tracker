@@ -15,7 +15,9 @@ using Hearthstone_Deck_Tracker.LogReader;
 using Hearthstone_Deck_Tracker.Replay;
 using Hearthstone_Deck_Tracker.Stats;
 using Hearthstone_Deck_Tracker.Stats.CompiledStats;
+using Hearthstone_Deck_Tracker.Utility;
 using Hearthstone_Deck_Tracker.Windows;
+using Point = System.Drawing.Point;
 
 #endregion
 
@@ -132,12 +134,6 @@ namespace Hearthstone_Deck_Tracker
 				Logger.WriteLine("Waiting for game mode detection...", "HandleInMenu");
 				await _game.GameModeDetection();
 				Logger.WriteLine("Detected game mode, continuing.", "HandleInMenu");
-			}
-			if(_game.CurrentGameMode == GameMode.Casual)
-			{
-				Logger.WriteLine("CurrentGameMode=Casual, Waiting for ranked detection...", "HandleInMenu");
-				await LogReaderManager.RankedDetection();
-				Logger.WriteLine("Done waiting for ranked detection, continuing.", "HandleInMenu");
 			}
 
 			if (Config.Instance.RecordReplays && _game.Entities.Count > 0 && !_game.SavedReplay && _game.CurrentGameStats != null
@@ -268,9 +264,11 @@ namespace Hearthstone_Deck_Tracker
         public async void TurnStart(ActivePlayer player, int turnNumber)
 		{
 			if(!_game.IsMulliganDone)
-				Logger.WriteLine(string.Format("--- Mulligan ---"), "GameEventHandler");
+				Logger.WriteLine("--- Mulligan ---", "GameEventHandler");
 			while(!_game.IsMulliganDone)
 				await Task.Delay(100);
+			if(_game.CurrentGameMode == GameMode.Casual || _game.CurrentGameMode == GameMode.None)
+				DetectRanks();
 			Logger.WriteLine(string.Format("--- {0} turn {1} ---", player, turnNumber + 1), "GameEventHandler");
             //doesn't really matter whose turn it is for now, just restart timer
             //maybe add timer to player/opponent windows
@@ -308,7 +306,59 @@ namespace Hearthstone_Deck_Tracker
             GameEvents.OnTurnStart.Execute(player);
         }
 
-        private Entity _attackingEntity;
+
+	    private bool _rankDetectionRunning;
+	    private int _rankDetectionTries;
+	    private const int MaxRankDetectionTries = 3;
+
+	    private async void DetectRanks()
+	    {
+		    if(_rankDetectionTries >= MaxRankDetectionTries)
+		    {
+			    Logger.WriteLine(string.Format("Exceeded max rank detection tries ({0}). Gamemode must be casual.", MaxRankDetectionTries),
+			                     "GameEventHandler");
+		    }
+		    if(_rankDetectionRunning)
+			    return;
+		    _rankDetectionRunning = true;
+		    Logger.WriteLine(string.Format("Trying to detect ranks... (overlay toggles: {0})", _rankDetectionTries), "GameEventHandler");
+		    var rect = Helper.GetHearthstoneRect(true);
+		    var reEnableOverlay = false;
+		    if(Core.Overlay.IsRankConvered())
+		    {
+			    //only increment rank detection tries if the users can tell it's happening (overlay flickering)
+			    _rankDetectionTries++;
+			    Logger.WriteLine("Toggling overlay...", "GameEventHandler");
+			    Core.Overlay.ShowOverlay(false);
+			    reEnableOverlay = true;
+		    }
+		    while(await Helper.FriendsListOpen())
+			    Core.Overlay.ShowFriendsListWarning(true);
+		    Core.Overlay.ShowFriendsListWarning(false);
+		    var capture = Helper.CaptureHearthstone(new Point(0, 0), rect.Width / 3, rect.Height);
+		    if(reEnableOverlay)
+			    Core.Overlay.ShowOverlay(true);
+
+		    // try to detect rank
+		    var match = await RankDetection.Match(capture);
+		    if(match.Success)
+		    {
+			    Logger.WriteLine(string.Format("Rank detection successful! Player={0}, Opponent={1}", match.Player, match.Opponent),
+			                     "GameEventHandler");
+			    SetGameMode(GameMode.Ranked);
+			    if(_game.CurrentGameStats != null)
+			    {
+				    _game.CurrentGameStats.GameMode = GameMode.Ranked;
+				    _game.CurrentGameStats.Rank = match.Player;
+				    _game.CurrentGameStats.OpponentRank = match.Opponent;
+			    }
+		    }
+		    else
+			    Logger.WriteLine("No ranks were detected.", "GameEventHandler");
+		    _rankDetectionRunning = false;
+	    }
+
+		private Entity _attackingEntity;
         private Entity _defendingEntity;
         public void HandleAttackingEntity(Entity entity)
         {
@@ -497,6 +547,9 @@ namespace Hearthstone_Deck_Tracker
 				Logger.WriteLine("HandleGameEnd was already called.", "HandleGameEnd");
 		        return;
 			}
+			//deal with instant concedes
+			if(_game.CurrentGameMode == GameMode.Casual || _game.CurrentGameMode == GameMode.None)
+				DetectRanks();
 			_handledGameEnd = true;
 			TurnTimer.Instance.Stop();
 			Core.Overlay.HideTimers();
@@ -621,18 +674,6 @@ namespace Hearthstone_Deck_Tracker
 						await _game.GameModeDetection();
 						Logger.WriteLine("Detected game mode, continuing.", "HandleGameEnd");
 					}
-	                if(_game.CurrentGameMode == GameMode.Casual)
-					{
-						Logger.WriteLine("CurrentGameMode=Casual, Waiting for ranked detection...", "HandleGameEnd");
-						await LogReaderManager.RankedDetection();
-						Logger.WriteLine("Done waiting for ranked detection, continuing.", "HandleGameEnd");
-					}
-	                if(_game.CurrentGameMode == GameMode.Ranked && !_lastGame.HasRank)
-					{
-						Logger.WriteLine("Waiting for rank detection...", "HandleGameEnd");
-						await RankDetection(5);
-						Logger.WriteLine("Rank detected, continuing.", "HandleGameEnd");
-					}
 					Logger.WriteLine("Waiting for game mode to be saved to game...", "HandleGameEnd");
 					await GameModeSaved(15);
 					Logger.WriteLine("Game mode was saved, continuing.", "HandleGameEnd");
@@ -666,13 +707,6 @@ namespace Hearthstone_Deck_Tracker
             }
         }
 #pragma warning restore 4014
-        private async Task RankDetection(int timeoutInSeconds)
-        {
-            var startTime = DateTime.Now;
-            var timeout = TimeSpan.FromSeconds(timeoutInSeconds);
-            while (_lastGame != null && !_lastGame.HasRank && (DateTime.Now - startTime) < timeout)
-                await Task.Delay(100);
-		}
         private async Task GameModeSaved(int timeoutInSeconds)
         {
             var startTime = DateTime.Now;
@@ -753,7 +787,7 @@ namespace Hearthstone_Deck_Tracker
                     DeckStatsList.Save();
                 }
 
-                Core.MainWindow.DeckPickerList.UpdateDecks();
+                Core.MainWindow.DeckPickerList.UpdateDecks(forceUpdate: new[] {_assignedDeck});
                 statsControl.Refresh();
             }
             else if (_assignedDeck != null && _assignedDeck.DeckStats.Games.Contains(_game.CurrentGameStats))
@@ -761,6 +795,17 @@ namespace Hearthstone_Deck_Tracker
                 //game was not supposed to be recorded, remove from deck again.
                 _assignedDeck.DeckStats.Games.Remove(_game.CurrentGameStats);
                 statsControl.Refresh();
+                Logger.WriteLine(string.Format("Gamemode {0} is not supposed to be saved. Removed game from {1}.", _game.CurrentGameMode, _assignedDeck), "GameEventHandler");
+            }
+            else if(_assignedDeck == null)
+            {
+                var defaultDeck = DefaultDeckStats.Instance.GetDeckStats(_game.Player.Class);
+                if(defaultDeck != null)
+                {
+                    defaultDeck.Games.Remove(_game.CurrentGameStats);
+                    statsControl.Refresh();
+                    Logger.WriteLine(string.Format("Gamemode {0} is not supposed to be saved. Removed game from default {1}.", _game.CurrentGameMode, _game.Player.Class), "GameEventHandler");
+                }
             }
         }
 
@@ -1127,11 +1172,6 @@ namespace Hearthstone_Deck_Tracker
             if (_game.CurrentGameStats != null)
             {
                 _game.CurrentGameStats.Rank = rank;
-                Logger.WriteLine("set rank to " + rank, "GameEventHandler");
-            }
-            else if (_lastGame != null)
-            {
-                _lastGame.Rank = rank;
                 Logger.WriteLine("set rank to " + rank, "GameEventHandler");
             }
         }
