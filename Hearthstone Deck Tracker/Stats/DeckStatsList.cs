@@ -187,7 +187,7 @@ namespace Hearthstone_Deck_Tracker.Stats
             file.Close();
 
         }
-        const int MAX_PREDICTIONS = 10;
+        const int MAX_PREDICTIONS = 15;
 
         static string fixupInPlayEnemyName(string oldenemy, int turnnumber)
         {
@@ -641,9 +641,10 @@ namespace Hearthstone_Deck_Tracker.Stats
 "Temple Escape",
 "Chieftain Scarvash",
 "Mine Cart Rush",
-"Archaedas"
-
-
+"Archaedas",
+"Slitherspear",
+"Giantfin",
+"Lady Nazj'ar"
 
         };
 
