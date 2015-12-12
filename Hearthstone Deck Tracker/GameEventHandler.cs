@@ -199,8 +199,7 @@ namespace Hearthstone_Deck_Tracker
 
             if (_game.CurrentGameStats != null)
                 _game.CurrentGameStats.OpponentHero = hero;
-
-            Logger.WriteLine("Playing against " + hero, "GameEventHandler");
+            Logger.WriteLine("Opponent=" + hero, "GameEventHandler");
             DeckStatsList.doPrediction(API.Core.Game.Opponent.Class, 1);
             Logger.WriteLine("After do prediction on set opponent hero");
         }
@@ -211,6 +210,7 @@ namespace Hearthstone_Deck_Tracker
             {
                 if (!string.IsNullOrEmpty(hero))
                 {
+                    Logger.WriteLine("Player=" + hero, "GameEventHandler");
                     _game.Player.Class = hero;
                     if (_game.CurrentGameStats != null)
                         _game.CurrentGameStats.PlayerHero = hero;
@@ -309,32 +309,40 @@ namespace Hearthstone_Deck_Tracker
 
 	    private bool _rankDetectionRunning;
 	    private int _rankDetectionTries;
-	    private const int MaxRankDetectionTries = 3;
+	    private int _rankDetectionOverlayToggles;
+		private const int MaxRankDetectionTries = 2;
 
 	    private async void DetectRanks()
 	    {
-		    if(_rankDetectionTries >= MaxRankDetectionTries)
-		    {
-			    Logger.WriteLine(string.Format("Exceeded max rank detection tries ({0}). Gamemode must be casual.", MaxRankDetectionTries),
-			                     "GameEventHandler");
-		    }
 		    if(_rankDetectionRunning)
 			    return;
 		    _rankDetectionRunning = true;
-		    Logger.WriteLine(string.Format("Trying to detect ranks... (overlay toggles: {0})", _rankDetectionTries), "GameEventHandler");
+		    Logger.WriteLine(string.Format("Trying to detect ranks... (tries={0}, overlaytoggles={1})", _rankDetectionTries, _rankDetectionOverlayToggles), "GameEventHandler");
 		    var rect = Helper.GetHearthstoneRect(true);
 		    var reEnableOverlay = false;
 		    if(Core.Overlay.IsRankConvered())
 		    {
-			    //only increment rank detection tries if the users can tell it's happening (overlay flickering)
-			    _rankDetectionTries++;
+			    if(_rankDetectionTries >= MaxRankDetectionTries)
+			    {
+				    Logger.WriteLine(string.Format("Not toggling overlay, exceeded max rank detection tries ({0}).", MaxRankDetectionTries),
+								     "GameEventHandler");
+				    _rankDetectionRunning = false;
+				    return;
+			    }
+			    _rankDetectionOverlayToggles++;
 			    Logger.WriteLine("Toggling overlay...", "GameEventHandler");
 			    Core.Overlay.ShowOverlay(false);
 			    reEnableOverlay = true;
 		    }
 		    while(await Helper.FriendsListOpen())
-			    Core.Overlay.ShowFriendsListWarning(true);
-		    Core.Overlay.ShowFriendsListWarning(false);
+		    {
+			    //silently wait for friendslist to close
+			    if(_rankDetectionTries >= MaxRankDetectionTries)
+				    await Task.Delay(300);
+			    else
+				    Core.Overlay.ShowFriendsListWarning(true);
+		    }
+			Core.Overlay.ShowFriendsListWarning(false);
 		    var capture = Helper.CaptureHearthstone(new Point(0, 0), rect.Width / 3, rect.Height);
 		    if(reEnableOverlay)
 			    Core.Overlay.ShowOverlay(true);
@@ -355,6 +363,7 @@ namespace Hearthstone_Deck_Tracker
 		    }
 		    else
 			    Logger.WriteLine("No ranks were detected.", "GameEventHandler");
+		    _rankDetectionTries++;
 		    _rankDetectionRunning = false;
 	    }
 
@@ -519,6 +528,8 @@ namespace Hearthstone_Deck_Tracker
 			}
 			_arenaRewardDialog = null;
 			_showedNoteDialog = false;
+	        _rankDetectionTries = 0;
+	        _rankDetectionOverlayToggles = 0;
             _game.IsInMenu = false;
             _game.Reset();
 

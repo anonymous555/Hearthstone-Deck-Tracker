@@ -264,7 +264,7 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 					               //// EGB && !gameState.OpponentUsedHeroPower)
 					            {
 						            var card = Database.GetCardFromId(actionStartingCardId);
-						            if(card.Type == "Heropower")
+						            if(card.Type == "Hero Power")
 						            {
 							            if(playerEntity.Value != null && playerEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) == 1)
 							            {
