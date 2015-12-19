@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -54,6 +53,13 @@ namespace Hearthstone_Deck_Tracker.FlyoutControls.Options.Tracker
 			ComboBoxClassColors.SelectedItem = Config.Instance.ClassColorScheme;
 			CheckBoxArenaStatsTextColoring.IsChecked = Config.Instance.ArenaStatsTextColoring;
 
+			if(Config.Instance.NonLatinUseDefaultFont == null)
+			{
+				Config.Instance.NonLatinUseDefaultFont = Helper.IsWindows10();
+				Config.Save();
+			}
+			CheckBoxDefaultFont.IsChecked = Config.Instance.NonLatinUseDefaultFont;
+
 			_initialized = true;
 		}
 
@@ -92,40 +98,30 @@ namespace Hearthstone_Deck_Tracker.FlyoutControls.Options.Tracker
 			var language = ComboboxLanguages.SelectedValue.ToString();
 			UpdateAlternativeLanguageList(language);
 
-			if (!_initialized)
+			if(!_initialized)
 				return;
 
-			if (!IsLanguageAvailable(language))
-				return;			
-			
 			var selectedLanguage = Helper.LanguageDict[language];
 
 			Config.Instance.SelectedLanguage = selectedLanguage;
 			Config.Save();
 		}
 
-		private bool IsLanguageAvailable(string language)
-		{
-			if (!Helper.LanguageDict.ContainsKey(language))
-				return false;																	  
-
-			return File.Exists(string.Format("Files/cardDB.{0}.xml", Helper.LanguageDict[language]));
-		}
-
 		private void UpdateAlternativeLanguageList(string primaryLanguage)
 		{
 			ListBoxAlternativeLanguages.Items.Clear();
-			foreach (var pair in Helper.LanguageDict)
+			foreach(var pair in Helper.LanguageDict)
 			{
 				var box = new CheckBox();
 				box.Content = pair.Key;
-				if (pair.Key == primaryLanguage) {
+				if(pair.Key == primaryLanguage)
 					box.IsEnabled = false;
-				} else {
-					box.IsChecked =	Config.Instance.AlternativeLanguages.Contains(pair.Value);
+				else
+				{
+					box.IsChecked = Config.Instance.AlternativeLanguages.Contains(pair.Value);
 					box.Unchecked += CheckboxAlternativeLanguageToggled;
 					box.Checked += CheckboxAlternativeLanguageToggled;
-                }
+				}
 				ListBoxAlternativeLanguages.Items.Add(box);
 			}
 		}
@@ -136,12 +132,12 @@ namespace Hearthstone_Deck_Tracker.FlyoutControls.Options.Tracker
 				return;
 
 			var languages = new List<string>();
-			foreach (CheckBox box in ListBoxAlternativeLanguages.Items)
+			foreach(CheckBox box in ListBoxAlternativeLanguages.Items)
 			{
 				string language = (string)box.Content;
-				if (box.IsChecked == true && IsLanguageAvailable(language))
+				if(box.IsChecked == true)
 					languages.Add(Helper.LanguageDict[language]);
-			}			 
+			}
 			Config.Instance.AlternativeLanguages = languages;
 			Config.Save();
 		}
@@ -229,6 +225,22 @@ namespace Hearthstone_Deck_Tracker.FlyoutControls.Options.Tracker
 			Config.Instance.ArenaStatsTextColoring = false;
 			Config.Save();
 			ArenaStats.Instance.UpdateArenaStatsHighlights();
+		}
+
+		private void CheckBoxDefaultFont_OnChecked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized)
+				return;
+			Config.Instance.NonLatinUseDefaultFont = true;
+			Config.Save();
+		}
+
+		private void CheckBoxDefaultFont_OnUnchecked(object sender, RoutedEventArgs e)
+		{
+			if(!_initialized)
+				return;
+			Config.Instance.NonLatinUseDefaultFont = false;
+			Config.Save();
 		}
 	}
 }

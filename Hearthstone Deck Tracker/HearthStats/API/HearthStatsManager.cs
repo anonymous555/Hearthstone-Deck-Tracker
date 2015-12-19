@@ -361,8 +361,7 @@ namespace Hearthstone_Deck_Tracker.HearthStats.API
 				if(background)
 					AddBackgroundActivity();
 
-				var controller = background
-					                 ? null : await Core.MainWindow.ShowProgressAsync("Syncing...", "Checking HearthStats for new decks...");
+				var controller = background ? null : await Core.MainWindow.ShowProgressAsync("Syncing...", "Checking HearthStats for new decks...");
 				Logger.WriteLine("Checking HearthStats for new decks...", "HearthStatsManager");
 				var localDecks = DeckList.Instance.Decks;
 				var remoteDecks = await DownloadDecksAsync(forceFullSync);
@@ -660,8 +659,8 @@ namespace Hearthstone_Deck_Tracker.HearthStats.API
 							if(controller != null)
 							{
 								Core.MainWindow.Dispatcher.BeginInvoke(
-								                                         new Action(
-									                                         () => { controller.SetProgress(1.0 * (uploaded += matches.Count()) / total); }));
+								                                       new Action(
+									                                       () => { controller.SetProgress(1.0 * (uploaded += matches.Count()) / total); }));
 							}
 						});
 					});
@@ -798,7 +797,7 @@ namespace Hearthstone_Deck_Tracker.HearthStats.API
 		public static async void UpdateArenaMatchAsync(GameStats game, Deck deck, bool saveFilesAfter = true, bool background = false)
 		{
 			var result = await DeleteMatchesAsync(new List<GameStats> {game}, saveFilesAfter, background);
-			if(result == PostResult.WasSuccess)
+			if(result.Success)
 			{
 				game.ResetHearthstatsIds();
 				await UploadArenaMatchAsync(game, deck, saveFilesAfter, background);
@@ -808,7 +807,7 @@ namespace Hearthstone_Deck_Tracker.HearthStats.API
 		public static async void UpdateMatchAsync(GameStats game, Deck deck, bool saveFilesAfter = true, bool background = false)
 		{
 			var result = await DeleteMatchesAsync(new List<GameStats> {game}, saveFilesAfter, background);
-			if(result == PostResult.WasSuccess)
+			if(result.Success)
 			{
 				game.ResetHearthstatsIds();
 				await UploadMatchAsync(game, deck, saveFilesAfter, background);

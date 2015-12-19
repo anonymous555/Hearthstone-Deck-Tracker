@@ -22,16 +22,17 @@ namespace Hearthstone_Deck_Tracker.FlyoutControls
 		public OverlayInteractivity OptionsOverlayInteractivity;
 		public OverlayOpponent OptionsOverlayOpponent;
 		public OverlayPlayer OptionsOverlayPlayer;
+		public TrackerAppearance OptionsTrackerAppearance;
+		public TrackerBackups OptionsTrackerBackups;
 		public TrackerExporting OptionsTrackerExporting;
 		public TrackerGeneral OptionsTrackerGeneral;
+		public TrackerHotKeys OptionsTrackerHotKeys;
 		public TrackerImporting OptionsTrackerImporting;
 		public TrackerLogging OptionsTrackerLogging;
+		public TrackerNotifications OptionsTrackerNotifications;
 		public TrackerPlugins OptionsTrackerPlugins;
 		public TrackerSettings OptionsTrackerSettings;
 		public TrackerStats OptionsTrackerStats;
-		public TrackerAppearance OptionsTrackerAppearance;
-		public TrackerBackups OptionsTrackerBackups;
-		public TrackerHotKeys OptionsTrackerHotKeys;
 
 		public OptionsMain()
 		{
@@ -53,6 +54,7 @@ namespace Hearthstone_Deck_Tracker.FlyoutControls
 			OptionsTrackerAppearance = new TrackerAppearance();
 			OptionsTrackerBackups = new TrackerBackups();
 			OptionsTrackerHotKeys = new TrackerHotKeys();
+			OptionsTrackerNotifications = new TrackerNotifications();
 			try
 			{
 				foreach(var treeItem in TreeViewOptions.Items.Cast<TreeViewItem>())
@@ -82,6 +84,7 @@ namespace Hearthstone_Deck_Tracker.FlyoutControls
 			OptionsTrackerGeneral.Load();
 			OptionsTrackerAppearance.Load();
 			OptionsTrackerBackups.Load();
+			OptionsTrackerNotifications.Load();
 			//OptionsTrackerPlugins.Load(); - load in main after loading plugins
 		}
 
@@ -158,6 +161,11 @@ namespace Hearthstone_Deck_Tracker.FlyoutControls
 		private void TreeViewItemTrackerHotKeys_OnSelected(object sender, RoutedEventArgs e)
 		{
 			ContentControlOptions.Content = OptionsTrackerHotKeys;
+		}
+
+		private void TreeViewItemTrackerNotifications_OnSelected(object sender, RoutedEventArgs e)
+		{
+			ContentControlOptions.Content = OptionsTrackerNotifications;
 		}
 	}
 }

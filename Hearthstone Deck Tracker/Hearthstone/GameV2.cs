@@ -21,9 +21,13 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 	public class GameV2 : IGame
 	{
 		private static List<string> _hsLogLines = new List<string>();
-		private GameTime _gameTime = new GameTime();
 		public readonly List<Deck> DiscardedArenaDecks = new List<Deck>();
+		private bool _awaitingMainWindowOpen;
 		private GameMode _currentGameMode;
+		private bool _gameModeDetectionComplete;
+
+		private bool _gameModeDetectionRunning;
+		private readonly GameTime _gameTime = new GameTime();
 		public Deck TempArenaDeck = new Deck();
 
 		public GameV2()
@@ -37,7 +41,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			PossibleArenaCards = new List<Card>();
 			PossibleConstructedCards = new List<Card>();
 			OpponentSecrets = new OpponentSecrets(this);
-            Reset();
+			Reset();
 		}
 
 		public static List<string> HSLogLines
@@ -45,10 +49,39 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			get { return _hsLogLines; }
 		}
 
+		public Deck IgnoreIncorrectDeck { get; set; }
+
+		public GameTime GameTime
+		{
+			get { return _gameTime; }
+		}
+
+		public bool IsMinionInPlay
+		{
+			get { return Entities.FirstOrDefault(x => (x.Value.IsInPlay && x.Value.IsMinion)).Value != null; }
+		}
+
+		public bool IsOpponentMinionInPlay
+		{
+			get
+			{
+				return Entities.FirstOrDefault(x => (x.Value.IsInPlay && x.Value.IsMinion && x.Value.IsControlledBy(Opponent.Id))).Value != null;
+			}
+		}
+
+		public int OpponentMinionCount
+		{
+			get { return Entities.Count(x => (x.Value.IsInPlay && x.Value.IsMinion && x.Value.IsControlledBy(Opponent.Id))); }
+		}
+
+		public int PlayerMinionCount
+		{
+			get { return Entities.Count(x => (x.Value.IsInPlay && x.Value.IsMinion && x.Value.IsControlledBy(Player.Id))); }
+		}
+
 		public Player Player { get; set; }
 		public Player Opponent { get; set; }
 		public bool NoMatchingDeck { get; set; }
-		public Deck IgnoreIncorrectDeck { get; set; }
 		public bool IsInMenu { get; set; }
 		public bool IsUsingPremade { get; set; }
 		public int OpponentSecretCount { get; set; }
@@ -61,7 +94,6 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		public List<Card> PossibleConstructedCards { get; set; }
 		public Dictionary<int, Entity> Entities { get; set; }
 		public bool SavedReplay { get; set; }
-		public GameTime GameTime { get { return _gameTime; } }
 
 		public Entity PlayerEntity
 		{
@@ -86,27 +118,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			}
 		}
 
-        public bool IsMinionInPlay
-        {
-            get { return Entities.FirstOrDefault(x => (x.Value.IsInPlay && x.Value.IsMinion)).Value != null; }
-        }
-
-        public bool IsOpponentMinionInPlay
-        {
-            get { return Entities.FirstOrDefault(x => (x.Value.IsInPlay && x.Value.IsMinion && x.Value.IsControlledBy(Opponent.Id))).Value != null; }
-        }
-
-        public int OpponentMinionCount
-        {
-            get { return Entities.Count(x => (x.Value.IsInPlay && x.Value.IsMinion && x.Value.IsControlledBy(Opponent.Id))); }
-        }
-
-		public int PlayerMinionCount
-		{
-			get { return Entities.Count(x => (x.Value.IsInPlay && x.Value.IsMinion && x.Value.IsControlledBy(Player.Id))); }
-		}
-
-        public GameMode CurrentGameMode
+		public GameMode CurrentGameMode
 		{
 			get { return _currentGameMode; }
 			set
@@ -226,10 +238,6 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			PossibleConstructedCards.Clear();
 		}
 
-		private bool _gameModeDetectionRunning;
-		private bool _gameModeDetectionComplete;
-		private bool _awaitingMainWindowOpen;
-
 		public async Task GameModeDetection(int timeoutInSeconds = 300)
 		{
 			if(_gameModeDetectionRunning || _gameModeDetectionComplete)
@@ -243,6 +251,11 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			var timeout = TimeSpan.FromSeconds(timeoutInSeconds);
 			while(CurrentGameMode == GameMode.None && (DateTime.Now - startTime) < timeout)
 				await Task.Delay(100);
+			if(CurrentGameStats != null && CurrentGameMode != GameMode.None)
+			{
+				CurrentGameStats.GameMode = CurrentGameMode;
+				Logger.WriteLine("Detected gamemode, set CurrentGameStats.GameMode=" + CurrentGameMode, "GameModeDetection");
+			}
 			_gameModeDetectionComplete = true;
 			_gameModeDetectionRunning = false;
 		}
