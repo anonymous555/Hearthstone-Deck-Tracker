@@ -261,13 +261,13 @@ namespace Hearthstone_Deck_Tracker
 				if(
 					_game.Entities.Any(
 					                   x =>
-					                   x.Value.CardId == HearthDb.CardIds.NonCollectible.Druid.SoulOfTheForestEnchantment
+					                   x.Value.CardId == HearthDb.CardIds.NonCollectible.Druid.SouloftheForest_SoulOfTheForestEnchantment
 					                   && x.Value.GetTag(GAME_TAG.ATTACHED) == entity.Id))
 					numDeathrattleMinions++;
 				if(
 					_game.Entities.Any(
 					                   x =>
-					                   x.Value.CardId == HearthDb.CardIds.NonCollectible.Shaman.AncestralSpiritEnchantment
+					                   x.Value.CardId == HearthDb.CardIds.NonCollectible.Shaman.AncestralSpirit_AncestralSpiritEnchantment
 					                   && x.Value.GetTag(GAME_TAG.ATTACHED) == entity.Id))
 					numDeathrattleMinions++;
 			}

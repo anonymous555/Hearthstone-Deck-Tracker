@@ -419,6 +419,15 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			}
 		}
 
+        public string CardFileNameID
+        {
+            get
+            {
+                return Id;
+            }
+        }
+
+
 		public FontFamily Font
 		{
 			get
@@ -446,7 +455,9 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 					return new ImageBrush();
 				try
 				{
-					var cardFileName = CardFileName + ".png";
+					// var cardFileName = CardFileName + ".png";
+                    var cardFileName = CardFileNameID + ".png";
+                    
 
 
 					//card graphic

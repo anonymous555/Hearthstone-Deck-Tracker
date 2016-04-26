@@ -366,7 +366,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			var ce = new CardEntity(entity) {Turn = turn, CardMark = CardMark.Created, Created = true};
 			if(entity != null
 			   && (entity.CardId == HearthDb.CardIds.NonCollectible.Neutral.TheCoin
-			       || entity.CardId == HearthDb.CardIds.NonCollectible.Neutral.GallywixsCoinToken))
+			       || entity.CardId == HearthDb.CardIds.NonCollectible.Neutral.TradePrinceGallywix_GallywixsCoinToken))
 				ce.CardMark = CardMark.Coin;
 			Hand.Add(ce);
 			if(IsLocalPlayer)
