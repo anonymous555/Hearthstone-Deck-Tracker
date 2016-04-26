@@ -391,7 +391,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
         public static List<string> lastOpponentPlays = new List<string>();
         public static List<string> lastOpponentPlays2nd = new List<string>();
-        private static int last_turn_num = 0;
+        public static int last_turn_num = 0;
         public static int playermanaspent = 0;
         public static int opponentmanaspent = 0;
 

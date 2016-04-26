@@ -1,4 +1,4 @@
-#region
+﻿#region
 
 using System;
 using System.Drawing;
@@ -80,8 +80,10 @@ namespace Hearthstone_Deck_Tracker.Exporting
 		public static string GetSearchString(Card card)
 		{
 			var searchString = card.LocalizedName.ToLowerInvariant();
+#if false
 			if(AddArtist)
-				searchString += " " + card.Artist.ToLowerInvariant();
+				searchString += " " + card.Artist.ToLowerInvariant().Split(' ').LastOrDefault();
+#endif
 			searchString += GetSpecialSearchCases(card.Name);
 			return searchString;
 		}
