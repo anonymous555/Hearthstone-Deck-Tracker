@@ -825,6 +825,27 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
             return result;
         }
 
+        public bool IsOldGodsDeck()
+        {
+            bool result;
+            result = isDeckContainingSet("Whispers of the Old Gods");
+            return result;
+        }
+
+        public bool IsStandard()
+        {
+            if (IsNaxxDeck())
+                return false;
+            if (IsGvgDeck())
+                return false;
+            return true;
+        }
+
+        public Visibility StandardVisibility
+        {
+            get { return IsStandard() ? Visibility.Visible : Visibility.Collapsed; }
+        }
+
 
         public Visibility NaxxVisibility
         {
@@ -850,7 +871,12 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
         {
             get { return IsLoeDeck() ? Visibility.Visible : Visibility.Collapsed; }
         }
+        public Visibility OldGodsVisibility
+        {
+            get { return IsOldGodsDeck() ? Visibility.Visible : Visibility.Collapsed; }
+        }
 
+        
 
 	}
 }

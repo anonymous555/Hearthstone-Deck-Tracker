@@ -4,6 +4,7 @@
 	{
 		All,
 		Arena,
-		Constructed
+		Constructed,
+        Standard
 	}
 }

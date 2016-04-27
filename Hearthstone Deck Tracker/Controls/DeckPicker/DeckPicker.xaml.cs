@@ -55,7 +55,7 @@ namespace Hearthstone_Deck_Tracker.Controls.DeckPicker
 			SelectedClasses = new ObservableCollection<HeroClassAll>();
 			_displayedDecks = new ObservableCollection<DeckPickerItem>();
 			ListViewDecks.ItemsSource = _displayedDecks;
-			DeckTypeItems = new ObservableCollection<string> {"ALL", "ARENA", "CONSTRUCTED"};
+			DeckTypeItems = new ObservableCollection<string> {"ALL", "ARENA", "CONSTRUCTED", "STANDARD"};
 		}
 
 		public List<Deck> SelectedDecks
@@ -396,6 +396,10 @@ namespace Hearthstone_Deck_Tracker.Controls.DeckPicker
 		{
 			if(Config.Instance.SelectedDeckType == DeckType.All)
 				return true;
+            if (Config.Instance.SelectedDeckType == DeckType.Standard)
+            {
+                return deck.IsStandard() && !deck.IsArenaDeck;
+            }
 			return Config.Instance.SelectedDeckType == DeckType.Arena && deck.IsArenaDeck
 			       || Config.Instance.SelectedDeckType == DeckType.Constructed && !deck.IsArenaDeck;
 		}
@@ -455,8 +459,14 @@ namespace Hearthstone_Deck_Tracker.Controls.DeckPicker
 			{
 				if(deck.IsArenaDeck && Config.Instance.SelectedDeckType != DeckType.Arena)
 					SelectDeckType(DeckType.Arena);
-				else if(!deck.IsArenaDeck && Config.Instance.SelectedDeckType != DeckType.Constructed)
-					SelectDeckType(DeckType.Constructed);
+                else if(!deck.IsArenaDeck)
+                {
+				   if(!deck.IsStandard() && Config.Instance.SelectedDeckType != DeckType.Standard)
+                       SelectDeckType(DeckType.Standard);
+                   else if (Config.Instance.SelectedDeckType != DeckType.Constructed)
+                       SelectDeckType(DeckType.Constructed);
+
+                }
 			}
 
 			if(deck.Archived && !SelectedClasses.Contains(HeroClassAll.Archived))
@@ -593,6 +603,10 @@ namespace Hearthstone_Deck_Tracker.Controls.DeckPicker
 						case "CONSTRUCTED":
 							Config.Instance.SelectedDeckType = DeckType.Constructed;
 							break;
+                        case "STANDARD":
+                            Config.Instance.SelectedDeckType = DeckType.Standard;
+                            break;
+
 					}
 				}
 				Config.Save();
