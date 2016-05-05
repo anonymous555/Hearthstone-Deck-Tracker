@@ -602,6 +602,13 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		[XmlIgnore]
 		public bool HighlightInHand { get; set; }
 
+        [XmlIgnore]
+        public bool IsStandard
+        {
+            get { return (Set != "Curse of Naxxramas") && (Set != "Goblins vs Gnomes"); }
+        }
+
+
 
 		public object Clone()
 		{

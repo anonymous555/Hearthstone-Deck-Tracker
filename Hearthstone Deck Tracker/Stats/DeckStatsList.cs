@@ -256,7 +256,10 @@ namespace Hearthstone_Deck_Tracker.Stats
             {
                 if (!Hearthstone.GameV2.OppopentPlayedMaxNumCards(cardid))
                 {
-                    numpossiblecards += innerhash[cardid];
+                    if (isCardMatchingFormat(cardid))
+                    {
+                        numpossiblecards += innerhash[cardid];
+                    }
                 }
             }
 
@@ -264,10 +267,13 @@ namespace Hearthstone_Deck_Tracker.Stats
             {
                 if (!Hearthstone.GameV2.OppopentPlayedMaxNumCards(cardid))
                 {
-                    float thiscardcount = (float)innerhash[cardid];
-                    newcardpercent.cardid = cardid;
-                    newcardpercent.percent = thiscardcount / numpossiblecards;
-                    cardpredictions.Add(newcardpercent);
+                    if (isCardMatchingFormat(cardid))
+                    {
+                        float thiscardcount = (float)innerhash[cardid];
+                        newcardpercent.cardid = cardid;
+                        newcardpercent.percent = thiscardcount / numpossiblecards;
+                        cardpredictions.Add(newcardpercent);
+                    }
                 }
             }
 
@@ -366,7 +372,10 @@ namespace Hearthstone_Deck_Tracker.Stats
             {
                 if (!Hearthstone.GameV2.OppopentPlayedMaxNumCards(cardid))
                 {
-                    numpossiblecards += innerhash[cardid];
+                    if (isCardMatchingFormat(cardid))
+                    {
+                        numpossiblecards += innerhash[cardid];
+                    }
                 }
             }
 
@@ -374,10 +383,13 @@ namespace Hearthstone_Deck_Tracker.Stats
             {
                 if (!Hearthstone.GameV2.OppopentPlayedMaxNumCards(cardid))
                 {
-                    float thiscardcount = (float)innerhash[cardid];
-                    newcardpercent.cardid = cardid;
-                    newcardpercent.percent = thiscardcount / numpossiblecards;
-                    cardpredictions.Add(newcardpercent);
+                    if (isCardMatchingFormat(cardid))
+                    {
+                        float thiscardcount = (float)innerhash[cardid];
+                        newcardpercent.cardid = cardid;
+                        newcardpercent.percent = thiscardcount / numpossiblecards;
+                        cardpredictions.Add(newcardpercent);
+                    }
                 }
             }
             if (cardpredictions.Count == 0)
@@ -455,15 +467,21 @@ namespace Hearthstone_Deck_Tracker.Stats
 
             foreach (String cardid in innerhash.Keys)
             {
+                if(isCardMatchingFormat(cardid) )
+                {
                 numpossiblecards += innerhash[cardid];
+                }
             }
 
             foreach (String cardid in innerhash.Keys)
             {
-                float thiscardcount = (float)innerhash[cardid];
-                newcardpercent.cardid = cardid;
-                newcardpercent.percent = thiscardcount / numpossiblecards;
-                cardpredictions.Add(newcardpercent);
+                if (isCardMatchingFormat(cardid))
+                {
+                    float thiscardcount = (float)innerhash[cardid];
+                    newcardpercent.cardid = cardid;
+                    newcardpercent.percent = thiscardcount / numpossiblecards;
+                    cardpredictions.Add(newcardpercent);
+                }
             }
             List<cardpercent> SortedList = cardpredictions.OrderBy(o => (1.0 - o.percent)).ToList();
 
@@ -599,6 +617,29 @@ namespace Hearthstone_Deck_Tracker.Stats
                     }
                 }
             }
+        }
+
+        private static bool isCardMatchingFormat(string cardid)
+        {
+            Hearthstone.Card card = Hearthstone.Database.GetCardFromId(cardid);
+            if (card == null)
+            {
+                return true;
+            }
+            if (string.IsNullOrEmpty(card.Name))
+            {
+                return true;
+            }
+            Deck deck = DeckList.Instance.ActiveDeck;
+            if (deck == null)
+            {
+                return true;
+            }
+            if (deck.IsStandard() )
+            {
+                return card.IsStandard;
+            }
+            return true;
         }
 
         public static string fixupEnemyHeroName(GameStats gamestats)
