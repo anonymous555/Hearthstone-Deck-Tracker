@@ -2,10 +2,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Hearthstone_Deck_Tracker.Hearthstone;
 using Hearthstone_Deck_Tracker.Importing.Websites;
+using Hearthstone_Deck_Tracker.Utility;
 
 #endregion
 
@@ -13,7 +15,7 @@ namespace Hearthstone_Deck_Tracker.Importing
 {
 	public static class DeckImporter
 	{
-		private static readonly Dictionary<string, Func<string, Task<Deck>>> Websites = new Dictionary<string, Func<string, Task<Deck>>>
+		internal static readonly Dictionary<string, Func<string, Task<Deck>>> Websites = new Dictionary<string, Func<string, Task<Deck>>>
 		{
 			{"hearthstats", Hearthstats.Import},
 			{"hss.io", Hearthstats.Import},
@@ -30,18 +32,23 @@ namespace Hearthstone_Deck_Tracker.Importing
 			{"hearthstoneheroes", Hearthstoneheroes.Import},
 			{"elitedecks", Elitedecks.Import},
 			{"icy-veins", Icyveins.Import},
-			{"hearthbuilder", Hearthbuilder.Import}
+			{"hearthbuilder", Hearthbuilder.Import},
+			{"manacrystals", Manacrystals.Import}
 		};
 
 		public static async Task<Deck> Import(string url)
 		{
-			Logger.WriteLine("Importing deck from " + url, "DeckImporter");
+            Logger.WriteLine("Importing deck from " + url); 
 
 			var website = Websites.FirstOrDefault(x => url.Contains(x.Key));
 			if(website.Value != null)
-				return await website.Value.Invoke(url);
+			{
+				var deck = await website.Value.Invoke(url);
+				deck.Cards = new ObservableCollection<Card>(deck.Cards.Where(x => x.Id == x.Id));
+				return deck;
+			}
 
-			Logger.WriteLine("invalid url", "DeckImporter");
+            Logger.WriteLine( "Invalid URL"); 
 			return null;
 		}
 	}

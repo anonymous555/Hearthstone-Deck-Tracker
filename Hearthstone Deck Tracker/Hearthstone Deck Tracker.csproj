@@ -279,6 +279,7 @@
     </Compile>
     <Compile Include="Hearthstone\GameTime.cs" />
     <Compile Include="Hearthstone\HearthDbConverter.cs" />
+    <Compile Include="Importing\Websites\Manacrystals.cs" />
     <Compile Include="LogReader\Handlers\LoadingScreenHandler.cs" />
     <Compile Include="LogReader\LogReaderHelper.cs" />
     <Compile Include="Stats\CompiledStats\ArenaRun.cs" />
