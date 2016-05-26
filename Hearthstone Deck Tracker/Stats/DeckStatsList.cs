@@ -542,7 +542,7 @@ namespace Hearthstone_Deck_Tracker.Stats
                 {
                     TimeSpan timespan = game.EndTime.Subtract(new DateTime(2014, 3, 11));
                     int nummonths = timespan.Days / 30;
-                    int bias = nummonths;
+                    int bias = nummonths * 5; // even more biased :)
 
 
                     string enemyname = fixupEnemyHeroName(game);
@@ -717,7 +717,7 @@ namespace Hearthstone_Deck_Tracker.Stats
                 {
                     TimeSpan timespan = game.EndTime.Subtract(new DateTime(2014, 3, 11));
                     int nummonths = timespan.Days / 30;
-                    int bias = nummonths;
+                    int bias = nummonths * 5; // even more biased :)
 
 
                     string enemyname = fixupEnemyHeroName(game);
@@ -807,7 +807,7 @@ namespace Hearthstone_Deck_Tracker.Stats
 
                     TimeSpan timespan = game.EndTime.Subtract(new DateTime(2014, 3, 11));
                     int nummonths = timespan.Days / 30;
-                    int bias = nummonths;
+                    int bias = nummonths * 5; // even more biased :)
 
                     foreach (TurnStats turn in game.TurnStats)
                     {
