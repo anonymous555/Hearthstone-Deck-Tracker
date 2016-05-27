@@ -442,6 +442,19 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			}
 		}
 
+///        private static string themename = "frost";
+        private static string themename = "dark";
+        /** from new version
+        protected static readonly Rect FrameRect = new Rect(0, 0, 217, 34);
+        protected static readonly Rect GemRect = new Rect(0, 0, 34, 34);
+        protected static readonly Rect BoxRect = new Rect(183, 0, 34, 34);
+        protected static readonly Rect ImageRect = new Rect(83, 0, 134, 34);
+        protected static readonly Rect CountTextRect = new Rect(198, 0, double.NaN, 34);
+        protected static readonly Rect CostTextRect = new Rect(0, 0, 34, 34);
+        */
+ 
+        
+
 		public ImageBrush Background
 		{
 			get
@@ -470,20 +483,28 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
                         if (Math.Abs(Count) > 1 || Rarity == Rarity.Legendary)
                         {
-                            countboxoffset = 20;
+                            countboxoffset = 23;
                         }
 
+                        Rect imagerect = new Rect(104 - countboxoffset, 0, 110, 34);
+                        if(themename != null)
+                        {
+                            imagerect = new Rect(83 - countboxoffset, 0, 134, 34);
+                        }
 						drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/" + cardFileName, UriKind.Relative)),
-                                                                   new Rect(104 - countboxoffset, 1, 110, 34)));
+                                                                   imagerect));
 
                         /// fade
                         /// frame = "Images/fade.png";
-                        drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/" + "fade.png", UriKind.Relative)),
-                                           new Rect(104 - 27 - countboxoffset, 1, 110, 34)));
+                        /// 
+                        // custom for fade frost
+                        Rect faderect = new Rect(0, 0, 217, 34);
+                        drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/" + themename + "_fade.png", UriKind.Relative)),
+                                           faderect));
 					}
 
 					//frame
-					var frame = "Images/frame.png";
+					var frame = "Images/" + themename + "_frame.png";
 					if(HighlightFrame)
 					{
 						frame = "Images/frame_golden.png";
@@ -498,16 +519,16 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 							{
 								case Rarity.Free:
 								case Rarity.Common:
-									frame = "Images/frame_rarity_common.png";
+									frame = "Images/" + themename + "_frame_rarity_common.png";
 									break;
 								case Rarity.Rare:
-									frame = "Images/frame_rarity_rare.png";
+                                    frame = "Images/" + themename + "_frame_rarity_rare.png";
 									break;
 								case Rarity.Epic:
-									frame = "Images/frame_rarity_epic.png";
+                                    frame = "Images/" + themename + "_frame_rarity_epic.png";
 									break;
 								case Rarity.Legendary:
-									frame = "Images/frame_rarity_legendary.png";
+                                    frame = "Images/" + themename + "_frame_rarity_legendary.png";
 									break;
 							}
 						}
@@ -516,26 +537,39 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 					//gem
 					if(Config.Instance.RarityCardGems)
 					{
-						var gem = "Images/gem_rarity_common.png";
+                        var gem = "Images/" + themename + "_gem_rarity_common.png";
 						switch(Rarity)
 						{
 							case Rarity.Rare:
-								gem = "Images/gem_rarity_rare.png";
+                                gem = "Images/" + themename + "_gem_rarity_rare.png";
 								break;
 							case Rarity.Epic:
-								gem = "Images/gem_rarity_epic.png";
+                                gem = "Images/" + themename + "_gem_rarity_epic.png";
 								break;
 							case Rarity.Legendary:
-								gem = "Images/gem_rarity_legendary.png";
+                                gem = "Images/" + themename + "_gem_rarity_legendary.png";
 								break;
 						}
-						drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri(gem, UriKind.Relative)), new Rect(3, 3, 28, 28)));
+                        Rect gemrect = new Rect(3, 3, 28, 28);
+
+                        if(themename != "")
+                        {
+                             gemrect = new Rect(0, 0, 34, 34);
+                        }
+						drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri(gem, UriKind.Relative)), gemrect));
 					}
 
 					if(Math.Abs(Count) > 1 || Rarity == Rarity.Legendary)
 					{
-						drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/frame_countbox.png", UriKind.Relative)),
-						                                           new Rect(189, 6, 25, 24)));
+                        Rect CountTextRect = new Rect(189, 6, 25, 24);
+
+                        if (themename != "")
+                        {
+                            CountTextRect = new Rect(183, 0, 34, 34);
+                        }
+
+                        drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/" + themename + "_frame_countbox.png", UriKind.Relative)),
+                                                                   CountTextRect));
 
 						if(Math.Abs(Count) > 1 && Math.Abs(Count) <= 9)
 						{
@@ -543,6 +577,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 							                          new ImageDrawing(
 								                          new BitmapImage(new Uri("Images/frame_" + Math.Abs(Count) + ".png", UriKind.Relative)),
 								                          new Rect(194, 8, 18, 21)));
+                                
 						}
 						else
 						{
@@ -561,7 +596,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
 					//dark overlay
 					if(Count <= 0 || Jousted)
-						drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/dark.png", UriKind.Relative)), new Rect(0, 0, 218, 35)));
+						drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/" + themename + "_dark.png", UriKind.Relative)), new Rect(0, 0, 218, 35)));
 
 					var brush = new ImageBrush {ImageSource = new DrawingImage(drawingGroup)};
 					_cachedBackground = brush;
