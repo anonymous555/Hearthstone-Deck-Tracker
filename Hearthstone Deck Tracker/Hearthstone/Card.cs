@@ -466,8 +466,20 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
 					if(File.Exists("Images/" + cardFileName))
 					{
+                        int countboxoffset = 0;
+
+                        if (Math.Abs(Count) > 1 || Rarity == Rarity.Legendary)
+                        {
+                            countboxoffset = 20;
+                        }
+
 						drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/" + cardFileName, UriKind.Relative)),
-						                                           new Rect(104, 1, 110, 34)));
+                                                                   new Rect(104 - countboxoffset, 1, 110, 34)));
+
+                        /// fade
+                        /// frame = "Images/fade.png";
+                        drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/" + "fade.png", UriKind.Relative)),
+                                           new Rect(104 - 27 - countboxoffset, 1, 110, 34)));
 					}
 
 					//frame
