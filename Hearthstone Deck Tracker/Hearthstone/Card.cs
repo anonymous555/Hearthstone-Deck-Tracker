@@ -562,10 +562,12 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 					if(Math.Abs(Count) > 1 || Rarity == Rarity.Legendary)
 					{
                         Rect CountTextRect = new Rect(189, 6, 25, 24);
+                        int countxoffset = 0;
 
                         if (themename != "")
                         {
                             CountTextRect = new Rect(183, 0, 34, 34);
+                            countxoffset = 2;
                         }
 
                         drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/" + themename + "_frame_countbox.png", UriKind.Relative)),
@@ -576,13 +578,13 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 							drawingGroup.Children.Add(
 							                          new ImageDrawing(
 								                          new BitmapImage(new Uri("Images/frame_" + Math.Abs(Count) + ".png", UriKind.Relative)),
-								                          new Rect(194, 8, 18, 21)));
+                                                          new Rect(194 + countxoffset, 8, 18, 21)));
                                 
 						}
 						else
 						{
 							drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/frame_legendary.png", UriKind.Relative)),
-							                                           new Rect(194, 8, 18, 21)));
+                                                                       new Rect(194 + countxoffset, 8, 18, 21)));
 						}
 					}
 
