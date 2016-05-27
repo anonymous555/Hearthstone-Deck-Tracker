@@ -28,6 +28,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
 		[NonSerialized]
 		private ImageBrush _cachedBackground;
+        private ImageBrush _cachedBackgroundimageonly;
 
 		private bool _coloredFrame;
 		private bool _coloredGem;
@@ -560,6 +561,43 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 				}
 			}
 		}
+
+        public ImageBrush BackgroundImageOnly
+        {
+            get
+            {
+                if (_cachedBackgroundimageonly != null )
+                    return _cachedBackgroundimageonly;
+                if (Id == null || Name == null)
+                    return new ImageBrush();
+                try
+                {
+                    // var cardFileName = CardFileName + ".png";
+                    var cardFileName = CardFileNameID + ".png";
+
+
+
+                    //card graphic
+                    var drawingGroup = new DrawingGroup();
+
+                    if (File.Exists("Images/" + cardFileName))
+                    {
+                        drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/" + cardFileName, UriKind.Relative)),
+                                                                   new Rect(104, 1, 110, 34)));
+                    }
+
+
+                    var brush = new ImageBrush { ImageSource = new DrawingImage(drawingGroup) };
+                    _cachedBackgroundimageonly = brush;
+                    return brush;
+                }
+                catch (Exception)
+                {
+                    return new ImageBrush();
+                }
+            }
+        }
+
 
         public ImageSource FullCardImage
         {

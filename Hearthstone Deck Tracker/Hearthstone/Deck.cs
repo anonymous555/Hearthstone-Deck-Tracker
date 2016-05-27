@@ -876,7 +876,75 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
             get { return IsOldGodsDeck() ? Visibility.Visible : Visibility.Collapsed; }
         }
 
-        
+        public ImageBrush Background
+        {
+            get { return getDeckRepresentativeCard().BackgroundImageOnly; }
+        }
+
+        private Card getDeckRepresentativeCard()
+        {
+            string [] namelist  = 
+            {
+                "Reno Jackson",               
+                "C'Thun",
+                "N'Zoth, the Corruptor",
+                "Malygos",
+                "Gang Up",
+                "Savannah Highmane",
+                "Quick Shot",
+                "Gadgetzan Auctioneer", 
+                "Ice Block",
+                "Flamewaker",
+                "Grim Patron",
+                "Mysterious Challenger",
+                "Dread Corsair",
+                "Prophet Velen",
+                "Molten Giant",
+                "Unearthed Raptor",
+                "Tinker's Sharpsword Oil",
+                "Anyfin Can Happen",
+                "Everyfin is Awesome",
+                "Twilight Guardian",
+                "Fierce Monkey",
+                "Grommash Hellscream",
+                "Dreadsteed",
+                "Darkshire Councilman",
+                "Dragon Egg",
+                "Doomguard",
+                "Voidwalker",
+                "Snowchugger",
+                "Mechwarper",
+                "Cabal Shadow Priest",
+                "Bloodlust",
+                "Tunnel Trogg",
+                "Lava Shock",
+                "Desert Camel",
+                "Echo of Medivh",
+                "Selfless Hero",
+                "Blood Knight",
+                "Muster for Battle",
+                "Guardian of Kings",
+                "Fel Reaver",
+                "Mounted Raptor",
+                "Ancient of War",
+                "Wild Growth",
+
+
+
+            };
+
+            foreach (String name in namelist)
+            {
+                foreach ( Card card in Cards)
+                {
+                    if(card.Name.Equals(name) )
+                    {
+                        return card;
+                    }
+                }
+            }
+            return Cards[0];
+        }
 
 	}
 }
