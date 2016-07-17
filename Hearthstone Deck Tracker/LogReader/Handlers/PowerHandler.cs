@@ -22,7 +22,11 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 
 
         private static readonly Regex player_name_playstate_regex = new Regex(@"TAG_CHANGE\ Entity=(?<name>(.+))\ tag=PLAYSTATE\ value=PLAYING");
-        private string detected_enemy_name = "";
+        private string entity2name = "";
+        private string entity3name = "";
+
+        private bool first_player_assigned = false;
+
         private string fixuplogline(string origlogline,  IGame game)
         {
             /// find enemy name
@@ -35,12 +39,20 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
             if (match.Success)
             {
                 string namevalue = match.Groups["name"].Value;
-                if (namevalue != "eddieb")
+                int entityid;
+
+                if (!first_player_assigned)
                 {
-                    detected_enemy_name = namevalue;
-                    /// assign to entity
-                    game.Entities[3].Name = detected_enemy_name;
-                }                    
+                    entityid = 2;
+                    first_player_assigned = true;
+                    entity2name = namevalue;
+                }
+                else
+                {
+                    entityid = 3;
+                    entity3name = namevalue;
+                }
+                game.Entities[entityid].Name = namevalue;
 
             }
 
@@ -50,15 +62,15 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 
             newstring = origlogline.Replace("Entity=GameEntity", "Entity=1");
 
-            /// temp
-            /// 
-            newstring = newstring.Replace("Entity=eddieb", "Entity=2");
-            /// newstring = newstring.Replace("Entity=The Innkeeper", "Entity=3");
-            /// 
-            if(detected_enemy_name != "")
+            if (entity2name != "")
             {
-                newstring = newstring.Replace("Entity=" + detected_enemy_name , "Entity=3");
+                newstring = newstring.Replace("Entity=" + entity2name, "Entity=2");
+            }
+            if (entity3name != "")
+            {
+                newstring = newstring.Replace("Entity=" + entity3name, "Entity=3");
             }            
+
             return newstring;
         }
 
@@ -75,6 +87,10 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 				gameState.AddToTurn = -1;
 				gameState.GameLoaded = true;
 				gameState.LastGameStart = DateTime.Now;
+                first_player_assigned = false;
+                entity2name = "";
+                entity3name = "";
+
 			}
 			else if(HsLogReaderConstants.PowerTaskList.GameEntityRegex.IsMatch(logLine))
 			{
@@ -99,16 +115,6 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
                 if (!game.Entities.ContainsKey(id))
                 {
                     Entity player_entity = new Entity(id);
-                    /// egb name it
-                    if (id == 2)
-                    {
-                        player_entity.Name = "eddieb";
-                    }
-                    else
-                    {
-                        /// player_entity.Name = "The Innkeeper";
-                        ////player_entity.Name = detected_enemy_name;
-                    }
                     game.Entities.Add(id, player_entity);
                 }
 				gameState.CurrentEntityId = id;
