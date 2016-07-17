@@ -20,8 +20,54 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 		private readonly TagChangeHandler _tagChangeHandler = new TagChangeHandler();
 		private readonly List<Entity> _tmpEntities = new List<Entity>();
 
+
+        private static readonly Regex player_name_playstate_regex = new Regex(@"TAG_CHANGE\ Entity=(?<name>(.+))\ tag=PLAYSTATE\ value=PLAYING");
+        private string detected_enemy_name = "";
+        private string fixuplogline(string origlogline,  IGame game)
+        {
+            /// find enemy name
+            /// 
+
+            /// D 23:32:42.5655501 PowerTaskList.DebugPrintPower() -     TAG_CHANGE Entity=Alex tag=PLAYSTATE value=PLAYING
+            /// D 23:32:42.5655501 PowerTaskList.DebugPrintPower() -     TAG_CHANGE Entity=eddieb tag=PLAYSTATE value=PLAYING
+            /// 
+            var match = player_name_playstate_regex.Match(origlogline);
+            if (match.Success)
+            {
+                string namevalue = match.Groups["name"].Value;
+                if (namevalue != "eddieb")
+                {
+                    detected_enemy_name = namevalue;
+                    /// assign to entity
+                    game.Entities[3].Name = detected_enemy_name;
+                }                    
+
+            }
+
+            /////
+
+            string newstring;
+
+            newstring = origlogline.Replace("Entity=GameEntity", "Entity=1");
+
+            /// temp
+            /// 
+            newstring = newstring.Replace("Entity=eddieb", "Entity=2");
+            /// newstring = newstring.Replace("Entity=The Innkeeper", "Entity=3");
+            /// 
+            if(detected_enemy_name != "")
+            {
+                newstring = newstring.Replace("Entity=" + detected_enemy_name , "Entity=3");
+            }            
+            return newstring;
+        }
+
 		public void Handle(string logLine, IHsGameState gameState, IGame game)
 		{
+            /// egb
+            /// 
+            logLine = fixuplogline(logLine, game);
+
 			if(logLine.Contains("CREATE_GAME"))
 			{
 				gameState.GameHandler.HandleGameStart();
@@ -37,16 +83,34 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 				gameState.AddToTurn = -1;
 				var match = HsLogReaderConstants.PowerTaskList.GameEntityRegex.Match(logLine);
 				var id = int.Parse(match.Groups["id"].Value);
-				if(!game.Entities.ContainsKey(id))
-					game.Entities.Add(id, new Entity(id));
+                if (!game.Entities.ContainsKey(id))
+                {
+                    // egb name it
+                    Entity game_entity = new Entity(id);
+                    game_entity.Name = "GameEntity";
+                    game.Entities.Add(id, game_entity);
+                }
 				gameState.CurrentEntityId = id;
 			}
 			else if(HsLogReaderConstants.PowerTaskList.PlayerEntityRegex.IsMatch(logLine))
 			{
 				var match = HsLogReaderConstants.PowerTaskList.PlayerEntityRegex.Match(logLine);
 				var id = int.Parse(match.Groups["id"].Value);
-				if(!game.Entities.ContainsKey(id))
-					game.Entities.Add(id, new Entity(id));
+                if (!game.Entities.ContainsKey(id))
+                {
+                    Entity player_entity = new Entity(id);
+                    /// egb name it
+                    if (id == 2)
+                    {
+                        player_entity.Name = "eddieb";
+                    }
+                    else
+                    {
+                        /// player_entity.Name = "The Innkeeper";
+                        ////player_entity.Name = detected_enemy_name;
+                    }
+                    game.Entities.Add(id, player_entity);
+                }
 				gameState.CurrentEntityId = id;
 			}
 			else if(HsLogReaderConstants.PowerTaskList.TagChangeRegex.IsMatch(logLine))
