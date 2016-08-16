@@ -99,19 +99,19 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		public Card(HearthDb.Card dbCard)
 		{
 			_dbCard = dbCard;
-			Language lang;
+			Locale lang;
 			if(!Enum.TryParse(Config.Instance.SelectedLanguage, out lang))
-				lang = Language.enUS;
+                lang = Locale.enUS;
 			Id = dbCard.Id;
 			Count = 1;
 			PlayerClass = HearthDbConverter.ConvertClass(dbCard.Class);
 			Rarity = HearthDbConverter.RariryConverter(dbCard.Rarity);
 			Type = HearthDbConverter.CardTypeConverter(dbCard.Type);
-			Name = dbCard.GetLocName(Language.enUS);
+            Name = dbCard.GetLocName(Locale.enUS);
 			Cost = dbCard.Cost;
 			LocalizedName = dbCard.GetLocName(lang);
 			Text = dbCard.GetLocText(lang);
-			EnglishText = dbCard.GetLocText(Language.enUS);
+            EnglishText = dbCard.GetLocText(Locale.enUS);
 			Attack = dbCard.Attack;
 			Health = dbCard.Health;
 			Race = HearthDbConverter.RaceConverter(dbCard.Race);
@@ -121,7 +121,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			Set = HearthDbConverter.SetConverter(dbCard.Set);
 			foreach(var altLangStr in Config.Instance.AlternativeLanguages)
 			{
-				Language altLang;
+                Locale altLang;
 				if(Enum.TryParse(altLangStr, out altLang))
 				{
 					AlternativeNames.Add(dbCard.GetLocName(altLang));

@@ -29,7 +29,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			{17, "Hero Skins"},
 			{18, "Tavern Brawl"},
 			{20, "League of Explorers"},
-            {21, "Whispers of the Old Gods"}
+            {21, "Whispers of the Old Gods"},
+            {23, "One Night in Karazhan"}
 		};
 
 		public static string ConvertClass(CardClass cardClass)
