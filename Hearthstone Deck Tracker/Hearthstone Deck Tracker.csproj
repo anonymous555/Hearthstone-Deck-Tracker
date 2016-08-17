@@ -4385,6 +4385,7 @@
     <Resource Include="Resources\overlay_2.png" />
     <Resource Include="Resources\loeicon.png" />
     <Resource Include="Resources\ogicon.png" />
+    <Resource Include="Resources\karazadicon.png" />
     <Content Include="Version.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>

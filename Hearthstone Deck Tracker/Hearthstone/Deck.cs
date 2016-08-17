@@ -832,6 +832,13 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
             return result;
         }
 
+        public bool IsKarazadDeck()
+        {
+            bool result;
+            result = isDeckContainingSet("One Night in Karazhan");
+            return result;
+        }
+
         public bool IsStandard()
         {
             if (IsNaxxDeck())
@@ -874,6 +881,11 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
         public Visibility OldGodsVisibility
         {
             get { return IsOldGodsDeck() ? Visibility.Visible : Visibility.Collapsed; }
+        }
+
+        public Visibility KarazadVisibility
+        {
+            get { return IsKarazadDeck() ? Visibility.Visible : Visibility.Collapsed; }
         }
 
         public ImageBrush Background
