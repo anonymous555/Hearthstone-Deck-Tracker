@@ -30,7 +30,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
             Locale lang = Locale.enUS;
 			if(localized)
 				Enum.TryParse(Config.Instance.SelectedLanguage, out lang);
-			var card = Cards.GetFromName(name, lang, false);
+			var card = Cards.GetFromName(name, lang, true);
 			if(card != null)
 				return new Card(card);
 			if(showErrorMessage)

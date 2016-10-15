@@ -85,7 +85,8 @@ namespace Hearthstone_Deck_Tracker.Exporting
 				searchString += " " + card.Artist.ToLowerInvariant().Split(' ').LastOrDefault();
 #endif
 			searchString += GetSpecialSearchCases(card.Name);
-			return searchString;
+            string manastring = " mana:" + card.Cost.ToString();
+			return searchString + manastring;
 		}
 
 		public static string GetSpecialSearchCases(string cardName)

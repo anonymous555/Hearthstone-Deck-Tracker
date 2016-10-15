@@ -900,6 +900,11 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                 "Reno Jackson",               
                 "C'Thun",
                 "N'Zoth, the Corruptor",
+                "Yogg-Saron, Hope's End",
+                "The Curator",
+                "Cloaked Huntress",
+                "Silverware Golem",
+                "Hallazeal the Ascended",
                 "Malygos",
                 "Gang Up",
                 "Starving Buzzard",
@@ -927,7 +932,11 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                 "Voidwalker",
                 "Snowchugger",
                 "Mechwarper",
+                "Purify",
+                "Priest of the Feast",  
                 "Cabal Shadow Priest",
+                "Evolve",
+                "Thunder Bluff Valiant",
                 "Bloodlust",
                 "Tunnel Trogg",
                 "Lava Shock",
@@ -942,6 +951,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                 "Mounted Raptor",
                 "Ancient of War",
                 "Wild Growth",
+                "Lock and Load"
 
 
 
