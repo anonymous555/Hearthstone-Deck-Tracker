@@ -333,6 +333,45 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			get { return GetPlayerClass != "Neutral"; }
 		}
 
+        public bool IsNonMultiNeutral()
+        {
+            if (GetPlayerClass != "Neutral")
+            {
+                return false;
+            }
+            if (_dbCard == null)
+            {
+                return true;
+            }
+            var classGroup = _dbCard.Entity.GetTag(GameTag.MULTI_CLASS_GROUP);
+            if (classGroup == 0)
+                return true;
+            else
+                return false;
+
+        }
+
+        public bool IsClass(string playerClass)
+		{
+			if(GetPlayerClass == playerClass)
+				return true;
+            if(_dbCard == null)
+            {
+                return false;
+            }
+			var classGroup = _dbCard.Entity.GetTag(GameTag.MULTI_CLASS_GROUP);
+			if(classGroup == 0)
+				return false;
+            foreach (CardClass currentclass in Helper.MultiClassGroups[(MultiClassGroup)classGroup])
+            {
+                if (currentclass.ToString().ToLower().Equals(playerClass.ToLower()))
+                {
+                    return true;
+                }
+
+            }
+            return false;
+        }
 
 		[XmlIgnore]
 		public bool IsCreated
