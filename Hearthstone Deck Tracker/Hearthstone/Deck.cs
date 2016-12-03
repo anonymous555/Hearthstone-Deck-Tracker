@@ -839,6 +839,14 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
             return result;
         }
 
+        public bool IsMeanstreetsDeck()
+        {
+            bool result;
+            result = isDeckContainingSet("Mean Streets of Gadgetzan");
+            return result;
+
+        }
+
         public bool IsStandard()
         {
             if (IsNaxxDeck())
@@ -888,6 +896,12 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
             get { return IsKarazadDeck() ? Visibility.Visible : Visibility.Collapsed; }
         }
 
+        public Visibility MeanstreetsVisibility
+        {
+            get { return IsMeanstreetsDeck() ? Visibility.Visible : Visibility.Collapsed; }
+        }
+
+
         public ImageBrush Background
         {
             get { return getDeckRepresentativeCard().BackgroundImageOnly; }
@@ -897,7 +911,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
         {
             string [] namelist  = 
             {
-                "Reno Jackson",               
+                "Reno Jackson",    
+                "Jade Idol",
                 "C'Thun",
                 "N'Zoth, the Corruptor",
                 "Yogg-Saron, Hope's End",

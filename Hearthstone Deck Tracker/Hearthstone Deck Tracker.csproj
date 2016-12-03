@@ -4386,6 +4386,7 @@
     <Resource Include="Resources\loeicon.png" />
     <Resource Include="Resources\ogicon.png" />
     <Resource Include="Resources\karazadicon.png" />
+    <Resource Include="Resources\meanstreetsicon.png" />
     <Content Include="Version.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>

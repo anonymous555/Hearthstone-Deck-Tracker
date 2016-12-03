@@ -54,6 +54,7 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Image Source="../../../Resources/naxicon.png" Width="20" Height="20" Margin="2,2,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Visibility="{Binding NaxxVisibility}" ToolTip="Curse of Naxxramus" Grid.Column="0"/>
                         <Image Source="../../../Resources/gvgicon.png" Width="20" Height="20" Margin="2,2,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Visibility="{Binding GvgVisibility}" ToolTip="Goblins vs Gnomes" Grid.Column="1"/>
@@ -62,11 +63,12 @@
                         <Image Source="../../../Resources/loeicon.png" Width="20" Height="20" Margin="2,2,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Visibility="{Binding LoeVisibility}" ToolTip="League of Explorers" Grid.Column="4"/>
                         <Image Source="../../../Resources/ogicon.png" Width="20" Height="20" Margin="2,2,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Visibility="{Binding OldGodsVisibility}" ToolTip="Old Gods" Grid.Column="5"/>
                         <Image Source="../../../Resources/karazadicon.png" Width="20" Height="20" Margin="2,2,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Visibility="{Binding KarazadVisibility}" ToolTip="Karazad" Grid.Column="6"/>
-                        <Label Content="{Binding Archetype}" HorizontalAlignment="Left" FontSize="10" Margin="2,2,0,0" Foreground="Black" Grid.Column="7" ToolTip="Archetype"/>
+                        <Image Source="../../../Resources/meanstreetsicon.png" Width="20" Height="20" Margin="2,2,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Visibility="{Binding MeanstreetsVisibility}" ToolTip="Karazad" Grid.Column="7"/>
+                        <Label Content="{Binding Archetype}" HorizontalAlignment="Left" FontSize="10" Margin="2,2,0,0" Foreground="Black" Grid.Column="8" ToolTip="Archetype"/>
                         <Image Source="{x:Static utility:ImageCache.ArchivedBlack}" Width="16"
                            Height="16" Margin="0,0,5,0" VerticalAlignment="Center" HorizontalAlignment="Left"
                            Visibility="{Binding ArchivedVisibility}"
-                           ToolTip="Archived" Grid.Column="8"/>
+                           ToolTip="Archived" Grid.Column="9"/>
 
                     </Grid>
 
