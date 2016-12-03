@@ -328,10 +328,11 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 		}
 
 		[XmlIgnore]
-		public bool IsClassCard
+        public bool IsClassCard
 		{
 			get { return GetPlayerClass != "Neutral"; }
 		}
+
 
 		[XmlIgnore]
 		public bool IsCreated

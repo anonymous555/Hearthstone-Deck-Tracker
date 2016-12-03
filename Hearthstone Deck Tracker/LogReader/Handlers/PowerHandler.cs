@@ -327,6 +327,12 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
                             case CardIds.NonCollectible.Neutral.EliseStarseeker_MapToTheGoldenMonkeyToken:
 								AddKnownCardId(gameState, game, CardIds.NonCollectible.Neutral.EliseStarseeker_GoldenMonkeyToken);
 								break;
+///                            case CardIds.Collectible.Druid.JadeIdol:
+///                                AddKnownCardId(gameState, game, CardIds.Collectible.Druid.JadeIdol, 3);
+///                                break;
+                            case CardIds.Collectible.Shaman.WhiteEyes:
+                                AddKnownCardId(gameState, game, CardIds.NonCollectible.Shaman.WhiteEyes_TheStormGuardianToken);
+                                break;
 							default:
 								if(playerEntity.Value != null && playerEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) == 1 && !gameState.PlayerUsedHeroPower
 								   || opponentEntity.Value != null && opponentEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) == 1

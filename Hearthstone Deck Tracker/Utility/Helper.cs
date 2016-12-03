@@ -35,6 +35,7 @@ using PixelFormat = System.Drawing.Imaging.PixelFormat;
 using Point = System.Drawing.Point;
 using Region = Hearthstone_Deck_Tracker.Enums.Region;
 using Size = System.Drawing.Size;
+using HearthDb.Enums;
 
 #endregion
 
@@ -828,5 +829,12 @@ namespace Hearthstone_Deck_Tracker
 			var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
 			return reg != null && ((string)reg.GetValue("ProductName")).Contains("Windows 10");
 		}
+        public static readonly Dictionary<MultiClassGroup, CardClass[]> MultiClassGroups = new Dictionary<MultiClassGroup, CardClass[]>
+		{
+			{MultiClassGroup.GRIMY_GOONS, new[] {CardClass.HUNTER, CardClass.PALADIN, CardClass.WARRIOR}},
+			{MultiClassGroup.JADE_LOTUS, new[] {CardClass.DRUID, CardClass.ROGUE, CardClass.SHAMAN}},
+			{MultiClassGroup.KABAL, new[] {CardClass.MAGE, CardClass.PRIEST, CardClass.WARLOCK}}
+        };
+
 	}
 }
