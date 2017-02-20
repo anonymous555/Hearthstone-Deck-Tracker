@@ -911,7 +911,9 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
         {
             string [] namelist  = 
             {
+                "Kazakus",
                 "Reno Jackson",    
+                "Aya Blackpaw",
                 "Jade Idol",
                 "C'Thun",
                 "N'Zoth, the Corruptor",
@@ -930,6 +932,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                 "Flamewaker",
                 "Grim Patron",
                 "Mysterious Challenger",
+                "Patches the Pirate",
                 "Dread Corsair",
                 "Prophet Velen",
                 "Molten Giant",
@@ -957,6 +960,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                 "Lava Shock",
                 "Desert Camel",
                 "Echo of Medivh",
+                "Grimestreet Outfitter",
                 "Selfless Hero",
                 "Blood Knight",
                 "Blessing of Might",
