@@ -15,6 +15,7 @@ using Hearthstone_Deck_Tracker.Controls.Stats;
 using Hearthstone_Deck_Tracker.Enums;
 using Hearthstone_Deck_Tracker.Stats;
 using Hearthstone_Deck_Tracker.Utility;
+using System.IO;
 
 #endregion
 
@@ -847,13 +848,34 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
         }
 
-        public bool IsStandard()
+        public bool IsStandardKraken()
         {
             if (IsNaxxDeck())
                 return false;
             if (IsGvgDeck())
                 return false;
             return true;
+        }
+
+        public bool IsStandardMammoth()
+        {
+            if (IsNaxxDeck())
+                return false;
+            if (IsGvgDeck())
+                return false;
+            if (IsLoeDeck())
+                return false;
+            if (IsTgtDeck())
+                return false;
+            if (IsBrmDeck())
+                return false;
+
+            return true;
+        }
+
+        public bool IsStandard()
+        {
+            return IsStandardKraken();
         }
 
         public Visibility StandardVisibility
@@ -906,6 +928,82 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
         {
             get { return getDeckRepresentativeCard().BackgroundImageOnly; }
         }
+
+
+        [NonSerialized]
+        private ImageBrush wildimage=null;
+        private ImageBrush krakenimage = null;
+        private ImageBrush mammothimage = null;
+
+        public ImageBrush StandardWildImage
+        {
+            get
+            {
+                if (wildimage == null)
+                {
+                    try
+                    {
+
+                        //card graphic
+                        DrawingGroup drawingGroup;
+                        ImageBrush brush;
+                        //// WILD                        
+                        drawingGroup= new DrawingGroup();
+
+                        if (File.Exists("Images/" + "Mode_Wild.png"))
+                        {
+                            drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/" + "Mode_Wild.png", UriKind.Relative)),
+                                                                       new Rect(0, 0, 64, 64)));
+                        }
+
+
+                        brush = new ImageBrush { ImageSource = new DrawingImage(drawingGroup) };
+                        wildimage = brush;
+                        ////// Kraken
+                        drawingGroup = new DrawingGroup();
+                        if (File.Exists("Images/" + "Mode_Standard_Kraken.png"))
+                        {
+                            drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/" + "Mode_Standard_Kraken.png", UriKind.Relative)),
+                                                                       new Rect(0, 0, 64, 64)));
+                        }
+
+
+                        brush = new ImageBrush { ImageSource = new DrawingImage(drawingGroup) };
+                        krakenimage = brush;
+                        //// Mammoth
+                        drawingGroup = new DrawingGroup();
+                        if (File.Exists("Images/" + "Mode_Standard_Mammoth.png"))
+                        {
+                            drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/" + "Mode_Standard_Mammoth.png", UriKind.Relative)),
+                                                                       new Rect(0, 0, 64, 64)));
+                        }
+
+
+                        brush = new ImageBrush { ImageSource = new DrawingImage(drawingGroup) };
+                        mammothimage = brush;
+
+
+                    }
+                    catch (Exception)
+                    {
+                        return new ImageBrush();
+                    }
+                }
+                {
+                    if (IsStandardMammoth())
+                    {
+                        return mammothimage;
+                    }
+                    else if (IsStandardKraken())
+                    {
+                        return krakenimage;
+                    }
+                    return wildimage;
+                }
+            }
+        }
+
+
 
         private Card getDeckRepresentativeCard()
         {

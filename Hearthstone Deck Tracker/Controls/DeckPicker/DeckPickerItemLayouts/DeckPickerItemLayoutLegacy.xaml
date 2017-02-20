@@ -22,6 +22,7 @@
                        RenderOptions.BitmapScalingMode="Fant" />
             </Grid>
             <Rectangle Fill="{Binding Background}" Height="35" Width="110"  />
+            <Rectangle Fill="{Binding StandardWildImage}" Height="46" Width="46"  />
             <Border BorderThickness="1"  BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}" Width="48" DockPanel.Dock="Right" Margin="-1">
                 <Grid>
                     <Grid.RowDefinitions>
