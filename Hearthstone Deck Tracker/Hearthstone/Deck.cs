@@ -1097,7 +1097,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                 "Mounted Raptor",
                 "Ancient of War",
                 "Wild Growth",
-                "Lock and Load"
+                "Lock and Load", 
+                "Kirin Tor Mage"
 
 
 
