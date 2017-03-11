@@ -710,6 +710,18 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			return string.Format("{0} ({1})", Name, Class);
 		}
 
+        public bool isBrawlDeck()
+        {
+            foreach (String tag in _tags)
+            {
+                if (tag.ToLower().Contains("brawl")){
+
+                    return true;
+                }
+            }
+            return false;
+        }
+
 		public override bool Equals(object obj)
 		{
 			var deck = obj as Deck;
@@ -934,6 +946,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
         private ImageBrush wildimage=null;
         private ImageBrush krakenimage = null;
         private ImageBrush mammothimage = null;
+        private ImageBrush tavernbrawlimage = null;
 
         public ImageBrush StandardWildImage
         {
@@ -982,6 +995,18 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                         brush = new ImageBrush { ImageSource = new DrawingImage(drawingGroup) };
                         mammothimage = brush;
 
+                        //// brawl
+                        drawingGroup = new DrawingGroup();
+                        if (File.Exists("Images/" + "brawlmug.png"))
+                        {
+                            drawingGroup.Children.Add(new ImageDrawing(new BitmapImage(new Uri("Images/" + "brawlmug.png", UriKind.Relative)),
+                                                                       new Rect(0, 0, 64, 64)));
+                        }
+
+
+                        brush = new ImageBrush { ImageSource = new DrawingImage(drawingGroup) };
+                        tavernbrawlimage = brush;
+
 
                     }
                     catch (Exception)
@@ -990,7 +1015,11 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                     }
                 }
                 {
-                    if (IsStandardMammoth())
+                    if (isBrawlDeck())
+                    {
+                        return tavernbrawlimage;
+                    }
+                    else if (IsStandardMammoth())
                     {
                         return mammothimage;
                     }
