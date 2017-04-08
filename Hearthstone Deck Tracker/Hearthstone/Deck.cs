@@ -860,6 +860,14 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
         }
 
+        public bool IsUngoroDeck()
+        {
+            bool result;
+            result = isDeckContainingSet("Journey to Un'Goro");
+            return result;
+
+        }
+
         public bool IsStandardKraken()
         {
             if (IsNaxxDeck())
@@ -887,7 +895,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
         public bool IsStandard()
         {
-            return IsStandardKraken();
+            return IsStandardMammoth();
         }
 
         public Visibility StandardVisibility
@@ -935,6 +943,10 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
             get { return IsMeanstreetsDeck() ? Visibility.Visible : Visibility.Collapsed; }
         }
 
+        public Visibility UngoroVisibility
+        {
+            get { return IsUngoroDeck() ? Visibility.Visible : Visibility.Collapsed; }
+        }
 
         public ImageBrush Background
         {

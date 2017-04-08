@@ -732,7 +732,14 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
         [XmlIgnore]
         public bool IsStandard
         {
-            get { return (Set != "Curse of Naxxramas") && (Set != "Goblins vs Gnomes"); }
+            get { return (Set != "Curse of Naxxramas") && 
+                         (Set != "Goblins vs Gnomes") &&
+                         (Set != "Blackrock Mountain") && 
+                         (Set != "The Grand Tournament") && 
+                         (Set != "League of Explorers") &&
+                         (Set != "Reward")                                                         
+                
+                ; }
         }
 
 
