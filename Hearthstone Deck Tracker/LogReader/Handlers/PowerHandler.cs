@@ -291,6 +291,15 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
 								AddKnownCardId(gameState, game, game.Entities[gameState.LastCardPlayed].CardId);
 								AddKnownCardId(gameState, game, CardIds.NonCollectible.Neutral.TradePrinceGallywix_GallywixsCoinToken);
 								break;
+                            case CardIds.Collectible.Shaman.WhiteEyes:
+                                AddKnownCardId(gameState, game,CardIds.NonCollectible.Shaman.WhiteEyes_TheStormGuardianToken);
+                                break;
+                            case CardIds.Collectible.Hunter.RaptorHatchling:
+                                AddKnownCardId(gameState, game, CardIds.NonCollectible.Hunter.RaptorHatchling_RaptorPatriarchToken);
+                                break;
+                            case CardIds.Collectible.Warrior.DirehornHatchling:
+                                AddKnownCardId(gameState, game, CardIds.NonCollectible.Warrior.DirehornHatchling_DirehornMatriarchToken);
+                                break;
 						}
 					}
 					else //POWER
@@ -327,11 +336,14 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
                             case CardIds.NonCollectible.Neutral.EliseStarseeker_MapToTheGoldenMonkeyToken:
 								AddKnownCardId(gameState, game, CardIds.NonCollectible.Neutral.EliseStarseeker_GoldenMonkeyToken);
 								break;
-///                            case CardIds.Collectible.Druid.JadeIdol:
-///                                AddKnownCardId(gameState, game, CardIds.Collectible.Druid.JadeIdol, 3);
-///                                break;
-                            case CardIds.Collectible.Shaman.WhiteEyes:
-                                AddKnownCardId(gameState, game, CardIds.NonCollectible.Shaman.WhiteEyes_TheStormGuardianToken);
+                            case CardIds.Collectible.Neutral.Doomcaller:
+                                AddKnownCardId(gameState, game, CardIds.NonCollectible.Neutral.Cthun);
+                                break;
+                            case CardIds.NonCollectible.Hunter.TheMarshQueen_QueenCarnassaToken:
+                                AddKnownCardId(gameState, game,  CardIds.NonCollectible.Hunter.TheMarshQueen_CarnassasBroodToken, 15);
+                                break;
+                            case CardIds.Collectible.Neutral.EliseTheTrailblazer:
+                                AddKnownCardId(gameState, game, CardIds.NonCollectible.Neutral.ElisetheTrailblazer_UngoroPackToken);
                                 break;
 							default:
 								if(playerEntity.Value != null && playerEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) == 1 && !gameState.PlayerUsedHeroPower

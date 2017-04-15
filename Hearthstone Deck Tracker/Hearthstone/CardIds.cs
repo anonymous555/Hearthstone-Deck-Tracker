@@ -94,10 +94,19 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 				{
 					get
 					{
-						if(DateTime.UtcNow < new DateTime(2015, 12, 3)) //LOE wing 3 release date
-							return new List<string> {BearTrap, ExplosiveTrap, FreezingTrap, Misdirection, Snipe, SnakeTrap};
-						return new List<string> {BearTrap, DartTrap, ExplosiveTrap, FreezingTrap, Misdirection, Snipe, SnakeTrap};
+                        return new List<string> { BearTrap, CatTrick, DartTrap, ExplosiveTrap, FreezingTrap, HiddenCache, Misdirection, Snipe, SnakeTrap };
 					}
+				}
+
+   				public static string HiddenCache
+				{
+					get { return HearthDb.CardIds.Collectible.Hunter.HiddenCache; }
+				}
+
+
+   				public static string CatTrick
+				{
+					get { return HearthDb.CardIds.Collectible.Hunter.CatTrick; }
 				}
 
 				public static string BearTrap
@@ -140,8 +149,20 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			{
 				public static List<string> All
 				{
-					get { return new List<string> {Counterspell, Duplicate, Effigy, IceBarrier, IceBlock, MirrorEntity, Spellbender, Vaporize}; }
+                    get { return new List<string> { Counterspell, Duplicate, Effigy, IceBarrier, IceBlock, ManaBind, MirrorEntity, PotionOfPolymorph, Spellbender, Vaporize }; }
 				}
+
+                public static string PotionOfPolymorph
+				{
+					get { return HearthDb.CardIds.Collectible.Mage.PotionOfPolymorph; }
+				}
+
+
+  				public static string ManaBind
+				{
+					get { return HearthDb.CardIds.Collectible.Mage.ManaBind; }
+				}
+
 
 				public static string Counterspell
 				{
@@ -188,8 +209,14 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			{
 				public static List<string> All
 				{
-					get { return new List<string> {Avenge, CompetitiveSpirit, EyeForAnEye, NobleSacrifice, Redemption, Repentance, SacredTrial}; }
+                    get { return new List<string> { Avenge, CompetitiveSpirit, EyeForAnEye, GetawayKodo, NobleSacrifice, Redemption, Repentance, SacredTrial }; }
 				}
+
+                public static string GetawayKodo
+                {
+                    get { return HearthDb.CardIds.Collectible.Paladin.GetawayKodo; }
+                }
+
 
 				public static string Avenge
 				{

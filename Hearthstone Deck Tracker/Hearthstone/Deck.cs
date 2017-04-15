@@ -1050,6 +1050,15 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
         {
             string [] namelist  = 
             {
+                "Awaken the Makers",
+                "Fire Plume's Heart",
+                "Jungle Giants",
+                "Lakkari Sacrifice",
+                "Open the Waygate",
+                "The Caverns Below",
+                "The Last Kaleidosaur",
+                "The Marsh Queen",
+                "Unite the Murlocs",
                 "Kazakus",
                 "Reno Jackson",    
                 "Aya Blackpaw",
@@ -1057,6 +1066,9 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                 "C'Thun",
                 "N'Zoth, the Corruptor",
                 "Yogg-Saron, Hope's End",
+                "Pyros",
+                "Blazecaller",
+                "Lyra the Sunshard",
                 "The Curator",
                 "Cloaked Huntress",
                 "Silverware Golem",
@@ -1099,6 +1111,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                 "Lava Shock",
                 "Desert Camel",
                 "Echo of Medivh",
+                "Finja, the Flying Star",
                 "Grimestreet Outfitter",
                 "Selfless Hero",
                 "Blood Knight",
@@ -1110,7 +1123,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                 "Ancient of War",
                 "Wild Growth",
                 "Lock and Load", 
-                "Kirin Tor Mage"
+                "Kirin Tor Mage",
+                "Humongous Razorleaf"
 
 
 

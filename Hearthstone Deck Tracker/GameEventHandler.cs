@@ -985,6 +985,12 @@ namespace Hearthstone_Deck_Tracker
 		{
 			if(string.IsNullOrEmpty(cardId))
 				return;
+            if (!entity.IsSecret)
+            {
+                /// quest
+                HandlePlayerPlay(entity, cardId, turn);
+                return;
+            }
 			LogEvent("PlayerSecretPlayed", cardId);
 			if(fromDeck)
 				_game.Player.SecretPlayedFromDeck(entity, turn);
@@ -1293,6 +1299,12 @@ namespace Hearthstone_Deck_Tracker
 
 		public void HandleOpponentSecretPlayed(Entity entity, string cardId, int from, int turn, bool fromDeck, int otherId)
 		{
+            if (!entity.IsSecret)
+            {
+                /// quest
+                HandleOpponentPlay(entity, cardId, from, turn);
+                return;
+            }
 			LogEvent("OpponentSecretPlayed");
 			_game.OpponentSecretCount++;
 			if(fromDeck)
