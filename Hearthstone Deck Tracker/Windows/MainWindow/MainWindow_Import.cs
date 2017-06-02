@@ -112,16 +112,39 @@ namespace Hearthstone_Deck_Tracker.Windows
 
 		private async Task<Deck> ImportDeckFromURL(string url)
 		{
-			var controller = await this.ShowProgressAsync("Loading Deck...", "please wait");
+            try
+            {
 
-			//var deck = await this._deckImporter.Import(url);
-			var deck = await DeckImporter.Import(url);
+                var controller = await this.ShowProgressAsync("Loading Deck...", "please wait");
 
-			if(deck != null)
-				deck.Url = url;
+                //var deck = await this._deckImporter.Import(url);
+                Uri uriResult;
+                var clipboard = Clipboard.GetText();
+                var validUrl = Uri.TryCreate(clipboard, UriKind.Absolute, out uriResult)
+                                    && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
+                if (validUrl)
+                {
+                    var deck = await DeckImporter.Import(url);
 
-			await controller.CloseAsync();
-			return deck;
+                    if (deck != null)
+                        deck.Url = url;
+
+                    await controller.CloseAsync();
+                    return deck;
+                }
+                var deck_c = DeckSerializer.Deserialize(clipboard);
+                if (deck_c != null)
+                {
+                    await controller.CloseAsync();
+                    return deck_c;
+                }
+                await controller.CloseAsync();
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
 		}
 
 		private async void BtnIdString_Click(object sender, RoutedEventArgs e)

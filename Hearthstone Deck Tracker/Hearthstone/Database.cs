@@ -38,6 +38,17 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			return new Card("UNKNOWN", null, Rarity.Free, "Minion", name, 0, name, 0, 1, "", "", 0, 0, "UNKNOWN", null, 0, "", "");
 		}
 
+        public static Card GetCardFromDbfId(int dbfId, bool collectible = true)
+        {
+            if (dbfId == 0)
+                return null;
+            var card = Cards.GetFromDbfId(dbfId, collectible);
+            if (card != null)
+                return new Card(card);
+            Logger.WriteLine("Could not find card with DbfId=" + dbfId);
+            return new Card("UNKNOWN", null, Rarity.Free, "Minion", "", 0, "", 0, 1, "", "", 0, 0, "UNKNOWN", null, 0, "", "");
+        }
+
 		public static List<Card> GetActualCards()
 		{
 			return Cards.Collectible.Values.Select(x => new Card(x)).ToList();
