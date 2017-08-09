@@ -32,7 +32,8 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
             {21, "Whispers of the Old Gods"},
             {23, "One Night in Karazhan"},
             {25, "Mean Streets of Gadgetzan"},
-           	{27, "Journey to Un'Goro"}
+           	{27, "Journey to Un'Goro"},
+            {1001, "Knights of the Frozen Throne"}
 		};
 
 		public static string ConvertClass(CardClass cardClass)

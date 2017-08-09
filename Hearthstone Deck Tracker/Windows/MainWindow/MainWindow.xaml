@@ -549,6 +549,7 @@
                         <RadioButton Content="ONE NIGHT IN KARAZHAN" Click="BtnFilter_OnClick" Margin="-24,0,0,0" FontSize="14" />
                         <RadioButton Content="MEAN STREETS OF GADGETZAN" Click="BtnFilter_OnClick" Margin="-24,0,0,0" FontSize="14" />
                         <RadioButton Content="JOURNEY TO UN'GORO" Click="BtnFilter_OnClick" Margin="-24,0,0,0" FontSize="14" />
+                        <RadioButton Content="KNIGHTS OF THE FROZEN THRONE" Click="BtnFilter_OnClick" Margin="-24,0,0,0" FontSize="14" />
                     </MenuItem>
                 </MenuItem>
             </Menu>

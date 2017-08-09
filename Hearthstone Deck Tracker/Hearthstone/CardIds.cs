@@ -111,6 +111,11 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 					}
 				}
 
+                public static string VenomstrikeTrap
+                {
+                    get { return HearthDb.CardIds.Collectible.Hunter.VenomstrikeTrap; }
+                }
+
    				public static string HiddenCache
 				{
 					get { return HearthDb.CardIds.Collectible.Hunter.HiddenCache; }
@@ -162,8 +167,13 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 			{
 				public static List<string> All
 				{
-                    get { return new List<string> { Counterspell, Duplicate, Effigy, IceBarrier, IceBlock, ManaBind, MirrorEntity, PotionOfPolymorph, Spellbender, Vaporize }; }
+                    get { return new List<string> { Counterspell, Duplicate, Effigy, IceBarrier, IceBlock, ManaBind, MirrorEntity, PotionOfPolymorph, Spellbender, Vaporize, FrozenClone }; }
 				}
+
+                public static string FrozenClone
+                {
+                    get { return HearthDb.CardIds.Collectible.Mage.FrozenClone; }
+                }
 
                 public static string PotionOfPolymorph
 				{

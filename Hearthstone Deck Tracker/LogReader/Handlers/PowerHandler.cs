@@ -345,6 +345,9 @@ namespace Hearthstone_Deck_Tracker.LogReader.Handlers
                             case CardIds.Collectible.Neutral.EliseTheTrailblazer:
                                 AddKnownCardId(gameState, game, CardIds.NonCollectible.Neutral.ElisetheTrailblazer_UngoroPackToken);
                                 break;
+                            case CardIds.Collectible.Mage.GhastlyConjurer:
+                                AddKnownCardId(gameState, game, CardIds.Collectible.Mage.MirrorImage);
+								break;
 							default:
 								if(playerEntity.Value != null && playerEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) == 1 && !gameState.PlayerUsedHeroPower
 								   || opponentEntity.Value != null && opponentEntity.Value.GetTag(GAME_TAG.CURRENT_PLAYER) == 1

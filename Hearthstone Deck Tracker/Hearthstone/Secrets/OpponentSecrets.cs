@@ -138,8 +138,11 @@ namespace Hearthstone_Deck_Tracker
 			}
 			else
 			{
-				if(!fastOnly)
-					SetZeroOlder(CardIds.Secrets.Hunter.SnakeTrap, stopIndex);
+                if (!fastOnly)
+                {
+                    SetZeroOlder(CardIds.Secrets.Hunter.SnakeTrap, stopIndex);
+                    SetZeroOlder(CardIds.Secrets.Hunter.VenomstrikeTrap, stopIndex);
+                }
 
 				if(attacker.IsMinion)
 					SetZeroOlder(CardIds.Secrets.Hunter.FreezingTrap, stopIndex);
