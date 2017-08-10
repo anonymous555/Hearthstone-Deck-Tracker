@@ -4390,6 +4390,7 @@
     <Resource Include="Resources\karazadicon.png" />
     <Resource Include="Resources\meanstreetsicon.png" />
     <Resource Include="Resources\ungoroicon.png" />
+    <Resource Include="Resources\frozenthoneicon.png" />
     <Content Include="Version.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>

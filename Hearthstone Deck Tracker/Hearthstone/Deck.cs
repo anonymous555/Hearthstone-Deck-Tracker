@@ -868,6 +868,14 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
 
         }
 
+        public bool IsFrozenThroneDeck()
+        {
+            bool result;
+            result = isDeckContainingSet("Knights of the Frozen Throne");
+            return result;
+
+        }
+
         public bool IsStandardKraken()
         {
             if (IsNaxxDeck())
@@ -946,6 +954,11 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
         public Visibility UngoroVisibility
         {
             get { return IsUngoroDeck() ? Visibility.Visible : Visibility.Collapsed; }
+        }
+
+        public Visibility FrozenThroneVisibility
+        {
+            get { return IsFrozenThroneDeck() ? Visibility.Visible : Visibility.Collapsed; }
         }
 
         public ImageBrush Background
