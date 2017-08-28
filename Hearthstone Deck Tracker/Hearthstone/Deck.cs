@@ -966,6 +966,10 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
             get { return getDeckRepresentativeCard().BackgroundImageOnly; }
         }
 
+        public ImageBrush SecondBestBackground
+        {
+            get { return getSecondDeckRepresentativeCard().BackgroundImageOnly; }
+        }
 
         [NonSerialized]
         private ImageBrush wildimage=null;
@@ -1058,10 +1062,7 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
         }
 
 
-
-        private Card getDeckRepresentativeCard()
-        {
-            string [] namelist  = 
+        static private string[] namelist = 
             {
                 "Awaken the Makers",
                 "Fire Plume's Heart",
@@ -1072,39 +1073,56 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                 "The Last Kaleidosaur",
                 "The Marsh Queen",
                 "Unite the Murlocs",
+                "Astral Communion",
                 "Kazakus",
                 "Reno Jackson",    
                 "Aya Blackpaw",
                 "Jade Idol",
                 "C'Thun",
                 "N'Zoth, the Corruptor",
+                "Y'Shaarj, Rage Unbound",
                 "Yogg-Saron, Hope's End",
+                "Twilight Darkmender",
                 "Snowchugger",
                 "Mechwarper",
                 "Pyros",
+                "Kalimos, Primal Lord",
                 "Blazecaller",
                 "Steam Surger",
                 "Obsidian Statue",
                 "Shadowreaper Anduin",
                 "Lyra the Sunshard",
-                "The Curator",
                 "Deathstalker Rexxar",
                 "Cloaked Huntress",
                 "Silverware Golem",
                 "Thrall, Deathseer",
                 "Hallazeal the Ascended",
+                "White Eyes",
                 "Malygos",
                 "Gang Up",
                 "Starving Buzzard",
                 "Savannah Highmane",
                 "Quick Shot",
+                "Glaivezooka",
+                "Crackling Razormaw",
+                "Houndmaster",
                 "Frost Lich Jaina",
                 "Gadgetzan Auctioneer", 
+                "Molten Reflection",
                 "Ice Block",
                 "Flamewaker",
                 "Archmage Antonidas",
                 "Grim Patron",
                 "Mysterious Challenger",
+                "Jade Shuriken",
+                "Sherazin, Corpse Flower",
+                "Edwin VanCleef",
+                "Questing Adventurer",
+                "Living Mana",          
+                "Dragon Egg",
+                "Mark of the Lotus",
+                "Evolve",
+                "Jade Lightning",
                 "Patches the Pirate",
                 "Dread Corsair",
                 "Prophet Velen",
@@ -1115,26 +1133,44 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                 "Anyfin Can Happen",
                 "Everyfin is Awesome",
                 "Twilight Guardian",
+                "Alley Armorsmith",
                 "Fierce Monkey",
+                "Drakonid Operative",
+                "Drakonid Crusher",
+                "Ancient Shieldbearer",
+                "Malkorok",
                 "Grommash Hellscream",
                 "Bloodreaver Gul'dan",
                 "Dreadsteed",
                 "Darkshire Councilman",
-                "Dragon Egg",
+                "Mal'Ganis",
+                "Abyssal Enforcer",
+                "Lord Jaraxxus",
+                "Voidcaller",
+                "Imp Gang Boss",
+                "Imp-losion",
+                "Darkshire Librarian",
+                "Dark Peddler",
                 "Doomguard",
+                "Possessed Villager",
                 "Voidwalker",
                 "Purify",
+                "Radiant Elemental",
                 "Priest of the Feast",  
                 "Cabal Shadow Priest",
-                "Evolve",
                 "Thunder Bluff Valiant",
-                "Bloodlust",
+                "Devolve",
+                "Jinyu Waterspeaker",
                 "Tunnel Trogg",
+                "Al'Akir the Windlord",
+                "Totem Golem ",
+                "Bloodlust",
                 "Lava Shock",
                 "Desert Camel",
                 "Echo of Medivh",
                 "Uther of the Ebon Blade",
                 "Finja, the Flying Star",
+                "Gentle Megasaur",
                 "Grimestreet Outfitter",
                 "Selfless Hero",
                 "Blood Knight",
@@ -1142,23 +1178,62 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
                 "Muster for Battle",
                 "Guardian of Kings",
                 "Crypt Lord",
-                "Living Mana",          
                 "Ultimate Infestation",
                 "Malfurion the Pestilent",
                 "Fel Reaver",
                 "Mounted Raptor",
+                "Mark of Y'Shaarj ",
+                "Fandral Staghelm",
                 "Ancient of War",
                 "Wild Growth",
                 "Lock and Load", 
+                "Medivh, the Guardian",
                 "Kirin Tor Mage",
+                "Arcanologist", 
+                "Kabal Crystal Runner",
                 "Humongous Razorleaf",
                 "Dead Man's Hand",
                 "The Lich King",
-
+                "Entomb",
+                "Hooded Acolyte",
+                "Ragnaros, Lightlord",
+                "Servant of Kalimos",
+                "Mountain Giant",
+                "Nerubian Egg",
+                "The Curator",
+                "Undertaker"
 
 
 
             };
+
+        private Card getSecondDeckRepresentativeCard()
+        {
+            bool foundfirst = false;
+
+            foreach (String name in namelist)
+            {
+                foreach (Card card in Cards)
+                {
+                    if (card.Name.Equals(name))
+                    {
+                        if (foundfirst)
+                        {
+                            return card;
+                        }
+                        else
+                        {
+                            foundfirst = true;
+                        }
+                    }
+                }
+            }
+            return Cards[0];
+        }
+
+
+        private Card getDeckRepresentativeCard()
+        {
 
             foreach (String name in namelist)
             {
@@ -1174,4 +1249,5 @@ namespace Hearthstone_Deck_Tracker.Hearthstone
         }
 
 	}
+
 }
